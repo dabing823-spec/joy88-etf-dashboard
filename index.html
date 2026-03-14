@@ -2653,6 +2653,8 @@
             document.getElementById('p2-kpi-signals-sub').textContent = sigParts.join(' | ') || latestChg.date || '-';
 
             // Gauges
+            const top5 = (dashboardData.top20_stocks || []).slice(0, 5);
+            const top5Weight = top5.reduce((sum, s) => sum + (s.weight || 0), 0);
             updateP2Gauges(cashMode, top5Weight);
 
             // Consensus Table
