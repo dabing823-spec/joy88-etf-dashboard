@@ -1128,9 +1128,10 @@
         async function loadData() {
             try {
                 console.log('Loading dashboard data...');
+                const cacheBust = `?t=${Date.now()}`;
                 const [dashRes, etfRes] = await Promise.all([
-                    fetch('data/dashboard.json'),
-                    fetch('data/etf_pages.json')
+                    fetch(`data/dashboard.json${cacheBust}`),
+                    fetch(`data/etf_pages.json${cacheBust}`)
                 ]);
 
                 if (!dashRes.ok || !etfRes.ok) {
