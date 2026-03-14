@@ -85,68 +85,73 @@ def clean(obj):
 # ═══════════════════════════════════════
 
 def _parse_981a_xlsx(fp, date_str):
-    """解析 00981A 的 xlsx 檔案（前18行是 metadata，第21行開始是持股）"""
+    """解析 00981A 的 xlsx 檔案
+    結構：
+      Row 1:  資料日期
+      Row 8:  項目 / 金額 / 權重 (期貨、股票)
+      Row 12: 項目 / 金額 / 權重 (現金、保證金等)
+      Row 20: 股票代號 / 股票名稱 / 股數 / 持股權重
+      Row 21+: 持股資料
+    """
     import openpyxl
     wb = openpyxl.load_workbook(fp, data_only=True)
     ws = wb.active
+    all_rows = list(ws.iter_rows(values_only=True))
+    wb.close()
 
-    # Parse metadata (rows 1-18)
-    meta = {}
-    for row in range(1, 19):
-        key = ws.cell(row=row, column=1).value
-        val = ws.cell(row=row, column=2).value
-        if key:
-            meta[str(key).strip()] = val
+    def parse_pct(val):
+        if val is None:
+            return 0.0
+        s = str(val).replace('%', '').replace(',', '').strip()
+        try:
+            return float(s)
+        except ValueError:
+            return 0.0
 
-    # Parse cash percentage from metadata
-    cash_pct = None
-    for key in meta:
-        if '現金' in key and '比' in key:
-            val = meta[key]
-            if isinstance(val, (int, float)):
-                cash_pct = float(val)
-            elif isinstance(val, str):
-                try:
-                    cash_pct = float(val.replace('%', ''))
-                except:
-                    pass
-
-    # Parse futures percentage
+    # Parse cash & futures from rows with known labels
+    cash_pct = 0
     futures_pct = 0
-    for key in meta:
-        if '期貨' in key:
-            val = meta[key]
-            if isinstance(val, (int, float)):
-                futures_pct = float(val)
-            elif isinstance(val, str):
-                try:
-                    futures_pct = float(val.replace('%', ''))
-                except:
-                    pass
+    for r in all_rows:
+        if not r or not r[0]:
+            continue
+        label = str(r[0]).strip()
+        if label == '現金' and len(r) >= 3:
+            cash_pct = parse_pct(r[2])
+        elif label == '期貨保證金' and len(r) >= 3:
+            futures_pct = parse_pct(r[2])
+        elif '期貨' in label and '名目' in label and len(r) >= 3:
+            futures_pct = max(futures_pct, parse_pct(r[2]))
 
-    # Parse holdings (row 21+)
+    # Find stock data start (after row with "股票代號")
+    stock_start = None
+    for i, r in enumerate(all_rows):
+        if r and r[0] and str(r[0]).strip() == '股票代號':
+            stock_start = i + 1
+            break
+
     holdings = []
-    for row in range(21, ws.max_row + 1):
-        code = ws.cell(row=row, column=1).value
-        name = ws.cell(row=row, column=2).value
-        weight = ws.cell(row=row, column=5).value  # Column E = weight %
-
-        if code and name and weight:
-            try:
-                w = float(str(weight).replace('%', ''))
-                holdings.append({
-                    'code': str(code).strip(),
-                    'name': str(name).strip(),
-                    'weight': w
-                })
-            except (ValueError, TypeError):
+    if stock_start:
+        for r in all_rows[stock_start:]:
+            if not r or not r[0]:
                 continue
+            code = str(r[0]).strip()
+            if not code or code == 'None':
+                continue
+            name = str(r[1]).strip() if len(r) > 1 and r[1] else ''
+            # Weight is in column 4 (index 3) = '持股權重'
+            weight = parse_pct(r[3]) if len(r) > 3 else 0
+            if weight > 0:
+                holdings.append({
+                    'code': code,
+                    'name': name,
+                    'weight': round(weight, 2)
+                })
 
     return {
         'holdings': holdings,
-        'cash_pct': cash_pct,
-        'futures_pct': futures_pct,
-        'meta': meta
+        'cash_pct': round(cash_pct, 2),
+        'futures_pct': round(futures_pct, 2),
+        'meta': {}
     }
 
 
