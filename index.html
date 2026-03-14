@@ -211,7 +211,9 @@
             border-radius: 12px;
             padding: 1.5rem;
             margin-bottom: 2rem;
-            overflow-x: auto;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .table-title {
@@ -219,6 +221,13 @@
             font-weight: 600;
             color: var(--text);
             margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+
+        .table-scroll {
+            overflow-y: auto;
+            overflow-x: auto;
+            max-height: 400px;
         }
 
         table {
@@ -227,7 +236,7 @@
         }
 
         th {
-            background-color: rgba(42, 46, 61, 0.5);
+            background-color: var(--card);
             padding: 1rem;
             text-align: left;
             font-weight: 600;
@@ -236,6 +245,9 @@
             text-transform: uppercase;
             border-bottom: 1px solid var(--border);
             cursor: pointer;
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
 
         th:hover {
@@ -668,6 +680,7 @@
                     <button class="tab-btn" data-tab="holdings-00993a">00993A</button>
                 </div>
                 <div id="holdings-00981a" class="tab-content active">
+                    <div class="table-scroll">
                     <table id="p1-table-holdings-00981a">
                         <thead>
                             <tr>
@@ -678,8 +691,10 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
                 <div id="holdings-00980a" class="tab-content">
+                    <div class="table-scroll">
                     <table id="p1-table-holdings-00980a">
                         <thead>
                             <tr>
@@ -690,8 +705,10 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
                 <div id="holdings-00982a" class="tab-content">
+                    <div class="table-scroll">
                     <table id="p1-table-holdings-00982a">
                         <thead>
                             <tr>
@@ -702,8 +719,10 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
                 <div id="holdings-00991a" class="tab-content">
+                    <div class="table-scroll">
                     <table id="p1-table-holdings-00991a">
                         <thead>
                             <tr>
@@ -714,8 +733,10 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
                 <div id="holdings-00993a" class="tab-content">
+                    <div class="table-scroll">
                     <table id="p1-table-holdings-00993a">
                         <thead>
                             <tr>
@@ -726,6 +747,7 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -737,7 +759,7 @@
                 </div>
                 <div class="chart-container">
                     <div class="chart-title">20日信心度排行</div>
-                    <div style="overflow-y: auto; max-height: 280px;">
+                    <div class="table-scroll" style="max-height: 280px;">
                         <table id="p1-table-conviction" style="font-size: 0.8rem;">
                             <thead>
                                 <tr>
@@ -804,6 +826,7 @@
             <div class="charts-row">
                 <div class="table-container" style="margin-bottom: 0;">
                     <div class="table-title">多ETF共識標的 TOP15</div>
+                    <div class="table-scroll">
                     <table id="p2-table-consensus">
                         <thead>
                             <tr>
@@ -815,10 +838,11 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                    </div>
                 </div>
                 <div style="grid-column: 2;">
                     <div class="chart-title">今日00981A異動摘要</div>
-                    <div id="p2-signal-container"></div>
+                    <div id="p2-signal-container" style="overflow-y: auto; max-height: 400px;"></div>
                 </div>
             </div>
 
@@ -896,6 +920,7 @@
             <!-- Signals Table -->
             <div class="table-container">
                 <div class="table-title">跟單信號</div>
+                <div class="table-scroll" style="max-height: 500px;">
                 <table id="p3-table-signals">
                     <thead>
                         <tr>
@@ -910,6 +935,7 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+                </div>
             </div>
 
             <!-- Charts Row -->
@@ -973,6 +999,7 @@
             <!-- Holdings Table -->
             <div class="table-container">
                 <div class="table-title">完整持股明細</div>
+                <div class="table-scroll">
                 <table id="p4-table-holdings">
                     <thead>
                         <tr>
@@ -983,6 +1010,7 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+                </div>
             </div>
 
             <!-- Comparison Tool -->
@@ -1005,6 +1033,7 @@
                 <div class="comparison-result" id="p4-comparison-result">
                     <div class="table-container" style="margin-bottom: 1rem;">
                         <div class="table-title">新增持股</div>
+                        <div class="table-scroll" style="max-height: 300px;">
                         <table id="p4-compare-new">
                             <thead>
                                 <tr>
@@ -1015,10 +1044,12 @@
                             </thead>
                             <tbody></tbody>
                         </table>
+                        </div>
                     </div>
 
                     <div class="table-container" style="margin-bottom: 1rem;">
                         <div class="table-title">退出持股</div>
+                        <div class="table-scroll" style="max-height: 300px;">
                         <table id="p4-compare-exited">
                             <thead>
                                 <tr>
@@ -1029,10 +1060,12 @@
                             </thead>
                             <tbody></tbody>
                         </table>
+                        </div>
                     </div>
 
                     <div class="table-container" style="margin-bottom: 1rem;">
                         <div class="table-title">權重變化持股</div>
+                        <div class="table-scroll" style="max-height: 300px;">
                         <table id="p4-compare-changed">
                             <thead>
                                 <tr>
@@ -1045,6 +1078,7 @@
                             </thead>
                             <tbody></tbody>
                         </table>
+                        </div>
                     </div>
 
                     <div class="kpi-grid">
