@@ -1032,27 +1032,27 @@
                 </div>
             </div>
 
-            <!-- ETF KPIs -->
+            <!-- ETF Action KPIs -->
             <div class="kpi-grid">
                 <div class="kpi-card">
-                    <div class="kpi-label">00981A 現金水位</div>
-                    <div class="kpi-value" id="p2-kpi-cash">-</div>
-                    <div class="kpi-subtext" id="p2-kpi-cash-subtext">-</div>
+                    <div class="kpi-label">近5日申購/贖回</div>
+                    <div class="kpi-value" id="p2-kpi-units5d">-</div>
+                    <div class="kpi-subtext" id="p2-kpi-units5d-sub">-</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-label">5日均線</div>
-                    <div class="kpi-value" id="p2-kpi-cash5ma">-</div>
-                    <div class="kpi-subtext" id="p2-kpi-cash5ma-subtext">-</div>
+                    <div class="kpi-label">加權指數 5日變化</div>
+                    <div class="kpi-value" id="p2-kpi-taiex5d">-</div>
+                    <div class="kpi-subtext" id="p2-kpi-taiex5d-sub">-</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-label">Top5 集中度</div>
-                    <div class="kpi-value" id="p2-kpi-concentration">-</div>
-                    <div class="kpi-subtext" id="p2-kpi-concentration-subtext">-</div>
+                    <div class="kpi-label">跟單加分狀態</div>
+                    <div class="kpi-value" id="p2-kpi-copyedge">-</div>
+                    <div class="kpi-subtext" id="p2-kpi-copyedge-sub">-</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-label">經理人模式</div>
-                    <div class="kpi-value" id="p2-kpi-manager-mode">-</div>
-                    <div class="kpi-subtext" id="p2-kpi-manager-mode-subtext">-</div>
+                    <div class="kpi-label">今日異動</div>
+                    <div class="kpi-value" id="p2-kpi-signals">-</div>
+                    <div class="kpi-subtext" id="p2-kpi-signals-sub">-</div>
                 </div>
             </div>
 
@@ -2588,29 +2588,69 @@
             renderMarketIndices();
 
             const cashMode = dashboardData.cash_mode || {};
-            const top5 = (dashboardData.top20_stocks || []).slice(0, 5);
-            const top5Weight = top5.reduce((sum, s) => sum + (s.weight || 0), 0);
+            const cs = cashMode.cash_series || dashboardData.cash_series || [];
 
-            // KPIs
+            // KPI 1: 近5日申購/贖回淨額
+            const last5 = cs.slice(-5);
+            const units5d = last5.reduce((sum, d) => sum + (d.units_change || 0), 0);
+            const units5dK = Math.round(units5d / 1000);
+            const u5El = document.getElementById('p2-kpi-units5d');
+            if (units5d > 0) {
+                u5El.textContent = `+${(units5dK).toLocaleString()} 千張`;
+                u5El.style.color = 'var(--red)';
+            } else if (units5d < 0) {
+                u5El.textContent = `${(units5dK).toLocaleString()} 千張`;
+                u5El.style.color = 'var(--green)';
+            } else {
+                u5El.textContent = '0';
+                u5El.style.color = 'var(--text-muted)';
+            }
+            document.getElementById('p2-kpi-units5d-sub').textContent =
+                units5d > 0 ? '大戶淨申購（看多）' : units5d < 0 ? '大戶淨贖回（看空）' : '持平';
+
+            // KPI 2: 加權指數 5日變化
+            const taiexNow = cs.length ? cs[cs.length - 1].taiex : null;
+            const taiex5ago = cs.length >= 6 ? cs[cs.length - 6].taiex : null;
+            if (taiexNow && taiex5ago) {
+                const taiexChg = taiexNow - taiex5ago;
+                const taiexPct = (taiexChg / taiex5ago * 100);
+                const t5El = document.getElementById('p2-kpi-taiex5d');
+                t5El.textContent = `${taiexPct >= 0 ? '+' : ''}${taiexPct.toFixed(2)}%`;
+                t5El.style.color = taiexPct >= 0 ? 'var(--red)' : 'var(--green)';
+                document.getElementById('p2-kpi-taiex5d-sub').textContent =
+                    `${taiex5ago.toFixed(0)} → ${taiexNow.toFixed(0)} (${taiexChg >= 0 ? '+' : ''}${taiexChg.toFixed(0)})`;
+            }
+
+            // KPI 3: 跟單加分狀態
             const cashNow = cashMode.cash_now || 0;
-            const cash5ma = cashMode.cash_5ma || 0;
-            const cashColor = cashNow >= 5 ? 'var(--red)' : cashNow >= 3 ? 'var(--orange)' : 'var(--green)';
+            const ceEl = document.getElementById('p2-kpi-copyedge');
+            if (cashNow > 4) {
+                ceEl.textContent = '📈 加分區';
+                ceEl.style.color = 'var(--red)';
+                document.getElementById('p2-kpi-copyedge-sub').textContent = `現金 ${cashNow.toFixed(1)}% > 4%，勝率提升`;
+            } else {
+                ceEl.textContent = '一般';
+                ceEl.style.color = 'var(--text-muted)';
+                document.getElementById('p2-kpi-copyedge-sub').textContent = `現金 ${cashNow.toFixed(1)}%，無額外加分`;
+            }
 
-            document.getElementById('p2-kpi-cash').textContent = `${cashNow.toFixed(1)}%`;
-            document.getElementById('p2-kpi-cash').style.color = cashColor;
-            const cashHint = cashNow > 4 ? ' 📈 跟單加分區' : '';
-            document.getElementById('p2-kpi-cash-subtext').textContent = (cashMode.trend || '-') + cashHint;
-
-            document.getElementById('p2-kpi-cash5ma').textContent = `${cash5ma.toFixed(1)}%`;
-            const maDiff = cashNow - cash5ma;
-            document.getElementById('p2-kpi-cash5ma-subtext').textContent = `vs 現值 ${maDiff > 0 ? '+' : ''}${maDiff.toFixed(1)}%`;
-
-            document.getElementById('p2-kpi-concentration').textContent = `${top5Weight.toFixed(1)}%`;
-            document.getElementById('p2-kpi-concentration-subtext').textContent = `Top5: ${top5.map(s => s.code).join(', ')}`;
-
-            const modeClass = getModeClass(cashMode.mode);
-            document.getElementById('p2-kpi-manager-mode').innerHTML = `<span class="mode-indicator ${modeClass}">${cashMode.mode || '-'}</span>`;
-            document.getElementById('p2-kpi-manager-mode-subtext').textContent = cashMode.mode_desc || '-';
+            // KPI 4: 今日異動
+            const dailyChg = ((dashboardData.daily_changes || {})['00981A'] || []);
+            const latestChg = dailyChg.length ? dailyChg[dailyChg.length - 1] : {};
+            const nNew = (latestChg.new || []).length;
+            const nAdded = (latestChg.added || []).length;
+            const nReduced = (latestChg.reduced || []).length;
+            const nExited = (latestChg.exited || []).length;
+            const sigEl = document.getElementById('p2-kpi-signals');
+            const totalSig = nNew + nAdded + nReduced + nExited;
+            sigEl.textContent = totalSig > 0 ? `${totalSig} 檔` : '無異動';
+            sigEl.style.color = totalSig > 0 ? 'var(--red)' : 'var(--text-muted)';
+            const sigParts = [];
+            if (nNew) sigParts.push(`+${nNew} 新增`);
+            if (nAdded) sigParts.push(`▲${nAdded} 加碼`);
+            if (nReduced) sigParts.push(`▼${nReduced} 減碼`);
+            if (nExited) sigParts.push(`-${nExited} 出清`);
+            document.getElementById('p2-kpi-signals-sub').textContent = sigParts.join(' | ') || latestChg.date || '-';
 
             // Gauges
             updateP2Gauges(cashMode, top5Weight);
