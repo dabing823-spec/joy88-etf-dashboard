@@ -12,16 +12,20 @@ Wolf Pack Dashboard v5 — Data Generator
   ../data/etf_pages.json  (各 ETF 個別頁面數據)
 """
 
-import sys, json, os, glob
+import sys, json, os, glob, platform
 from pathlib import Path
 from datetime import datetime
 import pandas as pd
 import numpy as np
 
 # ═══════════════════════════════════════
-# 路徑設定（Mac Mini 用 ~/FinanceData）
+# 路徑設定（自動偵測 Mac / Windows）
 # ═══════════════════════════════════════
-BASE = Path(os.path.expanduser("~/FinanceData/history/ETF"))
+if platform.system() == "Windows":
+    _gdrive = Path("G:/其他電腦/我的 Mac/FinanceData/history/ETF")
+    BASE = _gdrive if _gdrive.exists() else Path(os.path.expanduser("~/FinanceData/history/ETF"))
+else:
+    BASE = Path(os.path.expanduser("~/FinanceData/history/ETF"))
 SCRIPT_DIR = Path(__file__).parent
 OUTPUT_DIR = SCRIPT_DIR.parent / "data"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -187,16 +191,32 @@ def load_master_csv(etf_id):
     if not csv_path.exists():
         return {}
 
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(csv_path, encoding='utf-8-sig')
     records = {}
+
+    # Normalize column names
+    col_map = {}
+    for c in df.columns:
+        cl = c.strip()
+        if '代號' in cl: col_map[c] = 'code'
+        elif '名稱' in cl: col_map[c] = 'name'
+        elif '權重' in cl: col_map[c] = 'weight'
+        elif '股數' in cl: col_map[c] = 'shares'
+        elif '日期' in cl: col_map[c] = 'date'
+    df = df.rename(columns=col_map)
+
+    if 'date' not in df.columns:
+        return {}
+    if 'weight' in df.columns:
+        df['weight'] = pd.to_numeric(df['weight'], errors='coerce').fillna(0)
 
     for dt, group in df.groupby('date'):
         dt_str = str(dt)
         holdings = []
         for _, row in group.iterrows():
-            code = str(row.get('code', row.get('stock_code', ''))).strip()
-            name = str(row.get('name', row.get('stock_name', ''))).strip()
-            weight = float(row.get('weight', row.get('weight_pct', 0)))
+            code = str(row.get('code', '')).strip()
+            name = str(row.get('name', '')).strip()
+            weight = float(row.get('weight', 0))
             if code and name and weight > 0:
                 holdings.append({'code': code, 'name': name, 'weight': round(weight, 2)})
 

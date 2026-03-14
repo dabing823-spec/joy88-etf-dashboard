@@ -138,7 +138,7 @@
         }
 
         .kpi-value {
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: 700;
             color: var(--accent);
             margin-bottom: 0.25rem;
@@ -167,6 +167,11 @@
         .chart-area {
             position: relative;
             height: 280px;
+        }
+
+        .chart-area-lg {
+            position: relative;
+            height: 350px;
         }
 
         .chart-title {
@@ -252,6 +257,7 @@
             position: sticky;
             top: 0;
             z-index: 2;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         th:hover {
@@ -259,7 +265,7 @@
         }
 
         td {
-            padding: 0.75rem 1rem;
+            padding: 1rem 1rem;
             border-bottom: 1px solid var(--border);
             font-size: 0.9rem;
         }
@@ -501,7 +507,7 @@
         }
 
         .gauge-value {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 700;
             margin-bottom: 0.75rem;
         }
@@ -665,7 +671,7 @@
             <div class="charts-row">
                 <div class="chart-container">
                     <div class="chart-title">00981A 現金水位歷史走勢</div>
-                    <div class="chart-area"><canvas id="p1-chart-cash-history"></canvas></div>
+                    <div class="chart-area-lg"><canvas id="p1-chart-cash-history"></canvas></div>
                 </div>
                 <div class="chart-container">
                     <div class="chart-title">各ETF最新持股數量</div>
@@ -759,7 +765,7 @@
             <div class="charts-row">
                 <div class="chart-container">
                     <div class="chart-title">00981A 前15大持股權重變化 (30日)</div>
-                    <div class="chart-area"><canvas id="p1-chart-weight-history"></canvas></div>
+                    <div class="chart-area-lg"><canvas id="p1-chart-weight-history"></canvas></div>
                 </div>
                 <div class="chart-container">
                     <div class="chart-title">20日信心度排行</div>
@@ -787,18 +793,18 @@
             <div class="kpi-grid">
                 <div class="kpi-card">
                     <div class="kpi-label">加權指數</div>
-                    <div class="kpi-value" id="p2-kpi-taiex">-</div>
-                    <div class="kpi-subtext" id="p2-kpi-taiex-subtext">即時</div>
+                    <div class="kpi-value" id="p2-kpi-taiex" style="font-size:1.2rem; color: var(--text-muted);">待連線</div>
+                    <div class="kpi-subtext" id="p2-kpi-taiex-subtext">需要即時數據源</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">VIX 恐慌指數</div>
-                    <div class="kpi-value" id="p2-kpi-vix">-</div>
-                    <div class="kpi-subtext" id="p2-kpi-vix-subtext">即時</div>
+                    <div class="kpi-value" id="p2-kpi-vix" style="font-size:1.2rem; color: var(--text-muted);">待連線</div>
+                    <div class="kpi-subtext" id="p2-kpi-vix-subtext">需要即時數據源</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">CNN恐慌貪婪</div>
-                    <div class="kpi-value" id="p2-kpi-cnn">-</div>
-                    <div class="kpi-subtext" id="p2-kpi-cnn-subtext">參考</div>
+                    <div class="kpi-value" id="p2-kpi-cnn" style="font-size:1.2rem; color: var(--text-muted);">待連線</div>
+                    <div class="kpi-subtext" id="p2-kpi-cnn-subtext">需要即時數據源</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">經理人模式</div>
@@ -811,18 +817,18 @@
             <div class="gauge-grid">
                 <div class="gauge-card">
                     <div class="gauge-title">VIX 燈號</div>
-                    <div class="gauge-value" id="p2-gauge-vix">-</div>
-                    <div class="mode-indicator" id="p2-gauge-vix-mode" style="width: 100%;">-</div>
+                    <div class="gauge-value" id="p2-gauge-vix" style="color: var(--text-muted); font-size: 1.5rem;">--</div>
+                    <div class="mode-indicator" id="p2-gauge-vix-mode" style="width: 100%; background: var(--border);">待連線</div>
                 </div>
                 <div class="gauge-card">
                     <div class="gauge-title">市場情緒</div>
-                    <div class="gauge-value" id="p2-gauge-sentiment">-</div>
-                    <div class="mode-indicator" id="p2-gauge-sentiment-mode" style="width: 100%;">-</div>
+                    <div class="gauge-value" id="p2-gauge-sentiment" style="color: var(--text-muted); font-size: 1.5rem;">--</div>
+                    <div class="mode-indicator" id="p2-gauge-sentiment-mode" style="width: 100%; background: var(--border);">待連線</div>
                 </div>
                 <div class="gauge-card">
                     <div class="gauge-title">經理人動向</div>
-                    <div class="gauge-value" id="p2-gauge-manager">-</div>
-                    <div class="mode-indicator" id="p2-gauge-manager-mode" style="width: 100%;">-</div>
+                    <div class="gauge-value" id="p2-gauge-manager" style="color: var(--text-muted); font-size: 1.5rem;">--</div>
+                    <div class="mode-indicator" id="p2-gauge-manager-mode" style="width: 100%; background: var(--border);">待連線</div>
                 </div>
             </div>
 
@@ -830,7 +836,7 @@
             <div class="charts-row">
                 <div class="table-container" style="margin-bottom: 0;">
                     <div class="table-title">多ETF共識標的 TOP15</div>
-                    <div class="table-scroll">
+                    <div class="table-scroll" style="max-height: 350px;">
                     <table id="p2-table-consensus">
                         <thead>
                             <tr>
@@ -992,7 +998,7 @@
             <div class="charts-row">
                 <div class="chart-container">
                     <div class="chart-title">現金權重 vs 加權指數</div>
-                    <div class="chart-area"><canvas id="p4-chart-cash-vs-index"></canvas></div>
+                    <div class="chart-area-lg"><canvas id="p4-chart-cash-vs-index"></canvas></div>
                 </div>
                 <div class="chart-container">
                     <div class="chart-title">持股數量變化</div>
