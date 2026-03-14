@@ -946,6 +946,65 @@ def calc_timing_score(dashboard):
 # Main
 # ═══════════════════════════════════════
 
+def fetch_market_indices_live():
+    """Fetch VIX, VIXTWN, CNN Fear & Greed Index."""
+    import requests, re
+    result = {}
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+    }
+
+    print("  [MKT] Fetching market indices...")
+
+    # VIX (S&P 500) via Yahoo Finance
+    try:
+        r = requests.get('https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?range=2d&interval=1d',
+                         headers=headers, timeout=10)
+        if r.status_code == 200:
+            data = r.json()
+            closes = data.get('chart', {}).get('result', [{}])[0].get('indicators', {}).get('quote', [{}])[0].get('close', [])
+            if closes:
+                result['vix'] = round(closes[-1], 2)
+                print(f"  [MKT] VIX S&P500: {result['vix']}")
+    except Exception as e:
+        print(f"  [MKT] VIX fetch failed: {e}")
+
+    # VIXTWN (台灣 VIX) via TAIFEX website scraping
+    try:
+        r = requests.get('https://www.taifex.com.tw/cht/9/VIXQuote',
+                         headers={'User-Agent': headers['User-Agent']}, timeout=10)
+        if r.status_code == 200:
+            # Parse VIX value from page - look for the latest close value
+            matches = re.findall(r'>(\d{1,3}\.\d{2})<', r.text)
+            if matches:
+                result['vixtwn'] = float(matches[0])
+                print(f"  [MKT] VIX 台灣: {result['vixtwn']}")
+            else:
+                print("  [MKT] VIXTWN: no data found on page")
+    except Exception as e:
+        print(f"  [MKT] VIXTWN fetch failed: {e}")
+
+    # CNN Fear & Greed (need browser-like headers)
+    try:
+        cnn_headers = {**headers, 'Referer': 'https://edition.cnn.com/markets/fear-and-greed'}
+        r = requests.get('https://production.dataviz.cnn.io/index/fearandgreed/graphdata',
+                         headers=cnn_headers, timeout=10)
+        if r.status_code == 200:
+            data = r.json()
+            fg = data.get('fear_and_greed', {})
+            if fg.get('score') is not None:
+                result['fear_greed'] = round(fg['score'], 1)
+                result['fear_greed_rating'] = fg.get('rating', '')
+                print(f"  [MKT] CNN Fear & Greed: {result['fear_greed']} ({result['fear_greed_rating']})")
+        else:
+            print(f"  [MKT] CNN Fear & Greed: status {r.status_code}")
+    except Exception as e:
+        print(f"  [MKT] Fear & Greed fetch failed: {e}")
+
+    return result
+
+
 def main():
     print("=" * 60)
     print("Wolf Pack Strategy Engine")
@@ -1025,6 +1084,13 @@ def main():
     except Exception as e:
         print(f"  [H] ERROR: {e}")
         strategy['holdings_overlap'] = {}
+
+    # ── Market Indices (VIX, VIXTWN, Fear & Greed) ──
+    try:
+        strategy['market_indices'] = fetch_market_indices_live()
+    except Exception as e:
+        print(f"  [MKT] ERROR: {e}")
+        strategy['market_indices'] = {}
 
     # ── A. Signal Backtest (last, because it fetches from API) ──
     try:
