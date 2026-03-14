@@ -820,33 +820,9 @@
         <div class="page" id="p1">
             <div class="page-title">📊 ETF 持股追蹤</div>
 
-            <!-- Usage Guide -->
-            <div class="strategy-section" style="margin-bottom: 1.5rem;">
-                <div class="chart-title" style="margin-bottom: 1rem;">📖 使用說明</div>
-                <div class="insight-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
-                    <div class="insight-card" style="border-left-color: var(--accent);">
-                        <div class="insight-card-title">📊 本頁 · ETF 持股追蹤</div>
-                        <div class="insight-card-body">追蹤 00981A（統一台股增長）的每日持股變化。上方 KPI 顯示攻防模式，圖表可縮放拖曳，持股權重可自選個股比較。</div>
-                    </div>
-                    <div class="insight-card" style="border-left-color: var(--green);">
-                        <div class="insight-card-title">🎯 戰略儀表板</div>
-                        <div class="insight-card-body">綜合 5 檔主動式 ETF 的共識分析。圓形 Gauge 顯示經理人態度，信號卡片顯示今日異動含 10 日走勢圖。</div>
-                    </div>
-                    <div class="insight-card" style="border-left-color: var(--orange);">
-                        <div class="insight-card-title">📋 老墨跟單策略</div>
-                        <div class="insight-card-body">基於 00981A 經理人操作的跟單策略。新增持股建議觀察 10 日，加碼 >0.5% 建議持有 60 日。可按信號類型篩選。</div>
-                    </div>
-                    <div class="insight-card" style="border-left-color: var(--purple);">
-                        <div class="insight-card-title">🔍 歷史回溯</div>
-                        <div class="insight-card-body">各 ETF 的歷史數據與對比工具。可選擇任意兩天比較持股差異，查看近期異動時間軸和完整持股明細。</div>
-                    </div>
-                </div>
-                <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(79,142,247,0.08); border-radius: 8px; font-size: 0.8rem; color: var(--text-muted);">
-                    <strong style="color: var(--text);">追蹤標的：</strong>
-                    00981A 統一台股增長 · 00980A 野村智慧優選 · 00982A 群益台股主動式 · 00991A 復華未來50 · 00993A 安聯台灣主動式
-                    <br><strong style="color: var(--text);">資料來源：</strong>各投信官網每日公告 · 加權/櫃買指數自動抓取
-                    <br><strong style="color: var(--text);">更新頻率：</strong>每個交易日收盤後更新
-                </div>
+            <!-- Page Intro -->
+            <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: rgba(79,142,247,0.06); border-radius: 8px; border-left: 3px solid var(--accent); font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7;">
+                追蹤 00981A（統一台股增長）的每日持股變化、申購贖回量與現金水位。圖表可縮放拖曳，持股權重可自選個股比較。
             </div>
 
             <!-- KPIs -->
@@ -1003,6 +979,11 @@
         <!-- Page 2: 戰略儀表板 -->
         <div class="page active" id="p2">
             <div class="page-title">🎯 戰略儀表板</div>
+
+            <!-- Page Intro -->
+            <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: rgba(79,142,247,0.06); border-radius: 8px; border-left: 3px solid var(--green); font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7;">
+                綜合 5 檔主動式 ETF 的市場指標與共識分析。上方為即時市場數據（VIX、恐懼貪婪），下方為經理人持股共識與異動摘要。
+            </div>
 
             <!-- Market Indices -->
             <div class="kpi-grid" style="margin-bottom: 1rem;">
@@ -1219,6 +1200,11 @@
         <div class="page" id="p4">
             <div class="page-title">🔍 ETF 歷史回溯與對比</div>
 
+            <!-- Page Intro -->
+            <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: rgba(79,142,247,0.06); border-radius: 8px; border-left: 3px solid var(--purple); font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7;">
+                各 ETF 的歷史持股數據與對比工具。可切換 5 檔 ETF，查看現金走勢、持股明細、近期異動，並選擇任意兩天進行持股差異比較。
+            </div>
+
             <!-- ETF Sub-tabs -->
             <div class="tabs" id="p4-etf-tabs">
                 <button class="tab-btn active" data-etf="00981A" onclick="switchETF('00981A')">00981A</button>
@@ -1379,6 +1365,11 @@
         <div class="page" id="p5">
             <div class="page-title">🧠 策略分析</div>
 
+            <!-- Page Intro -->
+            <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: rgba(79,142,247,0.06); border-radius: 8px; border-left: 3px solid var(--cyan); font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7;">
+                綜合評分操作建議與信號回測績效。操作建議基於權重、動能、共識等多因子評分；回測驗證過去信號的實際報酬表現。
+            </div>
+
             <!-- Section 1: 操作建議 TOP10 -->
             <div class="table-container">
                 <div class="table-title">🎯 操作建議 TOP10</div>
@@ -1439,10 +1430,9 @@
         <div class="page" id="p6">
             <div class="page-title">📊 跟單回測分析</div>
 
-            <div class="strategy-section" style="margin-bottom: 1.5rem;">
-                <div class="highlight">
-                    <strong>資料來源：</strong>00981A 持股異動信號回測（2025/10/17 ~ 2025/12/26）。分析新增/加碼持股後的短線績效與勝率，找出最佳跟單策略。
-                </div>
+            <!-- Page Intro -->
+            <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: rgba(79,142,247,0.06); border-radius: 8px; border-left: 3px solid var(--red); font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7;">
+                00981A 持股異動信號回測（2025/10/17 ~ 2025/12/26）。分析新增/加碼持股後 3、5、10 日的短線績效與勝率，找出最佳跟單策略與現金水位濾網效果。
             </div>
 
             <!-- KPI Summary -->
