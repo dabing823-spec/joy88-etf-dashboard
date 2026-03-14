@@ -792,19 +792,19 @@
             <!-- KPIs -->
             <div class="kpi-grid">
                 <div class="kpi-card">
-                    <div class="kpi-label">加權指數</div>
-                    <div class="kpi-value" id="p2-kpi-taiex" style="font-size:1.2rem; color: var(--text-muted);">待連線</div>
-                    <div class="kpi-subtext" id="p2-kpi-taiex-subtext">需要即時數據源</div>
+                    <div class="kpi-label">現金水位</div>
+                    <div class="kpi-value" id="p2-kpi-cash">-</div>
+                    <div class="kpi-subtext" id="p2-kpi-cash-subtext">-</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-label">VIX 恐慌指數</div>
-                    <div class="kpi-value" id="p2-kpi-vix" style="font-size:1.2rem; color: var(--text-muted);">待連線</div>
-                    <div class="kpi-subtext" id="p2-kpi-vix-subtext">需要即時數據源</div>
+                    <div class="kpi-label">5日均線</div>
+                    <div class="kpi-value" id="p2-kpi-cash5ma">-</div>
+                    <div class="kpi-subtext" id="p2-kpi-cash5ma-subtext">-</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-label">CNN恐慌貪婪</div>
-                    <div class="kpi-value" id="p2-kpi-cnn" style="font-size:1.2rem; color: var(--text-muted);">待連線</div>
-                    <div class="kpi-subtext" id="p2-kpi-cnn-subtext">需要即時數據源</div>
+                    <div class="kpi-label">Top5 集中度</div>
+                    <div class="kpi-value" id="p2-kpi-concentration">-</div>
+                    <div class="kpi-subtext" id="p2-kpi-concentration-subtext">-</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">經理人模式</div>
@@ -816,19 +816,19 @@
             <!-- Gauges Row -->
             <div class="gauge-grid">
                 <div class="gauge-card">
-                    <div class="gauge-title">VIX 燈號</div>
-                    <div class="gauge-value" id="p2-gauge-vix" style="color: var(--text-muted); font-size: 1.5rem;">--</div>
-                    <div class="mode-indicator" id="p2-gauge-vix-mode" style="width: 100%; background: var(--border);">待連線</div>
+                    <div class="gauge-title">現金趨勢</div>
+                    <div class="gauge-value" id="p2-gauge-cash-trend">-</div>
+                    <div class="mode-indicator" id="p2-gauge-cash-trend-mode" style="width: 100%;">-</div>
                 </div>
                 <div class="gauge-card">
-                    <div class="gauge-title">市場情緒</div>
-                    <div class="gauge-value" id="p2-gauge-sentiment" style="color: var(--text-muted); font-size: 1.5rem;">--</div>
-                    <div class="mode-indicator" id="p2-gauge-sentiment-mode" style="width: 100%; background: var(--border);">待連線</div>
+                    <div class="gauge-title">持股集中度</div>
+                    <div class="gauge-value" id="p2-gauge-concentration">-</div>
+                    <div class="mode-indicator" id="p2-gauge-concentration-mode" style="width: 100%;">-</div>
                 </div>
                 <div class="gauge-card">
                     <div class="gauge-title">經理人動向</div>
-                    <div class="gauge-value" id="p2-gauge-manager" style="color: var(--text-muted); font-size: 1.5rem;">--</div>
-                    <div class="mode-indicator" id="p2-gauge-manager-mode" style="width: 100%; background: var(--border);">待連線</div>
+                    <div class="gauge-value" id="p2-gauge-manager">-</div>
+                    <div class="mode-indicator" id="p2-gauge-manager-mode" style="width: 100%;">-</div>
                 </div>
             </div>
 
@@ -1505,17 +1505,32 @@
         function renderPage2() {
             if (!dashboardData) return;
 
-            // KPIs - Market data not in JSON, show cash data instead
-            document.getElementById('p2-kpi-taiex').textContent = '-';
-            document.getElementById('p2-kpi-vix').textContent = '-';
-            document.getElementById('p2-kpi-cnn').textContent = '-';
-
             const cashMode = dashboardData.cash_mode || {};
+            const top5 = (dashboardData.top20_stocks || []).slice(0, 5);
+            const top5Weight = top5.reduce((sum, s) => sum + (s.weight || 0), 0);
+
+            // KPIs
+            const cashNow = cashMode.cash_now || 0;
+            const cash5ma = cashMode.cash_5ma || 0;
+            const cashColor = cashNow >= 5 ? 'var(--red)' : cashNow >= 3 ? 'var(--orange)' : 'var(--green)';
+
+            document.getElementById('p2-kpi-cash').textContent = `${cashNow.toFixed(1)}%`;
+            document.getElementById('p2-kpi-cash').style.color = cashColor;
+            document.getElementById('p2-kpi-cash-subtext').textContent = cashMode.trend || '-';
+
+            document.getElementById('p2-kpi-cash5ma').textContent = `${cash5ma.toFixed(1)}%`;
+            const maDiff = cashNow - cash5ma;
+            document.getElementById('p2-kpi-cash5ma-subtext').textContent = `vs 現值 ${maDiff > 0 ? '+' : ''}${maDiff.toFixed(1)}%`;
+
+            document.getElementById('p2-kpi-concentration').textContent = `${top5Weight.toFixed(1)}%`;
+            document.getElementById('p2-kpi-concentration-subtext').textContent = `Top5: ${top5.map(s => s.code).join(', ')}`;
+
             const modeClass = getModeClass(cashMode.mode);
             document.getElementById('p2-kpi-manager-mode').innerHTML = `<span class="mode-indicator ${modeClass}">${cashMode.mode || '-'}</span>`;
+            document.getElementById('p2-kpi-manager-mode-subtext').textContent = cashMode.mode_desc || '-';
 
             // Gauges
-            updateP2Gauges();
+            updateP2Gauges(cashMode, top5Weight);
 
             // Consensus Table
             renderP2ConsensusTable();
@@ -1525,24 +1540,45 @@
 
             // Comprehensive View
             renderP2ComprehensiveView();
-
-            // Try to fetch live data
-            fetchLiveData();
         }
 
-        function updateP2Gauges() {
-            // VIX Gauge - no live data
-            document.getElementById('p2-gauge-vix').textContent = '-';
-            document.getElementById('p2-gauge-vix-mode').className = 'mode-indicator mode-neutral';
-            document.getElementById('p2-gauge-vix-mode').textContent = '待連接即時數據';
+        function updateP2Gauges(cashMode, top5Weight) {
+            cashMode = cashMode || dashboardData.cash_mode || {};
+            top5Weight = top5Weight || 0;
 
-            // Sentiment Gauge
-            document.getElementById('p2-gauge-sentiment').textContent = '-';
-            document.getElementById('p2-gauge-sentiment-mode').className = 'mode-indicator mode-neutral';
-            document.getElementById('p2-gauge-sentiment-mode').textContent = '待連接即時數據';
+            // Cash Trend Gauge
+            const cashNow = cashMode.cash_now || 0;
+            const trendEl = document.getElementById('p2-gauge-cash-trend');
+            const trendModeEl = document.getElementById('p2-gauge-cash-trend-mode');
+            trendEl.textContent = cashMode.trend || '-';
+            trendEl.style.fontSize = '1.2rem';
+            if (cashNow >= 5) {
+                trendModeEl.className = 'mode-indicator mode-defense';
+                trendModeEl.textContent = `現金 ${cashNow.toFixed(1)}% — 偏防守`;
+            } else if (cashNow >= 3) {
+                trendModeEl.className = 'mode-indicator mode-neutral';
+                trendModeEl.textContent = `現金 ${cashNow.toFixed(1)}% — 中性`;
+            } else {
+                trendModeEl.className = 'mode-indicator mode-attack';
+                trendModeEl.textContent = `現金 ${cashNow.toFixed(1)}% — 積極做多`;
+            }
+
+            // Concentration Gauge
+            const concEl = document.getElementById('p2-gauge-concentration');
+            const concModeEl = document.getElementById('p2-gauge-concentration-mode');
+            concEl.textContent = `${top5Weight.toFixed(1)}%`;
+            if (top5Weight >= 40) {
+                concModeEl.className = 'mode-indicator mode-high-defense';
+                concModeEl.textContent = '高度集中 — 重押少數標的';
+            } else if (top5Weight >= 30) {
+                concModeEl.className = 'mode-indicator mode-neutral';
+                concModeEl.textContent = '適度集中 — 正常配置';
+            } else {
+                concModeEl.className = 'mode-indicator mode-attack';
+                concModeEl.textContent = '分散配置 — 風險分散';
+            }
 
             // Manager Gauge
-            const cashMode = dashboardData.cash_mode || {};
             const modeClass = getModeClass(cashMode.mode);
             document.getElementById('p2-gauge-manager').textContent = cashMode.mode || '-';
             document.getElementById('p2-gauge-manager-mode').className = `mode-indicator ${modeClass}`;
@@ -1561,8 +1597,8 @@
                 <tr>
                     <td>${item.code}</td>
                     <td>${item.name}</td>
-                    <td class="text-right">${item.consensus_score}</td>
-                    <td class="text-right"><span class="badge badge-blue">${item.n_etfs}</span></td>
+                    <td class="text-right">${(item.avg_weight || item.total_weight || 0).toFixed(1)}%</td>
+                    <td class="text-right"><span class="badge badge-blue">${item.n_etfs} 檔</span></td>
                 </tr>
             `).join('');
         }
@@ -1589,7 +1625,7 @@
                 html += changes.added.map(s => `
                     <div class="signal-card signal-add">
                         <div class="signal-title">📈 加碼: ${s.code} ${s.name}</div>
-                        <div class="signal-text">變化: +${s.weight?.toFixed(2)}%</div>
+                        <div class="signal-text">權重 ${s.weight?.toFixed(2)}%，變化 +${(s.weight_chg || 0).toFixed(2)}%</div>
                     </div>
                 `).join('');
             }
@@ -1598,7 +1634,7 @@
                 html += changes.reduced.map(s => `
                     <div class="signal-card signal-reduce">
                         <div class="signal-title">📉 減碼: ${s.code} ${s.name}</div>
-                        <div class="signal-text">變化: -${s.weight?.toFixed(2)}%</div>
+                        <div class="signal-text">權重 ${s.weight?.toFixed(2)}%，變化 ${(s.weight_chg || 0).toFixed(2)}%</div>
                     </div>
                 `).join('');
             }
@@ -1607,7 +1643,7 @@
                 html += changes.exited.map(s => `
                     <div class="signal-card signal-exit">
                         <div class="signal-title">❌ 退出: ${s.code} ${s.name}</div>
-                        <div class="signal-text">前權重: ${s.weight?.toFixed(2)}%</div>
+                        <div class="signal-text">已完全出場</div>
                     </div>
                 `).join('');
             }
@@ -1618,20 +1654,53 @@
         function renderP2ComprehensiveView() {
             const cashMode = dashboardData.cash_mode || {};
             const consensus = (dashboardData.consensus || []).slice(0, 5);
+            const top5 = (dashboardData.top20_stocks || []).slice(0, 5);
+            const changes = ((dashboardData.daily_changes || {})['00981A'] || []);
+            const latest = changes[changes.length - 1] || {};
 
-            const topStocks = consensus.map(c => `${c.code}(${c.name})`).join(', ');
-            const view = `
-                目前市場情緒${dashboardData.cash_mode?.mode === 'Attack' ? '偏強' : '偏弱'}，00981A採用${cashMode.mode_desc || '-'}策略。
-                共識標的TOP5為: ${topStocks || '無'}。
-                建議關注資金面變化和技術面支撐位。
-            `;
+            const topConsensus = consensus.map(c => `${c.name}(${c.code})`).join('、');
+            const nNew = (latest.new || []).length;
+            const nAdded = (latest.added || []).length;
+            const nReduced = (latest.reduced || []).length;
 
-            document.getElementById('p2-comprehensive-view').textContent = view;
-        }
+            let insights = [];
 
-        function fetchLiveData() {
-            // Placeholder for live data fetching
-            // In production, would fetch from TradingView or Yahoo Finance
+            // 攻防判斷
+            const cashNow = cashMode.cash_now || 0;
+            if (cashNow >= 5) {
+                insights.push(`<strong>防守信號明確</strong>：現金水位 ${cashNow.toFixed(1)}%，經理人選擇觀望，不宜追高。`);
+            } else if (cashNow <= 2) {
+                insights.push(`<strong>積極做多信號</strong>：現金水位僅 ${cashNow.toFixed(1)}%，經理人對後市有信心。注意滿倉回檔風險。`);
+            } else {
+                insights.push(`<strong>經理人態度：${cashMode.mode || '-'}</strong> — 現金 ${cashNow.toFixed(1)}%，${cashMode.mode_desc || ''}`);
+            }
+
+            // 異動摘要
+            if (nNew > 0) {
+                const newNames = latest.new.map(s => `${s.name}(${s.code})`).join('、');
+                insights.push(`<strong>新增持股</strong>：${newNames}，新增進場通常代表經理人看到機會。`);
+            }
+            if (nAdded > 3) {
+                insights.push(`<strong>大量加碼</strong>：今日 ${nAdded} 檔加碼，經理人積極調整部位。`);
+            }
+            if (nReduced > 5) {
+                insights.push(`<strong>注意減碼</strong>：今日 ${nReduced} 檔減碼，經理人正在降低曝險。`);
+            }
+
+            // 共識
+            if (topConsensus) {
+                insights.push(`<strong>多ETF共識 TOP5</strong>：${topConsensus}，多位經理人同時看好。`);
+            }
+
+            // 趨勢
+            insights.push(`<strong>現金趨勢</strong>：${cashMode.trend || '-'}，5日均線 ${(cashMode.cash_5ma || 0).toFixed(1)}%，20日均線 ${(cashMode.cash_20ma || 0).toFixed(1)}%。`);
+
+            if (cashMode.futures_signal) {
+                insights.push(`${cashMode.futures_signal}`);
+            }
+
+            const html = insights.map((line, i) => `<p style="margin-bottom: 0.75rem;">${i + 1}. ${line}</p>`).join('');
+            document.getElementById('p2-comprehensive-view').innerHTML = html;
         }
 
         // ============================================================================
