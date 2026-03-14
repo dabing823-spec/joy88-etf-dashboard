@@ -4,20 +4,21 @@
 # 放在 Mac Mini 上，爬蟲跑完後自動執行
 #
 # 功能：
-#   1. 執行 signal engine 產出 JSON
+#   1. 執行 Agent Pipeline（品質檢查→信號分析→Dashboard→通知）
 #   2. git add + commit + push 到 GitHub
 #   3. GitHub Pages 自動更新
 #
 # 用法：
 #   chmod +x daily_update.sh
-#   ./daily_update.sh
+#   ./daily_update.sh             # 完整 pipeline + git push
+#   ./daily_update.sh --no-alert  # 跳過 LINE 通知
 # ═══════════════════════════════════════════════════════
 
 set -e
 
 # ── 路徑設定 ──
 REPO_DIR="$HOME/wolf-pack-dashboard"
-SCRIPTS_DIR="$REPO_DIR/scripts"
+AGENTS_DIR="$REPO_DIR/scripts/agents"
 LOG_DIR="$HOME/FinanceData/logs"
 LOG_FILE="$LOG_DIR/dashboard_update.log"
 
@@ -30,39 +31,26 @@ log() {
 }
 
 log "═══════════════════════════════════════"
-log "🐺 Wolf Pack Dashboard 每日更新開始"
+log "🐺 Wolf Pack Agent Pipeline 開始"
 log "═══════════════════════════════════════"
 
-# ── Step 1: 產生 JSON 數據 ──
-log "📊 Step 1: 執行 generate_dashboard_data.py..."
-cd "$SCRIPTS_DIR"
-python3 generate_dashboard_data.py >> "$LOG_FILE" 2>&1
+# ── Step 1: 執行 Agent Pipeline ──
+log "🤖 執行 Agent Orchestrator..."
+cd "$AGENTS_DIR"
 
-if [ $? -ne 0 ]; then
-    log "❌ JSON 生成失敗！"
-    exit 1
+EXTRA_ARGS=""
+if [[ "$1" == "--no-alert" ]]; then
+    EXTRA_ARGS="--no-alert"
 fi
-log "✅ JSON 生成完成"
 
-# ── Step 2: Git 提交並推送 ──
-log "📤 Step 2: Git commit & push..."
-cd "$REPO_DIR"
+python3 orchestrator.py --git-push $EXTRA_ARGS 2>&1 | tee -a "$LOG_FILE"
 
-# 檢查是否有變更
-if git diff --quiet data/ 2>/dev/null; then
-    log "ℹ️ 數據無變更，跳過提交"
+PIPELINE_EXIT=$?
+
+if [ $PIPELINE_EXIT -ne 0 ]; then
+    log "⚠️ Pipeline 有部分失敗（exit code $PIPELINE_EXIT）"
 else
-    TODAY=$(date '+%Y-%m-%d')
-    git add data/dashboard.json data/etf_pages.json
-    git commit -m "📊 Daily update: $TODAY" --quiet
-    git push origin main --quiet
-
-    if [ $? -eq 0 ]; then
-        log "✅ Git push 成功"
-    else
-        log "❌ Git push 失敗！"
-        exit 1
-    fi
+    log "✅ Pipeline 全部完成"
 fi
 
 log "🐺 每日更新完成！"
