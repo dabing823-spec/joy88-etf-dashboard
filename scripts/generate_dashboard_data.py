@@ -190,49 +190,162 @@ def load_981a_data():
     return records
 
 
-def load_master_csv(etf_id):
-    """載入其他 ETF 的 Master.csv"""
-    csv_path = BASE / etf_id / f"{etf_id}_Master.csv"
-    if not csv_path.exists():
-        return {}
+def _parse_other_etf_xlsx(fp, etf_id):
+    """解析 00980A/00982A/00991A/00993A 的 xlsx
+    各檔格式略有不同，統一處理。
+    """
+    import openpyxl
 
-    df = pd.read_csv(csv_path, encoding='utf-8-sig')
+    # 00991A 有時下載到的是 HTML（系統公告），跳過
+    with open(fp, 'rb') as f:
+        if f.read(4) != b'PK\x03\x04':
+            return None
+
+    wb = openpyxl.load_workbook(fp, data_only=True)
+
+    def parse_pct(val):
+        if val is None:
+            return 0.0
+        s = str(val).replace('%', '').replace(',', '').strip()
+        try:
+            return float(s)
+        except ValueError:
+            return 0.0
+
+    holdings = []
+    cash_pct = 0
+
+    # 00982A: 持股在 '股票' sheet
+    if '股票' in wb.sheetnames:
+        ws = wb['股票']
+        for row in range(2, ws.max_row + 1):
+            code = ws.cell(row=row, column=1).value
+            name = ws.cell(row=row, column=2).value
+            weight = ws.cell(row=row, column=3).value
+            if code and name and weight:
+                w = parse_pct(weight)
+                if w > 0:
+                    holdings.append({'code': str(code).strip(), 'name': str(name).strip(), 'weight': round(w, 2)})
+        # Cash from '其他資產' sheet
+        if '其他資產' in wb.sheetnames and '投資組合' in wb.sheetnames:
+            ws2 = wb['其他資產']
+            nav_str = wb['投資組合'].cell(row=1, column=2).value or '0'
+            nav = float(str(nav_str).replace('TWD', '').replace(',', '').replace('$', '').strip() or 0)
+            for row in range(1, ws2.max_row + 1):
+                label = str(ws2.cell(row=row, column=1).value or '').strip()
+                if label == '現金':
+                    cash_val = str(ws2.cell(row=row, column=2).value or '0')
+                    cash_val = float(cash_val.replace('TWD', '').replace(',', '').replace('$', '').strip() or 0)
+                    if nav > 0:
+                        cash_pct = round(cash_val / nav * 100, 2)
+    else:
+        # 00980A / 00993A: 單 sheet，找 '股票代號' 行
+        ws = wb.active
+        all_rows = list(ws.iter_rows(values_only=True))
+
+        stock_start = None
+        weight_col = None  # 權重所在的 column index
+
+        for i, r in enumerate(all_rows):
+            if r and r[0] and str(r[0]).strip() == '股票代號':
+                stock_start = i + 1
+                # 找 '權重' 在第幾欄
+                for j, cell in enumerate(r):
+                    if cell and '權重' in str(cell):
+                        weight_col = j
+                        break
+                break
+
+        if stock_start and weight_col is not None:
+            for r in all_rows[stock_start:]:
+                if not r or not r[0]:
+                    continue
+                code = str(r[0]).strip()
+                if not code or code == 'None':
+                    continue
+                name = str(r[1]).strip() if len(r) > 1 and r[1] else ''
+                w = parse_pct(r[weight_col]) if len(r) > weight_col else 0
+                if w > 0:
+                    holdings.append({'code': code, 'name': name, 'weight': round(w, 2)})
+
+        # Parse cash from meta rows
+        for r in all_rows:
+            if r and r[0] and str(r[0]).strip() == '現金' and len(r) >= 2:
+                # Try to calculate cash % from NAV
+                # For simplicity, estimate from stock weight sum
+                break
+
+    wb.close()
+
+    if not holdings:
+        return None
+
+    stock_wt = sum(h['weight'] for h in holdings)
+    if cash_pct == 0:
+        cash_pct = round(max(0, 100 - stock_wt), 2)
+
+    return {
+        'holdings': sorted(holdings, key=lambda h: h['weight'], reverse=True),
+        'cash_pct': cash_pct,
+        'futures_pct': 0
+    }
+
+
+def load_other_etf(etf_id):
+    """載入其他 ETF：優先用 daily_xlsx，再補 Master.csv 的舊資料"""
     records = {}
 
-    # Normalize column names
-    col_map = {}
-    for c in df.columns:
-        cl = c.strip()
-        if '代號' in cl: col_map[c] = 'code'
-        elif '名稱' in cl: col_map[c] = 'name'
-        elif '權重' in cl: col_map[c] = 'weight'
-        elif '股數' in cl: col_map[c] = 'shares'
-        elif '日期' in cl: col_map[c] = 'date'
-    df = df.rename(columns=col_map)
+    # 1. 從 daily_xlsx 讀取（最新資料）
+    xlsx_dir = BASE / etf_id / "daily_xlsx"
+    if xlsx_dir.exists():
+        for fp in sorted(xlsx_dir.glob(f"{etf_id}_*.xlsx")):
+            date_str = fp.stem.split("_")[-1]
+            if len(date_str) != 10:
+                continue
+            try:
+                result = _parse_other_etf_xlsx(fp, etf_id)
+                if result:
+                    records[date_str] = result
+            except Exception as e:
+                print(f"  ⚠️ Skip {fp.name}: {e}")
 
-    if 'date' not in df.columns:
-        return {}
-    if 'weight' in df.columns:
-        df['weight'] = pd.to_numeric(df['weight'], errors='coerce').fillna(0)
+    # 2. 從 Master.csv 補充更早的資料
+    csv_path = BASE / etf_id / f"{etf_id}_Master.csv"
+    if csv_path.exists():
+        try:
+            df = pd.read_csv(csv_path, encoding='utf-8-sig')
+            col_map = {}
+            for c in df.columns:
+                cl = c.strip()
+                if '代號' in cl: col_map[c] = 'code'
+                elif '名稱' in cl: col_map[c] = 'name'
+                elif '權重' in cl: col_map[c] = 'weight'
+                elif '日期' in cl: col_map[c] = 'date'
+            df = df.rename(columns=col_map)
+            if 'date' in df.columns and 'weight' in df.columns:
+                df['weight'] = pd.to_numeric(df['weight'], errors='coerce').fillna(0)
+                for dt, group in df.groupby('date'):
+                    dt_str = str(dt)
+                    if dt_str in records:
+                        continue  # xlsx 優先
+                    holdings = []
+                    for _, row in group.iterrows():
+                        code = str(row.get('code', '')).strip()
+                        name = str(row.get('name', '')).strip()
+                        weight = float(row.get('weight', 0))
+                        if code and name and weight > 0:
+                            holdings.append({'code': code, 'name': name, 'weight': round(weight, 2)})
 
-    for dt, group in df.groupby('date'):
-        dt_str = str(dt)
-        holdings = []
-        for _, row in group.iterrows():
-            code = str(row.get('code', '')).strip()
-            name = str(row.get('name', '')).strip()
-            weight = float(row.get('weight', 0))
-            if code and name and weight > 0:
-                holdings.append({'code': code, 'name': name, 'weight': round(weight, 2)})
-
-        stock_wt = sum(h['weight'] for h in holdings)
-        cash_est = round(max(0, 100 - stock_wt), 2)
-
-        records[dt_str] = {
-            'holdings': sorted(holdings, key=lambda h: h['weight'], reverse=True),
-            'cash_pct': cash_est,
-            'futures_pct': 0
-        }
+                    if holdings:
+                        stock_wt = sum(h['weight'] for h in holdings)
+                        cash_est = round(max(0, 100 - stock_wt), 2)
+                        records[dt_str] = {
+                            'holdings': sorted(holdings, key=lambda h: h['weight'], reverse=True),
+                            'cash_pct': cash_est,
+                            'futures_pct': 0
+                        }
+        except Exception as e:
+            print(f"  ⚠️ Master.csv 讀取失敗: {e}")
 
     return records
 
@@ -456,8 +569,8 @@ def generate():
     all_data = {'00981A': records_981a}
 
     for etf_id in ['00980A', '00982A', '00991A', '00993A']:
-        print(f"📂 Loading {etf_id} Master.csv...")
-        records = load_master_csv(etf_id)
+        print(f"📂 Loading {etf_id} (xlsx + csv)...")
+        records = load_other_etf(etf_id)
         if records:
             all_data[etf_id] = records
             etf_dates = sorted(records.keys())
