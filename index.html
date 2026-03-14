@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JOY88 主動式 ETF 追蹤儀表板 v2.0</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0"></script>
@@ -1643,6 +1644,7 @@
 
         function showLoadingError() {
             const container = document.querySelector('.container');
+            if (!container) return;
             container.innerHTML = `
                 <div class="loading">
                     <div style="color: var(--red); margin-bottom: 1rem;">
@@ -1868,6 +1870,7 @@
 
             const container = document.getElementById('p1-summary-content');
             const wrapper = document.getElementById('p1-today-summary');
+            if (!container || !wrapper) return;
             document.getElementById('p1-summary-date').textContent = reportDate;
 
             container.innerHTML = cards.map(c => `
@@ -2225,6 +2228,7 @@
 
             // Build checkboxes
             const container = document.getElementById('weight-stock-checkboxes');
+            if (!container) return;
             container.innerHTML = weightAllStocks.map((s, i) => {
                 const checked = weightSelectedStocks.includes(s.code) ? 'checked' : '';
                 const color = weightColors[i % weightColors.length];
@@ -2695,24 +2699,33 @@
             const cashNow = cashMode.cash_now || 0;
             const cashColor = cashNow >= 5 ? '#ff4757' : cashNow >= 3 ? '#ffa502' : '#00c48c';
             const cashDesc = cashNow >= 5 ? '偏防守' : cashNow >= 3 ? '中性' : '積極做多';
-            const cashCard = document.querySelector('#p2-gauge-cash-trend').closest('.gauge-card');
-            cashCard.innerHTML = `<div class="gauge-title">現金水位</div>
-                ${makeGaugeRing(cashNow, 10, cashColor, cashNow.toFixed(1) + '%', cashDesc)}
-                <div style="font-size:0.8rem; color:var(--text-muted);">${cashMode.trend || '-'}</div>`;
+            const cashEl = document.querySelector('#p2-gauge-cash-trend');
+            const cashCard = cashEl ? cashEl.closest('.gauge-card') : null;
+            if (cashCard) {
+                cashCard.innerHTML = `<div class="gauge-title">現金水位</div>
+                    ${makeGaugeRing(cashNow, 10, cashColor, cashNow.toFixed(1) + '%', cashDesc)}
+                    <div style="font-size:0.8rem; color:var(--text-muted);">${cashMode.trend || '-'}</div>`;
+            }
 
             // Concentration Gauge (max 60%)
             const concColor = top5Weight >= 40 ? '#ff4757' : top5Weight >= 30 ? '#ffa502' : '#00c48c';
             const concDesc = top5Weight >= 40 ? '高度集中' : top5Weight >= 30 ? '適度集中' : '分散配置';
-            const concCard = document.querySelector('#p2-gauge-concentration').closest('.gauge-card');
-            concCard.innerHTML = `<div class="gauge-title">持股集中度 (Top5)</div>
-                ${makeGaugeRing(top5Weight, 60, concColor, top5Weight.toFixed(1) + '%', concDesc)}`;
+            const concEl = document.querySelector('#p2-gauge-concentration');
+            const concCard = concEl ? concEl.closest('.gauge-card') : null;
+            if (concCard) {
+                concCard.innerHTML = `<div class="gauge-title">持股集中度 (Top5)</div>
+                    ${makeGaugeRing(top5Weight, 60, concColor, top5Weight.toFixed(1) + '%', concDesc)}`;
+            }
 
             // Manager Gauge (cash as inverse: low cash = high attack)
             const attackPct = Math.max(0, 100 - cashNow * 10); // 0% cash = 100% attack
             const mgrColor = cashNow <= 2 ? '#4f8ef7' : cashNow <= 5 ? '#00c48c' : '#ffa502';
-            const mgrCard = document.querySelector('#p2-gauge-manager').closest('.gauge-card');
-            mgrCard.innerHTML = `<div class="gauge-title">經理人動向</div>
-                ${makeGaugeRing(attackPct, 100, mgrColor, cashMode.mode || '-', cashMode.mode_desc || '-')}`;
+            const mgrEl = document.querySelector('#p2-gauge-manager');
+            const mgrCard = mgrEl ? mgrEl.closest('.gauge-card') : null;
+            if (mgrCard) {
+                mgrCard.innerHTML = `<div class="gauge-title">經理人動向</div>
+                    ${makeGaugeRing(attackPct, 100, mgrColor, cashMode.mode || '-', cashMode.mode_desc || '-')}`;
+            }
         }
 
         function renderP2ConsensusTable() {
@@ -2781,6 +2794,7 @@
             if (!dashboardData.daily_changes || !dashboardData.daily_changes['00981A']) return;
 
             const container = document.getElementById('p2-signal-container');
+            if (!container) return;
             const changesArr = dashboardData.daily_changes['00981A'] || [];
             const changes = changesArr[changesArr.length - 1] || {};
 
@@ -2884,7 +2898,8 @@
                     <div class="insight-card-body">${line.replace(/<strong>.*?<\/strong>[:：]?\s*/, '')}</div>
                 </div>
             `).join('')}</div>`;
-            document.getElementById('p2-comprehensive-view').innerHTML = html;
+            const viewEl = document.getElementById('p2-comprehensive-view');
+            if (viewEl) viewEl.innerHTML = html;
         }
 
         // ============================================================================
