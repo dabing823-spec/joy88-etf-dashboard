@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wolf Pack ETF 戰略儀表板 - Dashboard v5</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0"></script>
     <style>
         :root {
             --bg: #0f1117;
@@ -801,8 +803,18 @@
             <!-- Charts Row 1 -->
             <div class="charts-row">
                 <div class="chart-container">
-                    <div class="chart-title">00981A 現金水位 vs 加權指數 vs 櫃買指數 (30日)</div>
-                    <div class="chart-area-lg"><canvas id="p1-chart-cash-history"></canvas></div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <div class="chart-title" style="margin-bottom: 0;">00981A 現金水位 vs 加權 vs 櫃買</div>
+                        <div style="display: flex; gap: 0.4rem; align-items: center;">
+                            <button class="filter-btn" onclick="setCashRange(30)" id="cash-range-30">30日</button>
+                            <button class="filter-btn" onclick="setCashRange(60)" id="cash-range-60">60日</button>
+                            <button class="filter-btn active" onclick="setCashRange(90)" id="cash-range-90">90日</button>
+                            <button class="filter-btn" onclick="setCashRange('all')" id="cash-range-all">全部</button>
+                            <button class="filter-btn" onclick="resetCashZoom()" title="重置縮放" style="padding: 0.5rem 0.7rem;">🔄</button>
+                        </div>
+                    </div>
+                    <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:0.25rem;">🖱️ 滾輪縮放 · 拖曳平移 · 雙擊重置</div>
+                    <div class="chart-area-lg" style="height: 380px;"><canvas id="p1-chart-cash-history"></canvas></div>
                 </div>
                 <div class="chart-container">
                     <div class="chart-title">各ETF最新持股數量</div>
@@ -1429,6 +1441,26 @@
             renderP1ConvictionTable();
         }
 
+        let cashRangeDays = 90;
+
+        function setCashRange(n) {
+            ['30','60','90','all'].forEach(id => document.getElementById(`cash-range-${id}`).classList.remove('active'));
+            if (n === 'all') {
+                cashRangeDays = 9999;
+                document.getElementById('cash-range-all').classList.add('active');
+            } else {
+                cashRangeDays = n;
+                document.getElementById(`cash-range-${n}`).classList.add('active');
+            }
+            renderP1CashHistoryChart();
+        }
+
+        function resetCashZoom() {
+            if (charts['p1-cash-history']) {
+                charts['p1-cash-history'].resetZoom();
+            }
+        }
+
         function renderP1CashHistoryChart() {
             if (!dashboardData.cash_series) return;
 
@@ -1439,29 +1471,29 @@
                 charts['p1-cash-history'].destroy();
             }
 
-            const data = dashboardData.cash_series;
-            const last30 = data.slice(-30);
+            const allData = dashboardData.cash_series;
+            const sliced = cashRangeDays >= allData.length ? allData : allData.slice(-cashRangeDays);
 
             charts['p1-cash-history'] = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: last30.map(d => d.date),
+                    labels: sliced.map(d => d.date),
                     datasets: [
                         {
                             label: '現金比例 (%)',
-                            data: last30.map(d => d.cash_pct),
+                            data: sliced.map(d => d.cash_pct),
                             borderColor: '#4f8ef7',
                             backgroundColor: 'rgba(79, 142, 247, 0.08)',
                             borderWidth: 2,
                             tension: 0.3,
-                            pointRadius: 1,
+                            pointRadius: sliced.length > 60 ? 0 : 1,
                             pointHoverRadius: 4,
                             fill: true,
                             yAxisID: 'y'
                         },
                         {
                             label: '5MA',
-                            data: last30.map(d => d.cash_5ma),
+                            data: sliced.map(d => d.cash_5ma),
                             borderColor: 'rgba(255, 165, 2, 0.6)',
                             borderWidth: 1,
                             borderDash: [4, 4],
@@ -1471,7 +1503,7 @@
                         },
                         {
                             label: '加權指數',
-                            data: last30.map(d => d.taiex),
+                            data: sliced.map(d => d.taiex),
                             borderColor: '#00c48c',
                             backgroundColor: 'rgba(0, 196, 140, 0.05)',
                             borderWidth: 2,
@@ -1482,7 +1514,7 @@
                         },
                         {
                             label: '櫃買指數',
-                            data: last30.map(d => d.tpex),
+                            data: sliced.map(d => d.tpex),
                             borderColor: '#a855f7',
                             borderWidth: 1.5,
                             tension: 0.3,
@@ -1513,6 +1545,25 @@
                                     if (ctx.dataset.yAxisID === 'y1') return `加權: ${v.toFixed(0)}`;
                                     return `櫃買: ${v.toFixed(1)}`;
                                 }
+                            }
+                        },
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'x',
+                                modifierKey: null
+                            },
+                            zoom: {
+                                wheel: { enabled: true },
+                                pinch: { enabled: true },
+                                drag: { enabled: false },
+                                mode: 'x',
+                                onZoomComplete: function({chart}) {
+                                    chart.update('none');
+                                }
+                            },
+                            limits: {
+                                x: { minRange: 5 }
                             }
                         }
                     },
