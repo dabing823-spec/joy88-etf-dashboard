@@ -162,7 +162,11 @@
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 1.5rem;
-            min-height: 280px;
+        }
+
+        .chart-area {
+            position: relative;
+            height: 280px;
         }
 
         .chart-title {
@@ -661,11 +665,11 @@
             <div class="charts-row">
                 <div class="chart-container">
                     <div class="chart-title">00981A 現金水位歷史走勢</div>
-                    <canvas id="p1-chart-cash-history"></canvas>
+                    <div class="chart-area"><canvas id="p1-chart-cash-history"></canvas></div>
                 </div>
                 <div class="chart-container">
                     <div class="chart-title">各ETF最新持股數量</div>
-                    <canvas id="p1-chart-etf-holdings"></canvas>
+                    <div class="chart-area"><canvas id="p1-chart-etf-holdings"></canvas></div>
                 </div>
             </div>
 
@@ -755,7 +759,7 @@
             <div class="charts-row">
                 <div class="chart-container">
                     <div class="chart-title">00981A 前15大持股權重變化 (30日)</div>
-                    <canvas id="p1-chart-weight-history"></canvas>
+                    <div class="chart-area"><canvas id="p1-chart-weight-history"></canvas></div>
                 </div>
                 <div class="chart-container">
                     <div class="chart-title">20日信心度排行</div>
@@ -942,11 +946,11 @@
             <div class="charts-row">
                 <div class="chart-container">
                     <div class="chart-title">信號類型分佈</div>
-                    <canvas id="p3-chart-signal-distribution"></canvas>
+                    <div class="chart-area"><canvas id="p3-chart-signal-distribution"></canvas></div>
                 </div>
                 <div class="chart-container">
                     <div class="chart-title">月度信號分佈</div>
-                    <canvas id="p3-chart-monthly-signals"></canvas>
+                    <div class="chart-area"><canvas id="p3-chart-monthly-signals"></canvas></div>
                 </div>
             </div>
         </div>
@@ -988,11 +992,11 @@
             <div class="charts-row">
                 <div class="chart-container">
                     <div class="chart-title">現金權重 vs 加權指數</div>
-                    <canvas id="p4-chart-cash-vs-index"></canvas>
+                    <div class="chart-area"><canvas id="p4-chart-cash-vs-index"></canvas></div>
                 </div>
                 <div class="chart-container">
                     <div class="chart-title">持股數量變化</div>
-                    <canvas id="p4-chart-holdings-trend"></canvas>
+                    <div class="chart-area"><canvas id="p4-chart-holdings-trend"></canvas></div>
                 </div>
             </div>
 
