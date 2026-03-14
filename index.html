@@ -764,7 +764,18 @@
             <!-- Charts Row 2 -->
             <div class="charts-row">
                 <div class="chart-container">
-                    <div class="chart-title">00981A 前15大持股權重變化 (30日)</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <div class="chart-title" style="margin-bottom: 0;">00981A 持股權重變化 (30日)</div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <button class="filter-btn active" onclick="setWeightPreset(5)" id="weight-preset-5">Top 5</button>
+                            <button class="filter-btn" onclick="setWeightPreset(10)" id="weight-preset-10">Top 10</button>
+                            <button class="filter-btn" onclick="setWeightPreset('all')" id="weight-preset-all">全部</button>
+                            <button class="filter-btn" onclick="toggleWeightPicker()" id="weight-picker-btn">自選 ▾</button>
+                        </div>
+                    </div>
+                    <div id="weight-stock-picker" style="display:none; margin-bottom: 0.75rem; padding: 0.75rem; background: var(--card-hover); border-radius: 8px; max-height: 160px; overflow-y: auto;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;" id="weight-stock-checkboxes"></div>
+                    </div>
                     <div class="chart-area-lg"><canvas id="p1-chart-weight-history"></canvas></div>
                 </div>
                 <div class="chart-container">
@@ -1270,6 +1281,7 @@
             // Charts
             renderP1CashHistoryChart();
             renderP1ETFHoldingsChart();
+            initWeightStockPicker();
             renderP1WeightHistoryChart();
 
             // Holdings Tables
@@ -1395,6 +1407,85 @@
             });
         }
 
+        // Weight history chart state
+        let weightSelectedStocks = [];
+        let weightAllStocks = [];
+        const weightColors = ['#4f8ef7', '#00c48c', '#ffa502', '#ff4757', '#a855f7', '#22d3ee', '#64b5f6', '#1de9b6', '#ffb520', '#ff6b7a', '#c77dff', '#00d9ff', '#90e0ef', '#aacc00', '#ffaa00', '#e91e63', '#8bc34a', '#03a9f4', '#ff5722', '#607d8b'];
+
+        function initWeightStockPicker() {
+            if (!dashboardData.weight_history) return;
+
+            const history = dashboardData.weight_history;
+            const top20 = dashboardData.top20_stocks || [];
+
+            // Build stock list with names, ordered by weight
+            weightAllStocks = Object.keys(history).map(code => {
+                const stock = top20.find(s => s.code === code);
+                return { code, name: stock ? stock.name : code, weight: stock ? stock.weight : 0 };
+            }).sort((a, b) => b.weight - a.weight);
+
+            // Default: top 5
+            weightSelectedStocks = weightAllStocks.slice(0, 5).map(s => s.code);
+
+            // Build checkboxes
+            const container = document.getElementById('weight-stock-checkboxes');
+            container.innerHTML = weightAllStocks.map((s, i) => {
+                const checked = weightSelectedStocks.includes(s.code) ? 'checked' : '';
+                const color = weightColors[i % weightColors.length];
+                return `<label style="display:inline-flex; align-items:center; gap:0.25rem; padding:0.25rem 0.5rem; border-radius:4px; font-size:0.8rem; cursor:pointer; border:1px solid var(--border); white-space:nowrap;">
+                    <input type="checkbox" value="${s.code}" ${checked} onchange="onWeightStockToggle()" style="accent-color:${color};">
+                    <span style="color:${color}; font-weight:600;">${s.name}</span>
+                    <span style="color:var(--text-muted); font-size:0.7rem;">${s.weight.toFixed(1)}%</span>
+                </label>`;
+            }).join('');
+        }
+
+        function setWeightPreset(n) {
+            // Update button styles
+            ['5', '10', 'all'].forEach(id => {
+                document.getElementById(`weight-preset-${id}`).classList.remove('active');
+            });
+
+            if (n === 'all') {
+                weightSelectedStocks = weightAllStocks.map(s => s.code);
+                document.getElementById('weight-preset-all').classList.add('active');
+            } else {
+                weightSelectedStocks = weightAllStocks.slice(0, n).map(s => s.code);
+                document.getElementById(`weight-preset-${n}`).classList.add('active');
+            }
+
+            // Update checkboxes
+            document.querySelectorAll('#weight-stock-checkboxes input[type=checkbox]').forEach(cb => {
+                cb.checked = weightSelectedStocks.includes(cb.value);
+            });
+
+            renderP1WeightHistoryChart();
+        }
+
+        function toggleWeightPicker() {
+            const picker = document.getElementById('weight-stock-picker');
+            const btn = document.getElementById('weight-picker-btn');
+            if (picker.style.display === 'none') {
+                picker.style.display = 'block';
+                btn.textContent = '自選 ▴';
+            } else {
+                picker.style.display = 'none';
+                btn.textContent = '自選 ▾';
+            }
+        }
+
+        function onWeightStockToggle() {
+            const checkboxes = document.querySelectorAll('#weight-stock-checkboxes input[type=checkbox]');
+            weightSelectedStocks = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+
+            // Clear preset active states
+            ['5', '10', 'all'].forEach(id => {
+                document.getElementById(`weight-preset-${id}`).classList.remove('active');
+            });
+
+            renderP1WeightHistoryChart();
+        }
+
         function renderP1WeightHistoryChart() {
             if (!dashboardData.weight_history) return;
 
@@ -1406,22 +1497,24 @@
             }
 
             const history = dashboardData.weight_history;
-            const topStocks = Object.keys(history).slice(0, 15);
             const dates = dashboardData.dates || [];
             const last30dates = dates.slice(-30);
 
-            const datasets = topStocks.map((code, idx) => {
-                const colors = ['#4f8ef7', '#00c48c', '#ffa502', '#ff4757', '#a855f7', '#22d3ee', '#64b5f6', '#1de9b6', '#ffb520', '#ff6b7a', '#c77dff', '#00d9ff', '#90e0ef', '#aacc00', '#ffaa00'];
+            const datasets = weightSelectedStocks.map((code, idx) => {
+                const stockInfo = weightAllStocks.find(s => s.code === code);
+                const globalIdx = weightAllStocks.findIndex(s => s.code === code);
+                const color = weightColors[(globalIdx >= 0 ? globalIdx : idx) % weightColors.length];
                 return {
-                    label: code,
+                    label: `${stockInfo ? stockInfo.name : code}`,
                     data: last30dates.map(d => {
-                        const record = history[code].find(h => h.date === d);
-                        return record ? record.weight?.toFixed(2) : null;
+                        const record = (history[code] || []).find(h => h.date === d);
+                        return record ? record.weight : null;
                     }),
-                    borderColor: colors[idx % colors.length],
-                    borderWidth: 1.5,
+                    borderColor: color,
+                    borderWidth: 2,
                     tension: 0.3,
-                    pointRadius: 0,
+                    pointRadius: 1,
+                    pointHoverRadius: 4,
                     fill: false
                 };
             });
@@ -1435,16 +1528,27 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     plugins: {
                         legend: {
                             labels: { color: '#8b8fa3', font: { size: 10 } },
                             position: 'right',
                             align: 'middle'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    return `${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(2)}%`;
+                                }
+                            }
                         }
                     },
                     scales: {
                         y: {
-                            ticks: { color: '#8b8fa3' },
+                            ticks: { color: '#8b8fa3', callback: v => v + '%' },
                             grid: { color: 'rgba(42, 46, 61, 0.5)' }
                         },
                         x: {
