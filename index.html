@@ -1237,6 +1237,12 @@
                 </div>
             </div>
 
+            <!-- Copy Trading Strategy Hint -->
+            <div id="p4-strategy-hint" style="display:none; margin-bottom:1.5rem; padding:1rem; background:rgba(79,142,247,0.06); border:1px solid rgba(79,142,247,0.15); border-radius:10px;">
+                <div style="font-weight:600; margin-bottom:0.5rem; color:var(--text);">📊 跟單回測策略（依當前狀態）</div>
+                <div id="p4-strategy-hint-content" style="font-size:0.85rem; color:var(--text-secondary); line-height:1.8;"></div>
+            </div>
+
             <!-- Charts Row 1 -->
             <div class="charts-row">
                 <div class="chart-container">
@@ -2350,7 +2356,7 @@
         function renderP1HoldingEvents() {
             const container = document.getElementById('p1-holding-events');
             if (!container) return;
-            const changes = ((dashboardData.daily_changes || {})['00981A'] || []);
+            const changes = ((dashboardData.daily_changes || {})['00981A'] || []).slice().reverse();
             if (!changes.length) {
                 container.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; padding:0.5rem 0;">暫無異動資料</div>';
                 return;
@@ -3043,10 +3049,66 @@
             if (!etfData) return;
 
             renderP4KPIs(etfData);
+            renderP4StrategyHint(etfData);
             renderP4Charts(etfData);
             renderP4HoldingsTable(etfData);
             renderP4ChangesTimeline(etfData);
             populateComparisonSelects(etfData);
+        }
+
+        function renderP4StrategyHint(etfData) {
+            const hintDiv = document.getElementById('p4-strategy-hint');
+            const contentDiv = document.getElementById('p4-strategy-hint-content');
+            if (!hintDiv || !contentDiv) return;
+
+            const latest = etfData.date_records?.[etfData.date_records.length - 1] || {};
+            const cashPct = latest.cash_pct || 0;
+            const cashHigh = cashPct > 4;
+            const nStocks = latest.n_stocks || 0;
+
+            // Find recent changes for this ETF
+            const changes = etfData.date_records || [];
+            let recentNew = 0, recentAdded = 0;
+            if (changes.length >= 2) {
+                const curr = changes[changes.length - 1];
+                const prev = changes[changes.length - 2];
+                const currMap = {};
+                const prevMap = {};
+                (curr.holdings || []).forEach(h => { currMap[h.code] = h; });
+                (prev.holdings || []).forEach(h => { prevMap[h.code] = h; });
+                for (const code in currMap) {
+                    if (!(code in prevMap)) recentNew++;
+                    else if (currMap[code].weight > prevMap[code].weight + 0.1) recentAdded++;
+                }
+            }
+
+            const lines = [];
+            lines.push(`<span style="color:var(--text-muted);">📅 ${latest.date || '-'} | 現金 ${cashPct.toFixed(1)}% | 持股 ${nStocks} 檔</span>`);
+
+            if (cashHigh) {
+                lines.push(`<span style="color:var(--red); font-weight:600;">📈 現金 &gt;4%：跟單加分區！</span>回測顯示此時進場勝率和績效明顯提升。`);
+            } else {
+                lines.push(`<span style="color:var(--text-muted);">現金 ≤4%：一般狀態，跟單無額外加分。</span>`);
+            }
+
+            if (recentNew > 0) {
+                const wr = cashHigh ? '83%（含現金濾網）' : '81%';
+                const hold = cashHigh ? '5 天（報酬 6.3%）' : '5 天（報酬 5.15%）';
+                lines.push(`<span style="color:var(--red);">🆕 偵測到 ${recentNew} 檔新建倉</span> → 建議跟 <strong>${hold}</strong>，勝率 ${wr}`);
+            }
+
+            if (recentAdded > 0) {
+                const wr = cashHigh ? '70%（含現金濾網）' : '61%';
+                const hold = cashHigh ? '3 天（報酬 3.07%）' : '3 天（報酬 1.71%）';
+                lines.push(`<span style="color:var(--red);">▲ 偵測到 ${recentAdded} 檔加碼</span> → 建議跟 <strong>${hold}</strong>，勝率 ${wr}`);
+            }
+
+            if (recentNew === 0 && recentAdded === 0) {
+                lines.push(`<span style="color:var(--text-muted);">最近一期無新增/加碼信號。</span>`);
+            }
+
+            hintDiv.style.display = 'block';
+            contentDiv.innerHTML = lines.join('<br>');
         }
 
         function renderP4KPIs(etfData) {
