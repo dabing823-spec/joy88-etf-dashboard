@@ -3076,9 +3076,9 @@
 
         function filterSignalsByType(signals, filter) {
             if (filter === 'all') return signals;
-            if (filter === 'new') return signals.filter(s => s.type === 'new');
-            if (filter === 'added') return signals.filter(s => s.type === 'added');
-            if (filter === '★★★') return signals.filter(s => s.confidence >= 3);
+            if (filter === 'new') return signals.filter(s => s.type === '新增' || s.type === 'new');
+            if (filter === 'added') return signals.filter(s => s.type === '加碼' || s.type === 'added');
+            if (filter === '★★★') return signals.filter(s => s.confidence === '⭐⭐⭐' || s.confidence >= 3);
             return signals;
         }
 
@@ -3519,20 +3519,20 @@
 
         function getSignalClass(type) {
             const typeMap = {
-                'new': 'badge-green',
-                'added': 'badge-blue',
-                'reduced': 'badge-orange',
-                'exited': 'badge-red'
+                'new': 'badge-green', '新增': 'badge-green',
+                'added': 'badge-blue', '加碼': 'badge-blue',
+                'reduced': 'badge-orange', '減碼': 'badge-orange',
+                'exited': 'badge-red', '退出': 'badge-red',
             };
             return typeMap[type] || 'badge-blue';
         }
 
         function getSignalBadge(type) {
             const typeMap = {
-                'new': '新增',
-                'added': '加碼',
-                'reduced': '減碼',
-                'exited': '退出'
+                'new': '新增', '新增': '新增',
+                'added': '加碼', '加碼': '加碼',
+                'reduced': '減碼', '減碼': '減碼',
+                'exited': '退出', '退出': '退出',
             };
             return typeMap[type] || type;
         }
