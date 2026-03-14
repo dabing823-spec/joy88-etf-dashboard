@@ -918,26 +918,26 @@
                 </div>
             </div>
 
-            <!-- Charts Row 1 -->
-            <div class="charts-row">
-                <div class="chart-container">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                        <div class="chart-title" style="margin-bottom: 0;">00981A 現金水位 · 申贖量 vs 加權 · 櫃買</div>
-                        <div style="display: flex; gap: 0.4rem; align-items: center;">
-                            <button class="filter-btn" onclick="setCashRange(30)" id="cash-range-30">30日</button>
-                            <button class="filter-btn" onclick="setCashRange(60)" id="cash-range-60">60日</button>
-                            <button class="filter-btn active" onclick="setCashRange(90)" id="cash-range-90">90日</button>
-                            <button class="filter-btn" onclick="setCashRange('all')" id="cash-range-all">全部</button>
-                            <button class="filter-btn" onclick="resetCashZoom()" title="重置縮放" style="padding: 0.5rem 0.7rem;">🔄</button>
-                        </div>
+            <!-- Chart: 00981A Cash + Subscription -->
+            <div class="chart-container" style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <div class="chart-title" style="margin-bottom: 0;">00981A 現金水位 · 申贖量 vs 加權 · 櫃買</div>
+                    <div style="display: flex; gap: 0.4rem; align-items: center;">
+                        <button class="filter-btn" onclick="setCashRange(30)" id="cash-range-30">30日</button>
+                        <button class="filter-btn" onclick="setCashRange(60)" id="cash-range-60">60日</button>
+                        <button class="filter-btn active" onclick="setCashRange(90)" id="cash-range-90">90日</button>
+                        <button class="filter-btn" onclick="setCashRange('all')" id="cash-range-all">全部</button>
+                        <button class="filter-btn" onclick="resetCashZoom()" title="重置縮放" style="padding: 0.5rem 0.7rem;">🔄</button>
                     </div>
-                    <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:0.25rem;">🖱️ 滾輪縮放 · 拖曳平移 · 雙擊重置</div>
-                    <div class="chart-area-lg" style="height: 380px;"><canvas id="p1-chart-cash-history"></canvas></div>
                 </div>
-                <div class="chart-container">
-                    <div class="chart-title">5 檔主動 ETF 現金水位變化</div>
-                    <div class="chart-area"><canvas id="p1-chart-etf-cash-compare"></canvas></div>
-                </div>
+                <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:0.25rem;">🖱️ 滾輪縮放 · 拖曳平移 · 雙擊重置</div>
+                <div class="chart-area-lg" style="height: 350px;"><canvas id="p1-chart-cash-history"></canvas></div>
+            </div>
+
+            <!-- Chart: 5 ETF Cash Compare + Indices -->
+            <div class="chart-container" style="margin-bottom: 1.5rem;">
+                <div class="chart-title">5 檔主動 ETF 現金水位 vs 加權 · 櫃買</div>
+                <div class="chart-area-lg" style="height: 320px;"><canvas id="p1-chart-etf-cash-compare"></canvas></div>
             </div>
 
             <!-- Holding Changes Timeline -->
@@ -1966,37 +1966,72 @@
             }
 
             const etfConfig = [
-                { code: '00981A', name: '統一台股增長', color: '#4f8ef7', dash: [] },
-                { code: '00980A', name: '野村智慧優選', color: '#00c48c', dash: [] },
-                { code: '00982A', name: '群益台股主動', color: '#ffa502', dash: [] },
-                { code: '00991A', name: '復華未來50', color: '#a855f7', dash: [] },
-                { code: '00993A', name: '安聯台灣主動', color: '#22d3ee', dash: [4, 4] },
+                { code: '00981A', name: '統一台股增長', color: '#4f8ef7' },
+                { code: '00980A', name: '野村智慧優選', color: '#00c48c' },
+                { code: '00982A', name: '群益台股主動', color: '#ffa502' },
+                { code: '00991A', name: '復華未來50', color: '#a855f7' },
+                { code: '00993A', name: '安聯台灣主動', color: '#22d3ee' },
             ];
 
-            // Collect all dates across ETFs
+            // Collect all dates + index data from 00981A cash_series
             const allDatesSet = new Set();
+            const taiexMap = {};
+            const tpexMap = {};
             etfConfig.forEach(e => {
                 const cs = (etfPagesData[e.code] || {}).cash_series || [];
-                cs.forEach(d => allDatesSet.add(d.date));
+                cs.forEach(d => {
+                    allDatesSet.add(d.date);
+                    if (d.taiex) taiexMap[d.date] = d.taiex;
+                    if (d.tpex) tpexMap[d.date] = d.tpex;
+                });
+            });
+            // Also pull from dashboardData for broader index coverage
+            (dashboardData.cash_series || []).forEach(d => {
+                if (d.taiex) taiexMap[d.date] = d.taiex;
+                if (d.tpex) tpexMap[d.date] = d.tpex;
             });
             const allDates = [...allDatesSet].sort();
 
+            // ETF cash datasets
             const datasets = etfConfig.map(e => {
                 const cs = (etfPagesData[e.code] || {}).cash_series || [];
                 const cashMap = {};
                 cs.forEach(d => { cashMap[d.date] = d.cash_pct; });
                 return {
-                    label: `${e.code} ${e.name}`,
+                    label: e.code,
                     data: allDates.map(d => cashMap[d] ?? null),
                     borderColor: e.color,
-                    backgroundColor: e.color + '10',
                     borderWidth: 2,
-                    borderDash: e.dash,
                     tension: 0.3,
                     pointRadius: 0,
                     pointHoverRadius: 4,
                     spanGaps: true,
+                    yAxisID: 'y',
                 };
+            });
+
+            // Add index datasets
+            datasets.push({
+                label: '加權指數',
+                data: allDates.map(d => taiexMap[d] ?? null),
+                borderColor: 'rgba(255,255,255,0.3)',
+                borderWidth: 1.5,
+                tension: 0.3,
+                pointRadius: 0,
+                borderDash: [6, 3],
+                spanGaps: true,
+                yAxisID: 'y1',
+            });
+            datasets.push({
+                label: '櫃買指數',
+                data: allDates.map(d => tpexMap[d] ?? null),
+                borderColor: 'rgba(255,255,255,0.15)',
+                borderWidth: 1,
+                tension: 0.3,
+                pointRadius: 0,
+                borderDash: [3, 3],
+                spanGaps: true,
+                yAxisID: 'y2',
             });
 
             charts['p1-etf-cash-compare'] = new Chart(ctx, {
@@ -2014,16 +2049,33 @@
                             callbacks: {
                                 label: function(ctx) {
                                     const v = ctx.parsed.y;
-                                    return v != null ? `${ctx.dataset.label}: ${v.toFixed(2)}%` : null;
+                                    if (v == null) return null;
+                                    if (ctx.dataset.yAxisID === 'y') return `${ctx.dataset.label}: ${v.toFixed(2)}%`;
+                                    if (ctx.dataset.yAxisID === 'y1') return `加權: ${v.toFixed(0)}`;
+                                    return `櫃買: ${v.toFixed(1)}`;
                                 }
                             }
                         }
                     },
                     scales: {
                         y: {
+                            position: 'left',
                             title: { display: true, text: '現金 (%)', color: '#8b8fa3', font: { size: 10 } },
                             ticks: { color: '#8b8fa3', callback: v => v + '%' },
                             grid: { color: 'rgba(42, 46, 61, 0.5)' }
+                        },
+                        y1: {
+                            position: 'right',
+                            title: { display: true, text: '加權', color: 'rgba(255,255,255,0.3)', font: { size: 10 } },
+                            ticks: { color: 'rgba(255,255,255,0.3)', callback: v => (v/1000).toFixed(0) + 'K' },
+                            grid: { drawOnChartArea: false }
+                        },
+                        y2: {
+                            position: 'right',
+                            title: { display: true, text: '櫃買', color: 'rgba(255,255,255,0.15)', font: { size: 10 } },
+                            ticks: { color: 'rgba(255,255,255,0.2)' },
+                            grid: { drawOnChartArea: false },
+                            afterFit(axis) { axis.width = 45; }
                         },
                         x: {
                             ticks: { color: '#8b8fa3', maxRotation: 45, maxTicksLimit: 15 },
