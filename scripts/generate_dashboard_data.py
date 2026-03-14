@@ -151,9 +151,11 @@ def _parse_981a_xlsx(fp, date_str):
         except ValueError:
             return 0.0
 
-    # Parse cash & futures from rows with known labels
+    # Parse cash, futures, units outstanding, NAV from rows with known labels
     cash_pct = 0
     futures_pct = 0
+    units_outstanding = 0
+    nav = 0
     for r in all_rows:
         if not r or not r[0]:
             continue
@@ -164,6 +166,16 @@ def _parse_981a_xlsx(fp, date_str):
             futures_pct = parse_pct(r[2])
         elif '期貨' in label and '名目' in label and len(r) >= 3:
             futures_pct = max(futures_pct, parse_pct(r[2]))
+        elif '流通在外' in label and len(r) >= 2:
+            try:
+                units_outstanding = int(str(r[1]).replace(',', '').replace(' ', ''))
+            except (ValueError, TypeError):
+                pass
+        elif '每單位淨值' in label and len(r) >= 2:
+            try:
+                nav = float(str(r[1]).replace('NTD', '').replace(',', '').strip())
+            except (ValueError, TypeError):
+                pass
 
     # Find stock data start (after row with "股票代號")
     stock_start = None
@@ -194,6 +206,8 @@ def _parse_981a_xlsx(fp, date_str):
         'holdings': holdings,
         'cash_pct': round(cash_pct, 2),
         'futures_pct': round(futures_pct, 2),
+        'units_outstanding': units_outstanding,
+        'nav': round(nav, 2),
         'meta': {}
     }
 
@@ -438,7 +452,7 @@ def calc_cash_mode(records_981a, dates):
     else:
         trend = "—"
 
-    # Build cash series
+    # Build cash series (with units outstanding for subscription/redemption tracking)
     cash_series = []
     for i, dt in enumerate(dates):
         r = records_981a[dt]
@@ -446,6 +460,15 @@ def calc_cash_mode(records_981a, dates):
         fp = r.get('futures_pct', 0) or 0
         sp = sum(h['weight'] for h in r.get('holdings', []))
         nh = len(r.get('holdings', []))
+        units = r.get('units_outstanding', 0) or 0
+        nav = r.get('nav', 0) or 0
+
+        # Units change vs previous day
+        if i > 0:
+            prev_units = records_981a[dates[i-1]].get('units_outstanding', 0) or 0
+            units_change = units - prev_units
+        else:
+            units_change = 0
 
         c5 = round(np.mean([records_981a[dates[j]].get('cash_pct', 0) or 0 for j in range(max(0, i-4), i+1)]), 2) if i >= 4 else None
         c20 = round(np.mean([records_981a[dates[j]].get('cash_pct', 0) or 0 for j in range(max(0, i-19), i+1)]), 2) if i >= 19 else None
@@ -453,7 +476,8 @@ def calc_cash_mode(records_981a, dates):
         cash_series.append({
             'date': dt, 'cash_pct': round(cp, 2), 'stock_pct': round(sp, 2),
             'futures_pct': round(fp, 2), 'n_holdings': nh,
-            'cash_5ma': c5, 'cash_20ma': c20
+            'cash_5ma': c5, 'cash_20ma': c20,
+            'units': units, 'units_change': units_change, 'nav': nav,
         })
 
     has_futures = futures_pct > 0

@@ -5,10 +5,11 @@ Wolf Pack Agent Orchestrator
 串接所有 Agent 的主控腳本。
 
 流程：
-  1. quality_agent  → 檢查資料品質
-  2. signal_agent   → 信號分析 + 日報
-  3. dashboard_agent→ 更新 Dashboard JSON
-  4. alert_agent    → 異動通知 (LINE)
+  1. quality_agent      → 檢查資料品質
+  2. signal_agent       → 信號分析 + 日報
+  3. dashboard_agent    → 更新 Dashboard JSON
+  4. alert_agent        → 異動通知 (LINE)
+  5. ai_research_agent  → NotebookLM 雙視角分析 (沈萬鈞 × 巨人傑)
 
 用法：
   python orchestrator.py              # 全部執行
@@ -16,7 +17,9 @@ Wolf Pack Agent Orchestrator
   python orchestrator.py --signal     # 只跑信號分析
   python orchestrator.py --dashboard  # 只跑 Dashboard 更新
   python orchestrator.py --alert      # 只跑異動通知
+  python orchestrator.py --ai         # 只跑 AI 研究分析
   python orchestrator.py --no-alert   # 全部執行但跳過通知
+  python orchestrator.py --no-ai      # 全部執行但跳過 AI 分析
   python orchestrator.py --git-push   # 執行完後自動 git commit & push
 """
 
@@ -51,11 +54,11 @@ def run_pipeline(args):
     log_to_file("Pipeline 啟動")
 
     results = {}
-    run_all = not (args.quality or args.signal or args.dashboard or args.alert)
+    run_all = not (args.quality or args.signal or args.dashboard or args.alert or args.ai)
 
     # ── Step 1: 資料品質檢查 ──
     if run_all or args.quality:
-        log("\n━━━ Step 1/4: 資料品質檢查 ━━━")
+        log("\n━━━ Step 1/5: 資料品質檢查 ━━━")
         try:
             from quality_agent import run as run_quality
             results["quality"] = run_quality()
@@ -73,7 +76,7 @@ def run_pipeline(args):
     # ── Step 2: 信號分析 ──
     signal_result = None
     if run_all or args.signal:
-        log("\n━━━ Step 2/4: 信號分析 ━━━")
+        log("\n━━━ Step 2/5: 信號分析 ━━━")
         try:
             from signal_agent import run as run_signal
             signal_result = run_signal()
@@ -94,7 +97,7 @@ def run_pipeline(args):
 
     # ── Step 3: Dashboard 更新 ──
     if run_all or args.dashboard:
-        log("\n━━━ Step 3/4: Dashboard 更新 ━━━")
+        log("\n━━━ Step 3/5: Dashboard 更新 ━━━")
         try:
             from dashboard_agent import run as run_dashboard
             results["dashboard"] = run_dashboard()
@@ -107,7 +110,7 @@ def run_pipeline(args):
 
     # ── Step 4: 異動通知 ──
     if (run_all and not args.no_alert) or args.alert:
-        log("\n━━━ Step 4/4: 異動通知 ━━━")
+        log("\n━━━ Step 4/5: 異動通知 ━━━")
         try:
             from alert_agent import run as run_alert
             results["alert"] = run_alert(signal_result)
@@ -120,6 +123,22 @@ def run_pipeline(args):
             log(f"  ❌ alert_agent 異常: {e}")
             results["alert"] = {"status": "ERROR", "error": str(e)}
             log_to_file(f"alert_agent ERROR: {e}")
+
+    # ── Step 5: AI 研究分析 ──
+    if (run_all and not args.no_ai) or args.ai:
+        log("\n━━━ Step 5/5: AI 研究分析 (NotebookLM) ━━━")
+        try:
+            from ai_research_agent import run as run_ai_research
+            import asyncio as _aio
+            _aio.run(run_ai_research())
+            results["ai_research"] = {"status": "OK"}
+            log(f"  結果: OK")
+            log_to_file("ai_research_agent: OK")
+        except Exception as e:
+            log(f"  ⚠️ ai_research_agent 異常: {e}")
+            log(f"  （NotebookLM session 可能過期，執行 notebooklm login 重新登入）")
+            results["ai_research"] = {"status": "WARN", "error": str(e)}
+            log_to_file(f"ai_research_agent WARN: {e}")
 
     # ── Git push ──
     if args.git_push:
@@ -207,7 +226,9 @@ def main():
     parser.add_argument("--signal", action="store_true", help="只跑信號分析")
     parser.add_argument("--dashboard", action="store_true", help="只跑 Dashboard 更新")
     parser.add_argument("--alert", action="store_true", help="只跑異動通知")
+    parser.add_argument("--ai", action="store_true", help="只跑 AI 研究分析")
     parser.add_argument("--no-alert", action="store_true", help="跳過通知")
+    parser.add_argument("--no-ai", action="store_true", help="跳過 AI 分析")
     parser.add_argument("--git-push", action="store_true", help="完成後 git commit & push")
     args = parser.parse_args()
 

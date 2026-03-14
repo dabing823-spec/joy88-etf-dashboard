@@ -836,6 +836,11 @@
                     <div class="kpi-subtext" id="p1-kpi-futures-trend">-</div>
                 </div>
                 <div class="kpi-card">
+                    <div class="kpi-label">今日申贖</div>
+                    <div class="kpi-value" id="p1-kpi-units">-</div>
+                    <div class="kpi-subtext" id="p1-kpi-units-desc">-</div>
+                </div>
+                <div class="kpi-card">
                     <div class="kpi-label">攻防模式</div>
                     <div class="kpi-value" id="p1-kpi-mode">-</div>
                     <div class="kpi-subtext" id="p1-kpi-mode-desc">-</div>
@@ -1191,6 +1196,39 @@
                 </div>
             </div>
 
+            <!-- AI Research Panel -->
+            <div class="table-container" id="ai-research-panel" style="display:none;">
+                <div class="table-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>🧠 AI 持股異動分析</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);" id="ai-research-date"></span>
+                </div>
+                <div id="ai-research-summary" style="padding:0.5rem 1rem; font-size:0.85rem; color:var(--text-muted); border-bottom:1px solid var(--border);"></div>
+                <!-- Institutional -->
+                <div style="border-bottom:1px solid var(--border);">
+                    <div class="ai-section-header" onclick="toggleAISection('inst')" style="padding:0.75rem 1rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <span>🏛️</span>
+                            <span style="font-weight:600; color:var(--text-primary);" id="ai-inst-source">沈萬鈞法人視野</span>
+                            <span style="font-size:0.7rem; padding:2px 8px; border-radius:4px; background:rgba(99,102,241,0.15); color:#818cf8;">法人產業研究</span>
+                        </div>
+                        <span id="ai-inst-arrow" style="transition:transform 0.2s;">▼</span>
+                    </div>
+                    <div id="ai-inst-content" style="display:none; padding:0 1rem 1rem; white-space:pre-wrap; font-size:0.85rem; line-height:1.7; color:var(--text-secondary);"></div>
+                </div>
+                <!-- Trader -->
+                <div>
+                    <div class="ai-section-header" onclick="toggleAISection('trader')" style="padding:0.75rem 1rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <span>⚡</span>
+                            <span style="font-weight:600; color:var(--text-primary);" id="ai-trader-source">巨人思維</span>
+                            <span style="font-size:0.7rem; padding:2px 8px; border-radius:4px; background:rgba(245,158,11,0.15); color:#fbbf24;">實戰交易者</span>
+                        </div>
+                        <span id="ai-trader-arrow" style="transition:transform 0.2s;">▼</span>
+                    </div>
+                    <div id="ai-trader-content" style="display:none; padding:0 1rem 1rem; white-space:pre-wrap; font-size:0.85rem; line-height:1.7; color:var(--text-secondary);"></div>
+                </div>
+            </div>
+
             <!-- Recent Changes Timeline -->
             <div class="table-container">
                 <div class="table-title">近期異動紀錄</div>
@@ -1457,6 +1495,18 @@
                     console.warn('Strategy data not available:', e);
                 }
 
+                // Load AI research data (optional)
+                try {
+                    const aiRes = await fetch(`data/ai_research.json${cacheBust}`);
+                    if (aiRes.ok) {
+                        const aiData = await aiRes.json();
+                        renderAIResearch(aiData);
+                        console.log('AI research data loaded');
+                    }
+                } catch (e) {
+                    console.warn('AI research data not available:', e);
+                }
+
                 console.log('Data loaded successfully');
                 console.log('Dashboard keys:', Object.keys(dashboardData));
                 console.log('ETF Pages keys:', Object.keys(etfPagesData));
@@ -1588,6 +1638,26 @@
             futuresEl.textContent = hasFutures ? '有' : '無';
             futuresEl.style.color = hasFutures ? 'var(--orange)' : 'var(--text-muted)';
             document.getElementById('p1-kpi-futures-trend').textContent = cashMode.futures_signal || '-';
+
+            // Units (subscription/redemption)
+            const cashSeries = cashMode.cash_series || dashboardData.cash_series || [];
+            const latestCS = cashSeries.length ? cashSeries[cashSeries.length - 1] : {};
+            const unitsChange = latestCS.units_change || 0;
+            const unitsChangeK = Math.round(unitsChange / 1000);
+            const unitsEl = document.getElementById('p1-kpi-units');
+            if (unitsChange > 0) {
+                unitsEl.textContent = `+${(unitsChangeK).toLocaleString()} 千張`;
+                unitsEl.style.color = 'var(--green)';
+            } else if (unitsChange < 0) {
+                unitsEl.textContent = `${(unitsChangeK).toLocaleString()} 千張`;
+                unitsEl.style.color = 'var(--red)';
+            } else {
+                unitsEl.textContent = '0';
+                unitsEl.style.color = 'var(--text-muted)';
+            }
+            const totalUnitsB = latestCS.units ? (latestCS.units / 1e9).toFixed(2) : '?';
+            document.getElementById('p1-kpi-units-desc').textContent =
+                `總單位: ${totalUnitsB}B | NAV: ${latestCS.nav || '-'}`;
 
             const modeClass = getModeClass(cashMode.mode);
             document.getElementById('p1-kpi-mode').innerHTML = `<span class="mode-indicator ${modeClass}">${cashMode.mode || '-'}</span>`;
@@ -1801,6 +1871,22 @@
                             borderDash: [6, 3],
                             fill: false,
                             yAxisID: 'y2'
+                        },
+                        {
+                            label: '申購/贖回 (千張)',
+                            type: 'bar',
+                            data: sliced.map(d => d.units_change ? Math.round(d.units_change / 1000) : 0),
+                            backgroundColor: sliced.map(d =>
+                                (d.units_change || 0) > 0 ? 'rgba(0, 196, 140, 0.35)' :
+                                (d.units_change || 0) < 0 ? 'rgba(255, 71, 87, 0.35)' : 'transparent'
+                            ),
+                            borderColor: sliced.map(d =>
+                                (d.units_change || 0) > 0 ? 'rgba(0, 196, 140, 0.8)' :
+                                (d.units_change || 0) < 0 ? 'rgba(255, 71, 87, 0.8)' : 'transparent'
+                            ),
+                            borderWidth: 1,
+                            yAxisID: 'y3',
+                            order: 10
                         }
                     ]
                 },
@@ -1822,6 +1908,11 @@
                                     if (v == null) return null;
                                     if (ctx.dataset.yAxisID === 'y') return `${ctx.dataset.label}: ${v.toFixed(2)}%`;
                                     if (ctx.dataset.yAxisID === 'y1') return `加權: ${v.toFixed(0)}`;
+                                    if (ctx.dataset.yAxisID === 'y3') {
+                                        const k = v;
+                                        return k > 0 ? `申購: +${k.toLocaleString()} 千張` :
+                                               k < 0 ? `贖回: ${k.toLocaleString()} 千張` : null;
+                                    }
                                     return `櫃買: ${v.toFixed(1)}`;
                                 }
                             }
@@ -1870,8 +1961,15 @@
                             title: { display: true, text: '櫃買', color: '#a855f7', font: { size: 10 } },
                             ticks: { color: '#a855f7' },
                             grid: { drawOnChartArea: false },
-                            // Offset from y1
                             afterFit(axis) { axis.width = 50; }
+                        },
+                        y3: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: '申贖 (千張)', color: '#8b8fa3', font: { size: 10 } },
+                            ticks: { color: '#8b8fa3', callback: v => (v >= 0 ? '+' : '') + (v/1000).toFixed(0) + 'K' },
+                            grid: { drawOnChartArea: false },
+                            afterFit(axis) { axis.width = 55; }
                         },
                         x: {
                             ticks: { color: '#8b8fa3', maxRotation: 45 },
@@ -3395,6 +3493,49 @@
                     </table>
                 </div>
             `;
+        }
+
+        // ============================================================================
+        // AI Research Panel
+        // ============================================================================
+        function toggleAISection(section) {
+            const content = document.getElementById(`ai-${section}-content`);
+            const arrow = document.getElementById(`ai-${section}-arrow`);
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                content.style.display = 'none';
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function renderAIResearch(aiData) {
+            if (!aiData || !aiData.analyses) return;
+
+            // Show analysis for 00981A (primary ETF)
+            const analysis = aiData.analyses['00981A'] || Object.values(aiData.analyses)[0];
+            if (!analysis) return;
+
+            const panel = document.getElementById('ai-research-panel');
+            panel.style.display = 'block';
+
+            document.getElementById('ai-research-date').textContent =
+                `${analysis.date} | 更新於 ${analysis.generated_at}`;
+            document.getElementById('ai-research-summary').textContent =
+                analysis.changes_summary;
+
+            // Institutional
+            document.getElementById('ai-inst-source').textContent =
+                analysis.institutional.source;
+            document.getElementById('ai-inst-content').textContent =
+                analysis.institutional.analysis;
+
+            // Trader
+            document.getElementById('ai-trader-source').textContent =
+                analysis.trader.source;
+            document.getElementById('ai-trader-content').textContent =
+                analysis.trader.analysis;
         }
 
         // ============================================================================
