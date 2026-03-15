@@ -1208,13 +1208,12 @@
         <div class="logo">📊 JOY88 主動式 ETF 追蹤儀表板</div>
         <nav>
             <button class="nav-btn active" data-page="p2">🎯 戰略儀表板</button>
+            <button class="nav-btn" data-page="p8">🛡 風險訊號</button>
             <button class="nav-btn" data-page="p1">📊 ETF 持股追蹤</button>
             <button class="nav-btn" data-page="p3">📋 老墨跟單策略</button>
+            <button class="nav-btn" data-page="p5">🧠 策略分析 & 回測</button>
             <button class="nav-btn" data-page="p4">🔍 歷史回溯</button>
-            <button class="nav-btn" data-page="p5">🧠 策略分析</button>
-            <button class="nav-btn" data-page="p6">📊 跟單回測</button>
             <button class="nav-btn" data-page="p7">🏛 0050 / 市值</button>
-            <button class="nav-btn" data-page="p8">🛡 風險訊號</button>
             <button class="nav-btn" data-page="p9">🤖 AI 問答</button>
         </nav>
     </header>
@@ -1879,7 +1878,7 @@
 
         <!-- Page 5: 策略分析 -->
         <div class="page" id="p5">
-            <div class="page-title">🧠 策略分析</div>
+            <div class="page-title">🧠 策略分析 & 回測</div>
 
             <!-- Page Intro -->
             <div class="intro-box">
@@ -1940,11 +1939,9 @@
             </div>
 
             <!-- Section 3-6 removed: 經理人風格/異動速度/產業曝險/持倉重疊 -->
-        </div>
 
-        <!-- Page 6: 跟單回測分析 -->
-        <div class="page" id="p6">
-            <div class="page-title">📊 跟單回測分析</div>
+            <!-- 跟單回測分析 (merged from P6) -->
+            <div class="section-title" style="margin-top:2rem;">跟單回測分析</div>
 
             <!-- Page Intro -->
             <div class="intro-box red">
@@ -2571,9 +2568,7 @@
                 case 'p5':
                     renderPage5();
                     break;
-                case 'p6':
-                    // Static content, no render needed
-                    break;
+
                 case 'p7':
                     renderPage7();
                     break;
@@ -4683,7 +4678,7 @@
         function renderPage5() {
             if (!strategyData) {
                 document.getElementById('p5').innerHTML = `
-                    <div class="page-title">🧠 策略分析</div>
+                    <div class="page-title">🧠 策略分析 & 回測</div>
                     <div class="loading"><p style="color: var(--text-muted);">策略數據尚未載入 (data/strategy.json)</p></div>
                 `;
                 return;
