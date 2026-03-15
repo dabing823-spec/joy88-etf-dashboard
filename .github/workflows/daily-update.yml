@@ -83,6 +83,24 @@ jobs:
             git push
           fi
 
+      - name: Send daily email report
+        if: success()
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_FROM: 'JOY88 ETF <onboarding@resend.dev>'
+        run: |
+          if [ -z "$RESEND_API_KEY" ] || [ -z "$EMAIL_TO" ]; then
+            echo "Email secrets not set, skipping"
+          else
+            cd scripts/agents
+            python -c "
+          from email_agent import run
+          result = run()
+          print(f'Email: {result[\"status\"]}')
+          "
+          fi
+
       - name: Send LINE alert on ETF changes
         if: success()
         env:
