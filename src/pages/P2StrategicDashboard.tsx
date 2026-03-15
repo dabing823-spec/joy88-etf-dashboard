@@ -1,80 +1,88 @@
 import { useData } from '../contexts/DataContext'
-import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable } from '../components/shared'
-import { formatPct, formatNumber } from '../lib/formatters'
+import { Badge, TableContainer, DataTable } from '../components/shared'
+import { formatPct } from '../lib/formatters'
 import { RISK_LEVEL_COLORS } from '../lib/constants'
 import type { MarketIndices, ConsensusItem } from '../types'
 
-function chgSpan(val: number | undefined, suffix = '') {
+/* ── helpers ─────────────────────────────────────────── */
+
+function Chg({ val, suffix = '' }: { val?: number; suffix?: string }) {
   if (val == null) return <span className="text-text-muted">-</span>
-  const color = val > 0 ? 'text-up' : val < 0 ? 'text-down' : 'text-text-muted'
-  return <span className={color}>{val > 0 ? '+' : ''}{val.toFixed(2)}{suffix}</span>
+  const c = val > 0 ? 'text-up' : val < 0 ? 'text-down' : 'text-text-muted'
+  return <span className={`${c} tabular-nums`}>{val > 0 ? '+' : ''}{val.toFixed(2)}{suffix}</span>
 }
 
-function HeroCard({ label, value, chg, chgPct }: { label: string; value?: number; chg?: number; chgPct?: number }) {
-  const color = (chg ?? 0) > 0 ? 'text-up' : (chg ?? 0) < 0 ? 'text-down' : 'text-text-muted'
+/* ── Compact Ticker Strip ────────────────────────────── */
+
+function TickerItem({ label, value, chgPct }: { label: string; value?: number; chgPct?: number }) {
+  const c = (chgPct ?? 0) > 0 ? 'text-up' : (chgPct ?? 0) < 0 ? 'text-down' : 'text-text-muted'
   return (
-    <div className="bg-card border border-border rounded-xl p-5 hover:bg-card-hover transition-colors">
-      <div className="text-xs text-text-muted mb-1">{label}</div>
-      <div className={`text-2xl font-bold ${color}`}>{value ? formatNumber(value, 0) : '-'}</div>
-      <div className="text-sm mt-1">
-        {chgSpan(chg)} <span className="text-text-muted mx-1">|</span> {chgSpan(chgPct, '%')}
+    <div className="flex items-center gap-2 px-3 py-1.5 min-w-0">
+      <span className="text-[10px] text-text-muted uppercase tracking-wider shrink-0">{label}</span>
+      <span className={`text-sm font-bold tabular-nums ${c}`}>
+        {value != null ? value.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '-'}
+      </span>
+      <Chg val={chgPct} suffix="%" />
+    </div>
+  )
+}
+
+function MarketTicker({ mi }: { mi: MarketIndices }) {
+  return (
+    <div className="bg-card border border-border rounded-lg overflow-hidden mb-3">
+      <div className="flex items-center divide-x divide-border overflow-x-auto scrollbar-hide">
+        <TickerItem label="TAIEX" value={mi.taiex} chgPct={mi.taiex_chg_pct} />
+        <TickerItem label="TPEX" value={mi.tpex} chgPct={mi.tpex_chg_pct} />
+        {mi.vix_tw != null && <TickerItem label="VIX TW" value={mi.vix_tw} chgPct={mi.vix_tw_chg_pct} />}
+        <TickerItem label="VIX" value={mi.vix} chgPct={mi.vix_chg_pct} />
+        <TickerItem label="DXY" value={mi.dxy} chgPct={mi.dxy_chg_pct} />
+        <TickerItem label="OIL" value={mi.oil} chgPct={mi.oil_chg_pct} />
+        <TickerItem label="GOLD" value={mi.gold} chgPct={mi.gold_chg_pct} />
+        <TickerItem label="US10Y" value={mi.us10y} chgPct={mi.us10y_chg_pct} />
+        <div className="flex items-center gap-2 px-3 py-1.5">
+          <span className="text-[10px] text-text-muted uppercase tracking-wider">F&G</span>
+          <span className={`text-sm font-bold tabular-nums ${
+            mi.fear_greed < 25 ? 'text-up' : mi.fear_greed < 50 ? 'text-warning' : 'text-down'
+          }`}>{mi.fear_greed}</span>
+          <span className="text-[10px] text-text-muted">{mi.fear_greed_label}</span>
+        </div>
       </div>
     </div>
   )
 }
 
-function SentimentCard({ icon, label, value, sub, color }: { icon: string; label: string; value: string; sub: string; color?: string }) {
-  return (
-    <div className="bg-card border border-border rounded-xl p-4 text-center hover:bg-card-hover transition-colors">
-      <div className="text-xl mb-1">{icon}</div>
-      <div className="text-xs text-text-muted mb-1">{label}</div>
-      <div className={`text-lg font-bold ${color || ''}`}>{value}</div>
-      <div className="text-xs text-text-muted mt-1">{sub}</div>
-    </div>
-  )
-}
+/* ── Risk Score Compact ──────────────────────────────── */
 
-function MacroCell({ emoji, label, value, chg, chgPct, hint }: { emoji: string; label: string; value?: number; chg?: number; chgPct?: number; hint: string }) {
-  return (
-    <div className="p-4 border-r border-border last:border-r-0">
-      <div className="flex items-center gap-1 mb-1">
-        <span>{emoji}</span>
-        <span className="text-xs text-text-muted uppercase tracking-wider">{label}</span>
-      </div>
-      <div className="flex items-baseline gap-2">
-        <span className="text-lg font-bold text-text-primary">{value?.toFixed(2) ?? '-'}</span>
-        {chgSpan(chgPct, '%')}
-      </div>
-      <div className="text-xs text-text-muted mt-1 opacity-60">{hint}</div>
-    </div>
-  )
-}
-
-function RiskBanner({ score, maxScore, level, nRed, nYellow, nGreen, updatedAt, signals }: {
-  score: number; maxScore: number; level: string; nRed: number; nYellow: number; nGreen: number; updatedAt: string
+function RiskScoreCompact({ score, maxScore, level, nRed, nYellow, nGreen, signals }: {
+  score: number; maxScore: number; level: string; nRed: number; nYellow: number; nGreen: number
   signals: Array<{ name: string; level: string }>
 }) {
   const color = RISK_LEVEL_COLORS[level] || RISK_LEVEL_COLORS.green
   const label = level === 'red' ? '高度警戒' : level === 'yellow' ? '中度警戒' : '正常'
+  const pct = (score / maxScore) * 100
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden mb-4 cursor-pointer hover:bg-card-hover transition-colors">
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold border-[3px]"
-            style={{ borderColor: color, color, background: `${color}10` }}>
-            {score}
+    <div className="bg-card border border-border rounded-lg p-3">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-10 h-10 rounded-full flex items-center justify-center text-base font-bold border-2 shrink-0"
+          style={{ borderColor: color, color }}>
+          {score}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold" style={{ color }}>{label}</span>
+            <span className="text-[10px] text-text-muted">
+              R{nRed} Y{nYellow} G{nGreen}
+            </span>
           </div>
-          <div>
-            <div className="text-sm font-semibold" style={{ color }}>{label}</div>
-            <div className="text-xs text-text-muted">紅{nRed} 黃{nYellow} 綠{nGreen} | {updatedAt}</div>
+          <div className="w-full h-1 bg-border rounded-full mt-1 overflow-hidden">
+            <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
           </div>
         </div>
-        <span className="text-accent text-xs">詳情 →</span>
       </div>
-      <div className="flex flex-wrap gap-1.5 px-4 py-2.5">
+      <div className="flex flex-wrap gap-1">
         {signals.map((s, i) => (
-          <span key={i} className="px-2 py-0.5 rounded text-xs font-medium"
+          <span key={i} className="px-1.5 py-0.5 rounded text-[10px] font-medium"
             style={{ backgroundColor: `${RISK_LEVEL_COLORS[s.level]}15`, color: RISK_LEVEL_COLORS[s.level] }}>
             {s.name}
           </span>
@@ -84,17 +92,34 @@ function RiskBanner({ score, maxScore, level, nRed, nYellow, nGreen, updatedAt, 
   )
 }
 
-function GaugeCard({ title, value, mode, modeColor }: { title: string; value: string; mode: string; modeColor: string }) {
+/* ── Compact KPI Row ─────────────────────────────────── */
+
+function MiniKpi({ label, value, valueColor, sub }: { label: string; value: string | number; valueColor?: string; sub?: string }) {
   return (
-    <div className="bg-card border border-border rounded-xl p-4 text-center">
-      <div className="text-xs text-text-muted mb-2">{title}</div>
-      <div className="text-xl font-bold text-text-primary mb-2">{value}</div>
-      <div className="px-3 py-1 rounded-lg text-xs font-semibold w-full" style={{ backgroundColor: `${modeColor}20`, color: modeColor }}>
-        {mode}
-      </div>
+    <div className="bg-card border border-border rounded-lg px-3 py-2.5">
+      <div className="text-[10px] text-text-muted uppercase tracking-wider mb-0.5">{label}</div>
+      <div className={`text-lg font-bold leading-tight ${valueColor || 'text-accent'}`}>{value}</div>
+      {sub && <div className="text-[10px] text-text-muted mt-0.5 leading-tight">{sub}</div>}
     </div>
   )
 }
+
+/* ── Action List Compact ─────────────────────────────── */
+
+function ActionItem({ type, code, name, value, variant }: {
+  type: string; code: string; name: string; value?: string; variant: 'red' | 'blue' | 'orange' | 'green'
+}) {
+  return (
+    <div className="flex items-center gap-2 py-1.5 border-b border-border/30 last:border-b-0 text-xs">
+      <Badge variant={variant}>{type}</Badge>
+      <span className="text-accent font-mono">{code}</span>
+      <span className="text-text-primary">{name}</span>
+      {value && <span className="ml-auto tabular-nums">{value}</span>}
+    </div>
+  )
+}
+
+/* ── Main Component ──────────────────────────────────── */
 
 export function P2StrategicDashboard() {
   const { dashboard, strategy } = useData()
@@ -104,33 +129,28 @@ export function P2StrategicDashboard() {
   const consensus = dashboard?.consensus || []
   const dailyChanges = dashboard?.daily_changes?.['00981A'] || []
 
-  // VIX classification
-  const vixLevel = (v: number) => v < 15 ? 'text-down' : v < 20 ? 'text-text-primary' : v < 30 ? 'text-warning' : 'text-up'
-  const fgLevel = (v: number) => v < 25 ? 'text-up' : v < 45 ? 'text-warning' : v < 55 ? 'text-text-primary' : v < 75 ? 'text-down' : 'text-down'
-
-  // Consensus table
   const top15 = consensus.slice(0, 15)
   const consensusColumns = [
-    { key: 'code', label: '代碼' },
+    { key: 'code', label: '代碼', render: (c: ConsensusItem) => <span className="font-mono text-accent">{c.code}</span> },
     { key: 'name', label: '名稱' },
     {
-      key: 'avg_weight', label: '共識 (%)', align: 'right' as const,
+      key: 'avg_weight', label: '共識%', align: 'right' as const,
       render: (c: ConsensusItem) => `${c.avg_weight?.toFixed(2) ?? '-'}%`,
       sortValue: (c: ConsensusItem) => c.avg_weight || 0,
     },
     {
-      key: 'etf_count', label: '參與ETF數', align: 'right' as const,
+      key: 'etf_count', label: 'ETF', align: 'right' as const,
       render: (c: ConsensusItem) => (
-        <div className="flex items-center justify-end gap-1">
-          {c.etfs?.map((e, i) => <span key={i} className="w-1.5 h-1.5 rounded-full bg-accent" />)}
-          <span className="ml-1">{c.etf_count}</span>
+        <div className="flex items-center justify-end gap-0.5">
+          {Array.from({ length: c.etf_count }).map((_, i) => (
+            <span key={i} className="w-1.5 h-1.5 rounded-full bg-accent" />
+          ))}
         </div>
       ),
       sortValue: (c: ConsensusItem) => c.etf_count,
     },
   ]
 
-  // Today signals summary
   const todayChanges = dailyChanges.length > 0 ? dailyChanges[dailyChanges.length - 1] : null
   const nNew = todayChanges?.new?.length || 0
   const nAdded = todayChanges?.added?.length || 0
@@ -138,148 +158,120 @@ export function P2StrategicDashboard() {
   const nRemoved = todayChanges?.removed?.length || 0
   const totalSignals = nNew + nAdded + nReduced + nRemoved
 
-  // Cash edge
   const cashNow = cashMode?.cash_now ?? 0
-  const cashEdge = cashNow > 4 ? '加分中' : '一般'
-  const cashEdgeColor = cashNow > 4 ? 'text-up' : 'text-text-muted'
-
-  // Gauges
   const cashTrend = cashMode?.trend || '-'
-  const cashTrendColor = cashTrend === '上升' ? '#ff4757' : cashTrend === '下降' ? '#00c48c' : '#9ca0b4'
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold text-text-primary">戰略儀表板</h2>
+    <div className="space-y-3">
+      {/* Market Ticker Strip */}
+      {mi && <MarketTicker mi={mi} />}
 
-      <IntroBox variant="accent">
-        綜合 5 檔主動式 ETF 的市場指標與共識分析。上方為即時全球市場儀表板，下方為經理人持股共識與異動摘要。
-      </IntroBox>
-
-      {/* Taiwan Indices Hero */}
-      <div className="grid grid-cols-2 gap-3">
-        <HeroCard label="加權指數 TAIEX" value={mi?.taiex} chg={mi?.taiex_chg} chgPct={mi?.taiex_chg_pct} />
-        <HeroCard label="櫃買指數 TPEX" value={mi?.tpex} chg={mi?.tpex_chg} chgPct={mi?.tpex_chg_pct} />
-      </div>
-
-      {/* Sentiment Row */}
-      <div className="grid grid-cols-3 gap-3">
-        {mi?.vix_tw != null && (
-          <SentimentCard icon="⚡" label="VIX 台灣" value={mi.vix_tw.toFixed(2)}
-            sub={`${mi.vix_tw_chg >= 0 ? '+' : ''}${mi.vix_tw_chg?.toFixed(2)} (${formatPct(mi.vix_tw_chg_pct)})`}
-            color={vixLevel(mi.vix_tw)} />
+      {/* 2-column: Risk + KPIs */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-3">
+        {/* Left: Risk Score */}
+        {riskSignals && (
+          <RiskScoreCompact
+            score={riskSignals.score} maxScore={riskSignals.max_score} level={riskSignals.level}
+            nRed={riskSignals.n_red} nYellow={riskSignals.n_yellow} nGreen={riskSignals.n_green}
+            signals={riskSignals.signals.map(s => ({ name: s.name, level: s.level }))}
+          />
         )}
-        <SentimentCard icon="⚡" label="VIX S&P500" value={mi?.vix?.toFixed(2) || '-'}
-          sub={mi ? `${mi.vix_chg >= 0 ? '+' : ''}${mi.vix_chg?.toFixed(2)} (${formatPct(mi.vix_chg_pct)})` : '-'}
-          color={mi ? vixLevel(mi.vix) : undefined} />
-        <SentimentCard icon="🎭" label="CNN 恐懼與貪婪" value={mi?.fear_greed?.toString() || '-'}
-          sub={mi?.fear_greed_label || '-'}
-          color={mi ? fgLevel(mi.fear_greed) : undefined} />
+
+        {/* Right: KPI Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <MiniKpi label="現金水位" value={`${cashNow.toFixed(1)}%`}
+            valueColor={cashNow >= 5 ? 'text-up' : cashNow >= 3 ? 'text-warning' : 'text-down'}
+            sub={cashMode?.mode_desc} />
+          <MiniKpi label="攻防模式" value={cashMode?.mode || '-'} sub={`趨勢 ${cashTrend}`} />
+          <MiniKpi label="跟單狀態" value={cashNow > 4 ? '加分中' : '一般'}
+            valueColor={cashNow > 4 ? 'text-up' : 'text-text-muted'}
+            sub={cashNow > 4 ? '現金>4%' : '一般狀態'} />
+          <MiniKpi label="今日異動" value={totalSignals}
+            sub={`+${nNew} \u25B2${nAdded} \u25BC${nReduced} -${nRemoved}`} />
+        </div>
       </div>
 
-      {/* Global Macro Panel */}
-      {mi && (
-        <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-            <span className="text-sm font-semibold tracking-wide">Global Macro Dashboard</span>
-            <span className="text-xs text-text-muted tracking-wider">OIL · DXY · GOLD · YIELD</span>
+      {/* 3-column: Action List + Gauges */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        {/* Action List */}
+        <div className="lg:col-span-2 bg-card border border-border rounded-lg p-3">
+          <div className="text-xs font-semibold text-text-primary mb-2 flex items-center gap-2">
+            <span className="w-1 h-3 bg-up rounded-full" />
+            今日跟單行動清單
           </div>
-          <div className="grid grid-cols-4">
-            <MacroCell emoji="💵" label="DXY 美元指數" value={mi.dxy} chg={mi.dxy_chg} chgPct={mi.dxy_chg_pct} hint="看資金流向" />
-            <MacroCell emoji="🛢️" label="WTI 原油" value={mi.oil} chg={mi.oil_chg} chgPct={mi.oil_chg_pct} hint="看經濟成本" />
-            <MacroCell emoji="🥇" label="黃金 GOLD" value={mi.gold} chg={mi.gold_chg} chgPct={mi.gold_chg_pct} hint="看避險需求" />
-            <MacroCell emoji="📈" label="US 10Y" value={mi.us10y} chg={mi.us10y_chg} chgPct={mi.us10y_chg_pct} hint="看利率環境" />
-          </div>
+          {!todayChanges || totalSignals === 0 ? (
+            <div className="py-3 text-center text-text-muted text-xs">今日無異動</div>
+          ) : (
+            <div>
+              {todayChanges.new?.map((s, i) => (
+                <ActionItem key={`n${i}`} type="新增" code={s.code} name={s.name} value={`${s.weight?.toFixed(2)}%`} variant="red" />
+              ))}
+              {todayChanges.added?.map((s, i) => (
+                <ActionItem key={`a${i}`} type="加碼" code={s.code} name={s.name} value={`+${s.weight_chg?.toFixed(2)}%`} variant="blue" />
+              ))}
+              {todayChanges.reduced?.map((s, i) => (
+                <ActionItem key={`r${i}`} type="減碼" code={s.code} name={s.name} value={`${s.weight_chg?.toFixed(2)}%`} variant="orange" />
+              ))}
+              {todayChanges.removed?.map((s, i) => (
+                <ActionItem key={`x${i}`} type="退出" code={s.code} name={s.name} variant="green" />
+              ))}
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Risk Banner */}
-      {riskSignals && (
-        <RiskBanner
-          score={riskSignals.score} maxScore={riskSignals.max_score} level={riskSignals.level}
-          nRed={riskSignals.n_red} nYellow={riskSignals.n_yellow} nGreen={riskSignals.n_green}
-          updatedAt={riskSignals.updated_at}
-          signals={riskSignals.signals.map(s => ({ name: s.name, level: s.level }))}
-        />
-      )}
-
-      {/* ETF Action KPIs */}
-      <KpiGrid>
-        <KpiCard label="現金水位" value={`${cashNow.toFixed(1)}%`} valueColor={cashNow >= 5 ? 'text-up' : cashNow >= 3 ? 'text-warning' : 'text-down'} subtext={cashMode?.mode_desc || '-'} />
-        <KpiCard label="攻防模式" value={cashMode?.mode || '-'} subtext={cashMode?.trend ? `趨勢: ${cashMode.trend}` : '-'} />
-        <KpiCard label="跟單加分狀態" value={cashEdge} valueColor={cashEdgeColor} subtext={cashNow > 4 ? '現金>4%, 跟單勝率提升' : '現金≤4%, 一般狀態'} />
-        <KpiCard label="今日異動" value={totalSignals} subtext={`新增${nNew} 加碼${nAdded} 減碼${nReduced} 退出${nRemoved}`} />
-      </KpiGrid>
-
-      {/* Today Action List */}
-      {todayChanges && totalSignals > 0 && (
-        <div className="bg-card border border-up/20 rounded-xl p-4">
-          <div className="text-sm font-semibold text-up mb-3">今日跟單行動清單</div>
-          <div className="space-y-2">
-            {todayChanges.new?.map((s, i) => (
-              <div key={`n${i}`} className="flex items-center gap-2 text-sm">
-                <Badge variant="red">新增</Badge>
-                <span className="text-accent">{s.code}</span>
-                <span>{s.name}</span>
-                <span className="text-text-muted ml-auto">{s.weight?.toFixed(2)}%</span>
+        {/* Gauges Column */}
+        <div className="space-y-2">
+          {[
+            { title: '現金趨勢', value: `${cashNow.toFixed(1)}%`, mode: cashTrend,
+              color: cashTrend === '上升' ? '#ff4757' : cashTrend === '下降' ? '#00c48c' : '#9ca0b4' },
+            { title: '持股集中度', value: `${(dashboard?.conviction?.[0]?.avg_weight ?? 0).toFixed(1)}%`,
+              mode: 'Top 1 權重', color: '#4f8ef7' },
+            { title: '經理人動向', value: cashMode?.mode || '-', mode: cashMode?.mode_desc || '-',
+              color: cashTrend === '上升' ? '#ff4757' : '#00c48c' },
+          ].map(g => (
+            <div key={g.title} className="bg-card border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+              <div>
+                <div className="text-[10px] text-text-muted uppercase">{g.title}</div>
+                <div className="text-sm font-bold text-text-primary">{g.value}</div>
               </div>
-            ))}
-            {todayChanges.added?.map((s, i) => (
-              <div key={`a${i}`} className="flex items-center gap-2 text-sm">
-                <Badge variant="blue">加碼</Badge>
-                <span className="text-accent">{s.code}</span>
-                <span>{s.name}</span>
-                <span className="text-up ml-auto">+{s.weight_chg?.toFixed(2)}%</span>
-              </div>
-            ))}
-            {todayChanges.reduced?.map((s, i) => (
-              <div key={`r${i}`} className="flex items-center gap-2 text-sm">
-                <Badge variant="orange">減碼</Badge>
-                <span className="text-accent">{s.code}</span>
-                <span>{s.name}</span>
-                <span className="text-down ml-auto">{s.weight_chg?.toFixed(2)}%</span>
-              </div>
-            ))}
-          </div>
+              <span className="px-2 py-0.5 rounded text-[10px] font-semibold" style={{ backgroundColor: `${g.color}20`, color: g.color }}>
+                {g.mode}
+              </span>
+            </div>
+          ))}
         </div>
-      )}
-
-      {/* Gauges */}
-      <div className="grid grid-cols-3 gap-3">
-        <GaugeCard title="現金趨勢" value={`${cashNow.toFixed(1)}%`} mode={cashTrend} modeColor={cashTrendColor} />
-        <GaugeCard title="持股集中度" value={`${(dashboard?.conviction?.[0]?.avg_weight ?? 0).toFixed(1)}%`} mode="Top 1 權重" modeColor="#4f8ef7" />
-        <GaugeCard title="經理人動向" value={cashMode?.mode || '-'} mode={cashMode?.mode_desc || '-'} modeColor={cashTrendColor} />
       </div>
 
-      {/* Content Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <TableContainer title="多ETF共識標的 TOP15" maxHeight="350px">
+      {/* Bottom: Consensus + Signal Summary */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <TableContainer title="共識標的 TOP15" maxHeight="320px" className="mb-0">
           <DataTable columns={consensusColumns} data={top15} emptyText="暫無共識標的" />
         </TableContainer>
 
-        <TableContainer title="今日00981A異動摘要" maxHeight="400px">
+        <TableContainer title="今日 00981A 異動" maxHeight="320px" className="mb-0">
           {!todayChanges || totalSignals === 0 ? (
-            <div className="py-4 text-center text-text-muted">今日無異動</div>
+            <div className="py-4 text-center text-text-muted text-xs">今日無異動</div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {todayChanges.new?.map((s, i) => (
-                <div key={`sn${i}`} className="flex items-center gap-2 p-2 rounded-lg bg-up/5">
+                <div key={`sn${i}`} className="flex items-center gap-2 px-2 py-1.5 rounded bg-up/5 text-xs">
                   <Badge variant="red">新增</Badge>
                   <span className="font-semibold">{s.name}</span>
-                  <span className="text-text-muted text-xs">{s.code}</span>
+                  <span className="text-text-muted font-mono">{s.code}</span>
                 </div>
               ))}
               {todayChanges.added?.map((s, i) => (
-                <div key={`sa${i}`} className="flex items-center gap-2 p-2 rounded-lg bg-accent/5">
+                <div key={`sa${i}`} className="flex items-center gap-2 px-2 py-1.5 rounded bg-accent/5 text-xs">
                   <Badge variant="blue">加碼</Badge>
                   <span className="font-semibold">{s.name}</span>
-                  <span className="text-up text-sm">+{s.weight_chg?.toFixed(2)}%</span>
+                  <span className="text-up ml-auto tabular-nums">+{s.weight_chg?.toFixed(2)}%</span>
                 </div>
               ))}
               {todayChanges.reduced?.map((s, i) => (
-                <div key={`sr${i}`} className="flex items-center gap-2 p-2 rounded-lg bg-warning/5">
+                <div key={`sr${i}`} className="flex items-center gap-2 px-2 py-1.5 rounded bg-warning/5 text-xs">
                   <Badge variant="orange">減碼</Badge>
                   <span className="font-semibold">{s.name}</span>
-                  <span className="text-down text-sm">{s.weight_chg?.toFixed(2)}%</span>
+                  <span className="text-down ml-auto tabular-nums">{s.weight_chg?.toFixed(2)}%</span>
                 </div>
               ))}
             </div>

@@ -1,11 +1,10 @@
 import { useState, useMemo } from 'react'
 import { Line } from 'react-chartjs-2'
 import { useData } from '../contexts/DataContext'
-import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable, FilterButtons } from '../components/shared'
+import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable } from '../components/shared'
 import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
-import { ETF_LIST, ETF_SHORT_NAMES } from '../lib/constants'
 import '../lib/chartDefaults'
-import type { CashSeriesItem, ConvictionItem, Holding } from '../types'
+import type { CashSeriesItem, Holding } from '../types'
 
 type RangeType = 30 | 60 | 90 | 'all'
 const rangeOptions: Array<{ value: string; label: string }> = [
@@ -21,6 +20,30 @@ const STOCK_COLORS = [
   '#6c5ce7', '#fdcb6e', '#e17055', '#00b894',
 ]
 
+interface StockSeriesRaw {
+  code: string
+  label: string
+  data: number[]
+}
+
+interface ConvictionRaw {
+  code: string
+  name: string
+  weight: number
+  start_weight: number
+  weight_chg: number
+  days: number
+  conviction: string
+}
+
+interface DailyChangeRaw {
+  date: string
+  new?: Array<{ code: string; name: string; weight: number }>
+  added?: Array<{ code: string; name: string; weight: number; weight_chg: number }>
+  reduced?: Array<{ code: string; name: string; weight: number; weight_chg: number }>
+  exited?: Array<{ code: string; name: string; prev_weight?: number }>
+}
+
 export function P1HoldingsTracker() {
   const { dashboard, aiResearch } = useData()
   const [cashRange, setCashRange] = useState<RangeType>(90)
@@ -31,9 +54,10 @@ export function P1HoldingsTracker() {
   const cashMode = dashboard?.cash_mode
   const cashSeries = dashboard?.cash_series || []
   const holdings00981A = dashboard?.latest_holdings?.['00981A'] || []
-  const conviction = dashboard?.conviction || []
-  const stockSeries = dashboard?.stock_series || []
-  const dailyChanges = dashboard?.daily_changes?.['00981A'] || []
+  const conviction = (dashboard?.conviction || []) as unknown as ConvictionRaw[]
+  const stockSeries = (dashboard?.stock_series || []) as unknown as StockSeriesRaw[]
+  const dates = dashboard?.dates || []
+  const dailyChanges = (dashboard?.daily_changes?.['00981A'] || []) as unknown as DailyChangeRaw[]
   const aiData = aiResearch?.analyses?.['00981A']
 
   // KPIs
@@ -62,55 +86,50 @@ export function P1HoldingsTracker() {
 
   // 5 ETF cash compare chart
   const etfCompareData = useMemo(() => {
-    if (!dashboard) return null
-    const series: Record<string, CashSeriesItem[]> = {}
-    ETF_LIST.forEach(etf => {
-      const hl = dashboard.latest_holdings?.[etf]
-      if (hl) series[etf] = []
-    })
-    // Use main cash_series for 00981A, etf_pages for others
-    const colors = ['#4f8ef7', '#ff4757', '#00c48c', '#ffa502', '#a855f7']
+    if (!cashSeries.length) return null
     const last30 = cashSeries.slice(-30)
-
     return {
       labels: last30.map(d => d.date),
       datasets: [{
         label: '00981A',
         data: last30.map(d => d.cash_pct),
-        borderColor: colors[0], borderWidth: 2, tension: 0.3, pointRadius: 0,
+        borderColor: '#4f8ef7', borderWidth: 2, tension: 0.3, pointRadius: 0,
       }],
     }
-  }, [dashboard, cashSeries])
+  }, [cashSeries])
 
-  // Weight history chart
+  // Weight history chart — stock_series uses { code, label, data: number[] }
   const weightChartData = useMemo(() => {
-    if (!stockSeries.length) return null
-    const count = weightPreset === 'all' ? stockSeries.length : Math.min(weightPreset, stockSeries.length)
+    if (!stockSeries.length || !dates.length) return null
+    const count = weightPreset === 'all' ? stockSeries.length : Math.min(weightPreset as number, stockSeries.length)
     const selected = stockSeries.slice(0, count)
 
-    const allDates = selected.length > 0
-      ? selected[0].series.slice(-30).map(s => s.date)
-      : []
+    const last30Dates = dates.slice(-30)
+    const dateOffset = dates.length - 30
 
     return {
-      labels: allDates,
+      labels: last30Dates,
       datasets: selected.map((stock, i) => ({
-        label: `${stock.code} ${stock.name}`,
-        data: stock.series.slice(-30).map(s => s.weight),
+        label: stock.label || stock.code,
+        data: stock.data.slice(dateOffset < 0 ? 0 : dateOffset),
         borderColor: STOCK_COLORS[i % STOCK_COLORS.length],
         borderWidth: 1.5, tension: 0.3, pointRadius: 0,
       })),
     }
-  }, [stockSeries, weightPreset])
+  }, [stockSeries, dates, weightPreset])
 
-  // Conviction table columns
+  // Conviction table columns — uses { code, name, days, conviction (string) }
   const convictionColumns = [
     { key: 'code', label: '代碼' },
     { key: 'name', label: '名稱' },
     {
-      key: 'score', label: '信心度', align: 'right' as const,
-      render: (c: ConvictionItem) => <span className="font-bold text-accent">{c.score?.toFixed(1) ?? '-'}</span>,
-      sortValue: (c: ConvictionItem) => c.score || 0,
+      key: 'days', label: '天數', align: 'right' as const,
+      render: (c: ConvictionRaw) => c.days,
+      sortValue: (c: ConvictionRaw) => c.days || 0,
+    },
+    {
+      key: 'conviction', label: '狀態', align: 'right' as const,
+      render: (c: ConvictionRaw) => <span className="text-xs">{c.conviction}</span>,
     },
   ]
 
@@ -137,12 +156,13 @@ export function P1HoldingsTracker() {
     },
   ]
 
-  // Holding events
+  // Holding events — uses exited not removed
   const holdingEvents = useMemo(() => {
+    if (!dailyChanges.length) return []
     return dailyChanges.slice(-10).reverse().map(change => {
       const tags: Array<{ text: string; variant: 'green' | 'red' | 'blue' | 'orange' }> = []
       change.new?.forEach(s => tags.push({ text: `+${s.name}`, variant: 'green' }))
-      change.removed?.forEach(s => tags.push({ text: `-${s.name}`, variant: 'red' }))
+      change.exited?.forEach(s => tags.push({ text: `-${s.name}`, variant: 'red' }))
       change.added?.filter(s => Math.abs(s.weight_chg) > 0.1).forEach(s =>
         tags.push({ text: `\u2191${s.name} +${s.weight_chg.toFixed(1)}%`, variant: 'blue' }))
       change.reduced?.filter(s => Math.abs(s.weight_chg) > 0.1).forEach(s =>
@@ -175,11 +195,9 @@ export function P1HoldingsTracker() {
           </div>
           <div className="px-5 py-2 border-b border-border text-xs text-text-muted">{aiData.changes_summary}</div>
 
-          {/* Institutional View */}
           <div className="border-b border-border">
             <button onClick={() => setInstOpen(!instOpen)} className="w-full flex items-center justify-between px-5 py-3 hover:bg-card-hover">
               <div className="flex items-center gap-2">
-                <span>🏛️</span>
                 <span className="font-semibold text-sm">{aiResearch?.notebooks?.institutional || '法人視野'}</span>
                 <span className="px-2 py-0.5 rounded text-xs bg-accent/15 text-accent">法人產業研究</span>
               </div>
@@ -195,11 +213,9 @@ export function P1HoldingsTracker() {
             )}
           </div>
 
-          {/* Trader View */}
           <div>
             <button onClick={() => setTraderOpen(!traderOpen)} className="w-full flex items-center justify-between px-5 py-3 hover:bg-card-hover">
               <div className="flex items-center gap-2">
-                <span>⚡</span>
                 <span className="font-semibold text-sm">{aiResearch?.notebooks?.trader || '巨人思維'}</span>
                 <span className="px-2 py-0.5 rounded text-xs bg-purple/15 text-purple">實戰交易者</span>
               </div>
@@ -227,7 +243,6 @@ export function P1HoldingsTracker() {
             </button>
           ))}
         </div>
-        <div className="text-xs text-text-muted mb-1">滾輪縮放 · 拖曳平移 · 雙擊重置</div>
         <div className="h-72">
           {cashChartData && (
             <Line data={cashChartData} options={{
@@ -244,7 +259,7 @@ export function P1HoldingsTracker() {
 
       {/* 5 ETF Cash Compare */}
       {etfCompareData && (
-        <TableContainer title="5 檔主動 ETF 現金水位比較">
+        <TableContainer title="00981A 現金水位 (30日)">
           <div className="h-64">
             <Line data={etfCompareData} options={{
               responsive: true, maintainAspectRatio: false,
