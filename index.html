@@ -1386,172 +1386,21 @@
 
         <!-- Page 2: 戰略儀表板 -->
         <div class="page active" id="p2">
-            <style>
-                /* P2 Premium Terminal Styles */
-                @keyframes p2-glow-pulse {
-                    0%, 100% { opacity: 0.4; }
-                    50% { opacity: 0.7; }
-                }
-                @keyframes p2-slide-up {
-                    from { opacity: 0; transform: translateY(12px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                #p2 .p2-hero-card {
-                    position: relative;
-                    background: linear-gradient(135deg, rgba(26,29,40,0.95), rgba(30,34,52,0.95));
-                    border: 1px solid rgba(79,142,247,0.15);
-                    border-radius: 16px;
-                    padding: 1.5rem 1.75rem;
-                    overflow: hidden;
-                    animation: p2-slide-up 0.5s ease-out both;
-                }
-                #p2 .p2-hero-card::before {
-                    content: '';
-                    position: absolute;
-                    top: 0; left: 0; right: 0;
-                    height: 2px;
-                    background: linear-gradient(90deg, transparent, var(--accent), var(--cyan), transparent);
-                    animation: p2-glow-pulse 3s ease-in-out infinite;
-                }
-                #p2 .p2-hero-card:hover {
-                    border-color: rgba(79,142,247,0.35);
-                    box-shadow: 0 0 30px rgba(79,142,247,0.08);
-                }
-                #p2 .p2-idx-label {
-                    font-size: 0.72rem;
-                    color: var(--text-muted);
-                    text-transform: uppercase;
-                    letter-spacing: 0.08em;
-                    margin-bottom: 0.35rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.4rem;
-                }
-                #p2 .p2-idx-val {
-                    font-size: 2rem;
-                    font-weight: 800;
-                    letter-spacing: -0.02em;
-                    line-height: 1.1;
-                    font-variant-numeric: tabular-nums;
-                }
-                #p2 .p2-idx-chg {
-                    font-size: 0.8rem;
-                    font-weight: 500;
-                    margin-top: 0.3rem;
-                    font-variant-numeric: tabular-nums;
-                }
-                #p2 .p2-sentiment-card {
-                    background: linear-gradient(180deg, rgba(26,29,40,0.9), rgba(20,23,32,0.95));
-                    border: 1px solid rgba(255,255,255,0.06);
-                    border-radius: 14px;
-                    padding: 1.1rem 0.75rem;
-                    text-align: center;
-                    transition: all 0.3s ease;
-                    animation: p2-slide-up 0.5s ease-out both;
-                }
-                #p2 .p2-sentiment-card:hover {
-                    border-color: rgba(255,255,255,0.12);
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-                }
-                #p2 .p2-sentiment-icon {
-                    font-size: 1.6rem;
-                    margin-bottom: 0.15rem;
-                    filter: drop-shadow(0 0 8px rgba(255,255,255,0.15));
-                }
-                #p2 .p2-sentiment-val {
-                    font-size: 1.5rem;
-                    font-weight: 700;
-                    font-variant-numeric: tabular-nums;
-                }
-                #p2 .p2-macro-panel {
-                    background: linear-gradient(135deg, rgba(18,21,30,0.98), rgba(26,29,40,0.95));
-                    border: 1px solid rgba(255,255,255,0.06);
-                    border-radius: 16px;
-                    overflow: hidden;
-                    animation: p2-slide-up 0.6s ease-out both;
-                }
-                #p2 .p2-macro-header {
-                    padding: 0.7rem 1.25rem;
-                    border-bottom: 1px solid rgba(255,255,255,0.04);
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    background: rgba(79,142,247,0.03);
-                }
-                #p2 .p2-macro-cell {
-                    padding: 1.1rem 1.25rem;
-                    position: relative;
-                    transition: background 0.2s;
-                }
-                #p2 .p2-macro-cell:hover {
-                    background: rgba(79,142,247,0.04);
-                }
-                #p2 .p2-macro-cell::after {
-                    content: '';
-                    position: absolute;
-                    right: 0; top: 20%; bottom: 20%;
-                    width: 1px;
-                    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.06), transparent);
-                }
-                #p2 .p2-macro-cell:last-child::after { display: none; }
-                #p2 .p2-macro-emoji { font-size: 1.1rem; }
-                #p2 .p2-macro-val {
-                    font-size: 1.35rem;
-                    font-weight: 700;
-                    font-variant-numeric: tabular-nums;
-                }
-                #p2 .p2-macro-chg {
-                    font-size: 0.78rem;
-                    font-weight: 500;
-                    font-variant-numeric: tabular-nums;
-                }
-                #p2 .p2-macro-hint {
-                    font-size: 0.6rem;
-                    color: rgba(139,143,163,0.6);
-                    margin-top: 0.35rem;
-                    text-transform: uppercase;
-                    letter-spacing: 0.1em;
-                }
-                #p2 .p2-guide {
-                    background: rgba(79,142,247,0.03);
-                    border: 1px solid rgba(255,255,255,0.04);
-                    border-radius: 12px;
-                    margin-bottom: 1.25rem;
-                }
-                #p2 .p2-guide summary {
-                    cursor: pointer;
-                    padding: 0.55rem 1rem;
-                    font-size: 0.75rem;
-                    color: var(--text-muted);
-                    list-style: none;
-                    transition: color 0.2s;
-                }
-                #p2 .p2-guide summary:hover { color: var(--text); }
-                #p2 .p2-guide[open] summary { border-bottom: 1px solid rgba(255,255,255,0.04); }
-                @media (max-width: 768px) {
-                    #p2 .p2-hero-grid { grid-template-columns: 1fr !important; }
-                    #p2 .p2-macro-inner { grid-template-columns: repeat(2, 1fr) !important; }
-                    #p2 .p2-macro-cell:nth-child(2)::after { display: none; }
-                    #p2 .p2-macro-cell { border-bottom: 1px solid rgba(255,255,255,0.04); }
-                }
-            </style>
-
             <div class="page-title">🎯 戰略儀表板</div>
 
             <!-- Page Intro -->
-            <div style="margin-bottom: 1.5rem; padding: 0.65rem 1rem; background: linear-gradient(90deg, rgba(79,142,247,0.06), transparent); border-radius: 8px; border-left: 2px solid var(--accent); font-size: 0.82rem; color: var(--text-muted); line-height: 1.7;">
+            <div class="intro-box accent">
                 綜合 5 檔主動式 ETF 的市場指標與共識分析。上方為即時全球市場儀表板（台股指數 + 五大總經指標），下方為經理人持股共識與異動摘要。
             </div>
 
             <!-- Taiwan Indices: Hero Cards -->
-            <div class="p2-hero-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
-                <div class="p2-hero-card" style="animation-delay:0.05s;">
+            <div class="p2-hero-grid mb-2" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                <div class="p2-hero-card" style="animation-delay:0.05s">
                     <div class="p2-idx-label">🇹🇼 加權指數 TAIEX</div>
                     <div class="p2-idx-val" id="p2-idx-taiex">-</div>
                     <div class="p2-idx-chg" id="p2-idx-taiex-sub">-</div>
                 </div>
-                <div class="p2-hero-card" style="animation-delay:0.12s;">
+                <div class="p2-hero-card" style="animation-delay:0.12s">
                     <div class="p2-idx-label">🇹🇼 櫃買指數 TPEX</div>
                     <div class="p2-idx-val" id="p2-idx-tpex">-</div>
                     <div class="p2-idx-chg" id="p2-idx-tpex-sub">-</div>
@@ -1559,7 +1408,7 @@
             </div>
 
             <!-- Sentiment Row -->
-            <div id="p2-sentiment-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
+            <div id="p2-sentiment-grid" class="mb-2" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
                 <div id="p2-vixtwn-card" class="p2-sentiment-card" style="display:none; animation-delay:0.15s;">
                     <div class="p2-sentiment-icon">⚡</div>
                     <div class="kpi-label" style="font-size:0.7rem; margin-bottom:0.2rem;">VIX 台灣</div>
@@ -1581,7 +1430,7 @@
             </div>
 
             <!-- Global Macro Panel -->
-            <div class="p2-macro-panel" style="margin-bottom:1.25rem;">
+            <div class="p2-macro-panel mb-2">
                 <div class="p2-macro-header">
                     <span style="font-size:0.85rem; font-weight:600; color:var(--text); letter-spacing:0.02em;">Global Macro Dashboard</span>
                     <span style="font-size:0.65rem; color:var(--text-muted); letter-spacing:0.04em;">OIL 成本 &middot; DXY 資金 &middot; GOLD 避險 &middot; YIELD 利率</span>
@@ -1701,7 +1550,7 @@
             <div class="table-container" style="margin-top: 1.25rem; margin-bottom: 1.25rem; border: 1px solid rgba(255,71,87,0.2);">
                 <div class="table-title" style="font-size: 1.05rem; background: rgba(255,71,87,0.06);">📋 今日跟單行動清單</div>
                 <div id="p2-action-list" style="padding: 1rem;">
-                    <div style="color: var(--text-muted);">載入中...</div>
+                    <div class="text-muted">載入中...</div>
                 </div>
             </div>
 
@@ -1726,7 +1575,7 @@
 
             <!-- Content Row -->
             <div class="charts-row">
-                <div class="table-container" style="margin-bottom: 0;">
+                <div class="table-container mb-0">
                     <div class="table-title">多ETF共識標的 TOP15</div>
                     <div class="table-scroll" style="max-height: 350px;">
                     <table id="p2-table-consensus">
@@ -1754,7 +1603,7 @@
                 <div class="highlight">
                     基於多檔主動式 ETF 共識標的和經理人操作分析，JOY88 綜合研判目前市場狀況和投資方向。
                 </div>
-                <div id="p2-comprehensive-view" style="color: var(--text-muted);">載入中...</div>
+                <div id="p2-comprehensive-view" class="text-muted">載入中...</div>
             </div>
         </div>
 
