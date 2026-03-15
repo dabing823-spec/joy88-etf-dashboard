@@ -1215,6 +1215,7 @@
             <button class="nav-btn" data-page="p4">🔍 歷史回溯</button>
             <button class="nav-btn" data-page="p7">🏛 0050 / 市值</button>
             <button class="nav-btn" data-page="p9">🤖 AI 問答</button>
+            <button class="nav-btn" data-page="p10">📰 新聞解構</button>
         </nav>
     </header>
 
@@ -2208,6 +2209,23 @@
                 </div>
             </div>
 
+            <!-- P8 Macro 3-Layer Analysis -->
+            <div id="p8-macro-analysis" style="display:none; margin-bottom:2rem;">
+                <div class="table-title" style="padding:0 0 0.75rem;">AI 宏觀三層解讀 <span class="text-xs text-muted" id="p8-macro-time"></span></div>
+                <details class="news-layer" open>
+                    <summary class="news-layer-header layer1-header"><span class="news-layer-badge">L1</span><span>表面資訊 — 當前市場環境</span></summary>
+                    <div class="news-layer-body" id="p8-macro-l1"></div>
+                </details>
+                <details class="news-layer">
+                    <summary class="news-layer-header layer2-header"><span class="news-layer-badge layer2-badge">L2</span><span>隱藏資訊 — 市場定價落差</span></summary>
+                    <div class="news-layer-body" id="p8-macro-l2"></div>
+                </details>
+                <details class="news-layer">
+                    <summary class="news-layer-header layer3-header"><span class="news-layer-badge layer3-badge">L3</span><span>系統決策 — 基於風險訊號的行動</span></summary>
+                    <div class="news-layer-body" id="p8-macro-l3"></div>
+                </details>
+            </div>
+
             <!-- Research Basis -->
             <details open style="background:var(--card); border-radius:8px; border:1px solid var(--border); padding:1rem 1.25rem;">
                 <summary style="cursor:pointer; font-weight:600; color:var(--text); font-size:0.95rem;">研究依據與理論基礎</summary>
@@ -2333,6 +2351,17 @@
             </div>
         </div>
 
+        <!-- Page 10: 新聞解構 -->
+        <div class="page" id="p10">
+            <div class="page-title">📰 新聞解構</div>
+            <div class="risk-intro">巨人傑三層分析框架：Layer 1（表面資訊）→ Layer 2（隱藏資訊）→ Layer 3（系統決策）。找出市場定價錯誤與行動方向。</div>
+            <div id="p10-tabs" class="filter-buttons"></div>
+            <div id="p10-articles"></div>
+            <div id="p10-empty" style="display:none;">
+                <div class="loading">尚無新聞分析資料。執行 news_analysis_agent.py 後重新整理。</div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Footer -->
@@ -2413,12 +2442,39 @@
         let dashboardData = null;
         let etfPagesData = null;
         let strategyData = null;
+        let newsAnalysisData = null;
         let currentPage = 'p1';
         let currentETF = '00981A';
         let currentFilter = 'all';
         let charts = {};
 
         const etfList = ['00981A', '00980A', '00982A', '00991A', '00993A'];
+
+        // Chart zoom/pan plugin config (shared across all large charts)
+        const chartZoomConfig = {
+            zoom: {
+                wheel: { enabled: true, modifierKey: null },
+                pinch: { enabled: true },
+                mode: 'x',
+                onZoomComplete: ({chart}) => {
+                    chart.options.plugins.zoom.pan.enabled = true;
+                }
+            },
+            pan: {
+                enabled: true,
+                mode: 'x',
+                threshold: 5,
+            },
+        };
+
+        // Double-click to reset zoom on any chart
+        document.addEventListener('dblclick', function(e) {
+            const canvas = e.target;
+            if (canvas.tagName === 'CANVAS') {
+                const chartInstance = Chart.getChart(canvas);
+                if (chartInstance) chartInstance.resetZoom();
+            }
+        });
 
         // ============================================================================
         // Data Loading
@@ -2460,6 +2516,17 @@
                     }
                 } catch (e) {
                     console.warn('AI research data not available:', e);
+                }
+
+                // Load news analysis data (optional)
+                try {
+                    const newsRes = await fetch(`data/news_analysis.json${cacheBust}`);
+                    if (newsRes.ok) {
+                        newsAnalysisData = await newsRes.json();
+                        console.log('News analysis data loaded');
+                    }
+                } catch (e) {
+                    console.warn('News analysis data not available:', e);
                 }
 
                 console.log('Data loaded successfully');
@@ -2574,6 +2641,9 @@
                     break;
                 case 'p8':
                     renderPage8();
+                    break;
+                case 'p10':
+                    renderPage10();
                     break;
             }
         }
@@ -3062,7 +3132,8 @@
                                     return `櫃買: ${v.toFixed(1)}`;
                                 }
                             }
-                        }
+                        },
+                        zoom: chartZoomConfig,
                     },
                     scales: {
                         y: {
@@ -3231,7 +3302,8 @@
                                     return `${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(2)}%`;
                                 }
                             }
-                        }
+                        },
+                        zoom: chartZoomConfig,
                     },
                     scales: {
                         y: {
@@ -4108,7 +4180,8 @@
                                     return `${ctx.label}: ${ctx.parsed} (${pct}%)`;
                                 }
                             }
-                        }
+                        },
+                        zoom: chartZoomConfig,
                     }
                 }
             });
@@ -4158,7 +4231,8 @@
                         },
                         tooltip: {
                             mode: 'index'
-                        }
+                        },
+                        zoom: chartZoomConfig,
                     },
                     scales: {
                         y: {
@@ -4338,7 +4412,8 @@
                     plugins: {
                         legend: {
                             labels: { color: '#8b8fa3', font: { size: 11 } }
-                        }
+                        },
+                        zoom: chartZoomConfig,
                     },
                     scales: {
                         y: {
@@ -4402,7 +4477,8 @@
                     plugins: {
                         legend: {
                             labels: { color: '#8b8fa3' }
-                        }
+                        },
+                        zoom: chartZoomConfig,
                     },
                     scales: {
                         y: {
@@ -4796,7 +4872,8 @@
                                 callbacks: {
                                     afterLabel: (ctx) => `信號數: ${typeCounts[ctx.dataIndex]}`
                                 }
-                            }
+                            },
+                            zoom: chartZoomConfig,
                         },
                         scales: {
                             x: { max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b8fa3' } },
@@ -4967,6 +5044,7 @@
             renderP8AgentPanel();
             renderP8Score(rs);
             renderP8Signals(rs);
+            renderP8MacroAnalysis();
         }
 
         function renderP8AgentPanel() {
@@ -5199,7 +5277,8 @@
                                     }
                                 }
                             }
-                        }
+                        },
+                        zoom: chartZoomConfig,
                     },
                     scales: {
                         x: {
@@ -5367,6 +5446,126 @@
                 if (modal) modal.style.display = 'none';
             }
         });
+
+        // ============================================================================
+        // Page 10: News 3-Layer Analysis & P8 Macro Analysis
+        // ============================================================================
+        function _renderLayer1(l1) {
+            if (!l1) return '<div class="text-muted">暫無資料</div>';
+            return `<div class="news-layer-grid">
+                <div class="news-field"><div class="news-field-label">事件</div><div class="news-field-value">${l1.event || '-'}</div></div>
+                <div class="news-field"><div class="news-field-label">數據</div><div class="news-field-value">${l1.data || '-'}</div></div>
+                <div class="news-field"><div class="news-field-label">市場反應</div><div class="news-field-value">${l1.market_reaction || '-'}</div></div>
+                <div class="news-field"><div class="news-field-label">時間軸</div><div class="news-field-value">${l1.timeline || '-'}</div></div>
+            </div>`;
+        }
+
+        function _renderLayer2(l2) {
+            if (!l2) return '<div class="text-muted">暫無資料</div>';
+            const bene = (l2.beneficiaries || []).map(b => `<span class="news-tag">${b}</span>`).join('');
+            const vict = (l2.victims || []).map(v => `<span class="news-tag victim">${v}</span>`).join('');
+            return `
+                <div style="margin-bottom:0.85rem;">
+                    <div class="news-field-label">受益者</div>
+                    <div class="news-tag-list">${bene || '<span class="text-muted text-sm">-</span>'}</div>
+                </div>
+                <div style="margin-bottom:0.85rem;">
+                    <div class="news-field-label">受害者</div>
+                    <div class="news-tag-list">${vict || '<span class="text-muted text-sm">-</span>'}</div>
+                </div>
+                <div class="news-layer-grid">
+                    <div class="news-field"><div class="news-field-label">定價程度</div><div class="news-field-value">${l2.pricing_status || '-'}</div></div>
+                    <div class="news-field"><div class="news-field-label">真實動機</div><div class="news-field-value">${l2.real_motive || '-'}</div></div>
+                </div>
+                <div class="highlight" style="margin-top:0.85rem; background:rgba(255,165,2,0.08); border-left-color:var(--orange);">
+                    <div class="news-field-label" style="margin-bottom:0.25rem;">市場盲點</div>
+                    <div style="font-size:0.9rem;line-height:1.6;">${l2.market_blind_spots || '-'}</div>
+                </div>`;
+        }
+
+        function _renderLayer3(l3) {
+            if (!l3) return '<div class="text-muted">暫無資料</div>';
+            return `<div class="news-decision-grid">
+                <div class="news-decision-card"><div class="news-decision-label">部位影響</div><div class="news-decision-value">${l3.position_impact || '-'}</div></div>
+                <div class="news-decision-card"><div class="news-decision-label">期望值</div><div class="news-decision-value">${l3.expected_value || '-'}</div></div>
+                <div class="news-decision-card"><div class="news-decision-label">時機建議</div><div class="news-decision-value">${l3.timing || '-'}</div></div>
+                <div class="news-decision-card"><div class="news-decision-label">風險評估</div><div class="news-decision-value">${l3.risk_assessment || '-'}</div></div>
+            </div>
+            <div class="news-action-plan">
+                <div class="news-field-label" style="margin-bottom:0.25rem;">行動方案</div>
+                ${l3.action_plan || '-'}
+            </div>`;
+        }
+
+        function renderPage10() {
+            const articles = newsAnalysisData && newsAnalysisData.news_analyses;
+            const emptyEl = document.getElementById('p10-empty');
+            const tabsEl = document.getElementById('p10-tabs');
+            const artEl = document.getElementById('p10-articles');
+
+            if (!articles || articles.length === 0) {
+                emptyEl.style.display = 'block';
+                tabsEl.innerHTML = '';
+                artEl.innerHTML = '';
+                return;
+            }
+            emptyEl.style.display = 'none';
+
+            // Tabs
+            tabsEl.innerHTML = articles.map((a, i) => {
+                const label = a.date + ' ' + (a.headline || '').slice(0, 20);
+                return `<button class="filter-btn${i === 0 ? ' active' : ''}" onclick="switchNewsTab(${i})">${label}</button>`;
+            }).join('');
+
+            // Render first article
+            switchNewsTab(0);
+        }
+
+        function switchNewsTab(idx) {
+            const articles = newsAnalysisData.news_analyses;
+            if (!articles || !articles[idx]) return;
+
+            // Update tab active state
+            document.querySelectorAll('#p10-tabs .filter-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === idx);
+            });
+
+            const a = articles[idx];
+            const catColor = a.category_color || 'blue';
+            document.getElementById('p10-articles').innerHTML = `
+                <div class="news-article-container">
+                    <div class="news-header">
+                        <div><span class="badge badge-${catColor}">${a.category || ''}</span> <span class="text-muted text-xs">${a.date || ''}</span></div>
+                        <h2 class="news-headline">${a.headline || ''}</h2>
+                    </div>
+                    <details class="news-layer" open>
+                        <summary class="news-layer-header layer1-header"><span class="news-layer-badge">L1</span><span>表面資訊 — 發生了什麼</span></summary>
+                        <div class="news-layer-body">${_renderLayer1(a.layer1)}</div>
+                    </details>
+                    <details class="news-layer">
+                        <summary class="news-layer-header layer2-header"><span class="news-layer-badge layer2-badge">L2</span><span>隱藏資訊 — 市場沒告訴你的</span></summary>
+                        <div class="news-layer-body">${_renderLayer2(a.layer2)}</div>
+                    </details>
+                    <details class="news-layer">
+                        <summary class="news-layer-header layer3-header"><span class="news-layer-badge layer3-badge">L3</span><span>系統決策 — 我該怎麼做</span></summary>
+                        <div class="news-layer-body">${_renderLayer3(a.layer3)}</div>
+                    </details>
+                </div>`;
+        }
+
+        function renderP8MacroAnalysis() {
+            const macro = newsAnalysisData && newsAnalysisData.macro_analysis;
+            const el = document.getElementById('p8-macro-analysis');
+            if (!macro || !el) return;
+
+            el.style.display = 'block';
+            const timeEl = document.getElementById('p8-macro-time');
+            if (timeEl && macro.generated_at) timeEl.textContent = `(${macro.generated_at})`;
+
+            document.getElementById('p8-macro-l1').innerHTML = _renderLayer1(macro.layer1);
+            document.getElementById('p8-macro-l2').innerHTML = _renderLayer2(macro.layer2);
+            document.getElementById('p8-macro-l3').innerHTML = _renderLayer3(macro.layer3);
+        }
 
         // ============================================================================
         // Initialization
