@@ -203,8 +203,8 @@ def fetch_taifex_rankings(limit=200):
     return []
 
 
-def fetch_etf_holdings(etf_code='0050'):
-    """從 MoneyDJ 抓取 ETF 成分股名稱"""
+def fetch_etf_holdings(etf_code='0050', max_retries=3):
+    """從 MoneyDJ 抓取 ETF 成分股名稱（含重試機制）"""
     import requests
     import urllib3
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -212,31 +212,61 @@ def fetch_etf_holdings(etf_code='0050'):
     url = MONEYDJ_ETF_URL.format(etf_code)
     log(f"Fetching {etf_code} holdings from MoneyDJ...")
 
-    try:
-        hdrs = {**HEADERS,
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
-                'Referer': 'https://www.moneydj.com/'}
-        r = requests.get(url, headers=hdrs, timeout=15, verify=False)
-        r.encoding = r.apparent_encoding or 'utf-8'
-        dfs = pd.read_html(io.StringIO(r.text))
+    ua_list = [
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    ]
 
-        names = set()
-        for df in dfs:
-            cols = [str(c[-1] if isinstance(df.columns, pd.MultiIndex) else c).strip()
-                    for c in df.columns]
-            df.columns = cols
-            target_col = next((c for c in cols if '名稱' in c), None)
-            if target_col:
-                for v in df[target_col].astype(str).str.strip():
-                    if v and v != 'nan':
-                        names.add(v)
+    for attempt in range(max_retries):
+        try:
+            hdrs = {
+                'User-Agent': ua_list[attempt % len(ua_list)],
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Connection': 'keep-alive',
+                'Referer': 'https://www.moneydj.com/ETF/X/Basic/Basic0007.xdjhtm?etfid=0050.TW',
+            }
+            r = requests.get(url, headers=hdrs, timeout=15, verify=False)
 
-        log(f"  {etf_code} holdings: {len(names)} stocks")
-        return names
-    except Exception as e:
-        log(f"  MoneyDJ fetch failed: {e}")
-        return set()
+            if r.status_code != 200:
+                log(f"  Attempt {attempt+1}: HTTP {r.status_code}")
+                time.sleep(1)
+                continue
+
+            if len(r.content) < 1000:
+                log(f"  Attempt {attempt+1}: empty response ({len(r.content)} bytes)")
+                time.sleep(2)
+                continue
+
+            r.encoding = r.apparent_encoding or 'utf-8'
+            dfs = pd.read_html(io.StringIO(r.text))
+
+            names = set()
+            for df in dfs:
+                cols = [str(c[-1] if isinstance(df.columns, pd.MultiIndex) else c).strip()
+                        for c in df.columns]
+                df.columns = cols
+                target_col = next((c for c in cols if '名稱' in c), None)
+                if target_col:
+                    for v in df[target_col].astype(str).str.strip():
+                        if v and v != 'nan':
+                            names.add(v)
+
+            if names:
+                log(f"  {etf_code} holdings: {len(names)} stocks (attempt {attempt+1})")
+                return names
+            else:
+                log(f"  Attempt {attempt+1}: parsed but no names found")
+                time.sleep(1)
+
+        except Exception as e:
+            log(f"  Attempt {attempt+1} failed: {e}")
+            time.sleep(1)
+
+    log(f"  All {max_retries} attempts failed for {etf_code}")
+    return set()
 
 
 def fetch_stock_quotes_batch(codes):
