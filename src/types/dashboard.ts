@@ -79,7 +79,7 @@ export interface DashboardData {
   dates: string[]
   cash_mode: CashMode
   cash_series: CashSeriesItem[]
-  latest_holdings: Record<string, Holding[]>
+  latest_holdings: Record<string, { date: string; cash_pct: number; n_stocks: number; stocks: Holding[] } | Holding[]>
   weight_history: Record<string, Array<{ date: string; weight: number }>>
   conviction: ConvictionItem[]
   consensus: ConsensusItem[]

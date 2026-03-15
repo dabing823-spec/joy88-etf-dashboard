@@ -53,7 +53,8 @@ export function P1HoldingsTracker() {
 
   const cashMode = dashboard?.cash_mode
   const cashSeries = dashboard?.cash_series || []
-  const holdings00981A = dashboard?.latest_holdings?.['00981A'] || []
+  const holdingsRaw = dashboard?.latest_holdings?.['00981A']
+  const holdings00981A = (Array.isArray(holdingsRaw) ? holdingsRaw : (holdingsRaw as Record<string, unknown>)?.stocks as Holding[] | undefined) || []
   const conviction = (dashboard?.conviction || []) as unknown as ConvictionRaw[]
   const stockSeries = (dashboard?.stock_series || []) as unknown as StockSeriesRaw[]
   const dates = dashboard?.dates || []
