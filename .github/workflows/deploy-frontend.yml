@@ -1,0 +1,53 @@
+name: Deploy Frontend
+
+on:
+  # Trigger after daily-update pushes new data
+  push:
+    branches: [main]
+    paths:
+      - 'data/**'
+      - 'src/**'
+      - 'index.html'
+      - 'package.json'
+      - 'vite.config.ts'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Copy data to dist
+        run: cp -r data/ dist/data/
+
+      - name: Copy landing.html to dist (legacy)
+        run: |
+          if [ -f landing.html ]; then
+            cp landing.html dist/landing.html
+          fi
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          cname: ''
