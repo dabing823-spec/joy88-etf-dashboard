@@ -175,7 +175,7 @@ export function P4EtfHistoryComparison() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-text-primary">ETF 歷史回溯與對比</h2>
+      <h2 className="text-xl font-bold text-text-primary">🔍 ETF 歷史回溯與對比</h2>
 
       <IntroBox variant="accent">
         選擇 ETF 查看歷史持股、現金水位變化，並使用對比工具分析任意兩個日期間的持股變動。

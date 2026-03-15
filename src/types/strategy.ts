@@ -87,7 +87,8 @@ export interface MarketIndices {
   tpex_chg: number
   tpex_chg_pct: number
   fear_greed: number
-  fear_greed_label: string
+  fear_greed_label?: string
+  fear_greed_rating?: string
   vix_tw: number
   vix_tw_prev: number
   vix_tw_chg: number

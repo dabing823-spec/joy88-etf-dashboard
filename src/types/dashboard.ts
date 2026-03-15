@@ -56,15 +56,23 @@ export interface LaomoSignal {
 export interface DailyChange {
   date: string
   new: Array<{ code: string; name: string; weight: number }>
-  removed: Array<{ code: string; name: string; prev_weight: number }>
+  exited: Array<{ code: string; name: string; prev_weight?: number }>
   added: Array<{ code: string; name: string; weight: number; weight_chg: number }>
   reduced: Array<{ code: string; name: string; weight: number; weight_chg: number }>
+  cash_pct?: number
+  nav?: number
+  fund_value?: number
 }
 
 export interface CashSeriesItem {
   date: string
   cash_pct: number
+  cash_5ma?: number
+  cash_20ma?: number
+  stock_pct?: number
   n_holdings: number
+  taiex?: number
+  tpex?: number
   etf_id?: string
 }
 

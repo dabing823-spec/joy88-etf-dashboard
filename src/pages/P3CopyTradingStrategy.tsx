@@ -10,9 +10,9 @@ type FilterType = 'all' | 'new' | 'added' | 'high'
 
 const filterOptions: Array<{ value: FilterType; label: string }> = [
   { value: 'all', label: '全部' },
-  { value: 'new', label: '新增' },
-  { value: 'added', label: '加碼' },
-  { value: 'high', label: '高信心' },
+  { value: 'new', label: '🆕 新增' },
+  { value: 'added', label: '▲ 加碼' },
+  { value: 'high', label: '⭐⭐⭐ 高信心' },
 ]
 
 function getSignalBadge(type: string): { text: string; variant: 'red' | 'blue' | 'orange' | 'green' } {
@@ -116,7 +116,7 @@ export function P3CopyTradingStrategy() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-text-primary">老墨跟單策略</h2>
+      <h2 className="text-xl font-bold text-text-primary">📋 老墨跟單策略</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InsightCard title="策略邏輯" borderColor="border-l-accent">

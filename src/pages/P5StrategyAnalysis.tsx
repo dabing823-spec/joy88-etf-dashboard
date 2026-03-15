@@ -90,14 +90,14 @@ export function P5StrategyAnalysis() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-text-primary">策略分析 & 回測</h2>
+      <h2 className="text-xl font-bold text-text-primary">🧠 策略分析 & 回測</h2>
 
       <IntroBox>
         綜合評分操作建議與信號回測績效。操作建議基於權重、動能、共識等多因子評分；回測驗證過去信號的實際報酬表現。
       </IntroBox>
 
       {/* Section 1: Recommendations */}
-      <TableContainer title="操作建議 TOP10">
+      <TableContainer title="🎯 操作建議 TOP10">
         <details className="mb-3 text-sm">
           <summary className="cursor-pointer text-accent font-medium">這個排行怎麼選出來的？</summary>
           <div className="mt-2 p-3 bg-accent/5 rounded-lg text-text-muted leading-relaxed">
@@ -119,7 +119,7 @@ export function P5StrategyAnalysis() {
 
       {/* Section 2: Backtest */}
       {backtest && (
-        <TableContainer title="信號回測績效">
+        <TableContainer title="📈 信號回測績效">
           <details className="mb-3 text-sm">
             <summary className="cursor-pointer text-down font-medium">這些數字怎麼看？怎麼用？</summary>
             <div className="mt-2 p-3 bg-down/5 rounded-lg text-text-muted leading-relaxed">

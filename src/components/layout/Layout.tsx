@@ -3,16 +3,16 @@ import { useData } from '../../contexts/DataContext'
 import { BASE_URL } from '../../lib/constants'
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: '戰略儀表板' },
-  { to: '/risk', label: '風險訊號' },
-  { to: '/holdings', label: '00981A 追蹤' },
-  { to: '/copy-trading', label: '跟單策略' },
-  { to: '/strategy', label: '策略回測' },
-  { to: '/history', label: '歷史回溯' },
-  { to: '/0050', label: '0050' },
-  { to: '/ai-qa', label: 'AI' },
-  { to: '/news', label: '新聞' },
-  { to: '/trump', label: 'Trump' },
+  { to: '/dashboard', label: '\uD83C\uDFAF 戰略儀表板' },
+  { to: '/risk', label: '\uD83D\uDEE1 風險訊號' },
+  { to: '/holdings', label: '\uD83D\uDCCA 00981A' },
+  { to: '/copy-trading', label: '\uD83D\uDCCB 跟單策略' },
+  { to: '/strategy', label: '\uD83E\uDDE0 策略回測' },
+  { to: '/history', label: '\uD83D\uDD0D 歷史回溯' },
+  { to: '/0050', label: '\uD83C\uDFDB 0050' },
+  { to: '/ai-qa', label: '\uD83E\uDD16 AI' },
+  { to: '/news', label: '\uD83D\uDCF0 新聞' },
+  { to: '/trump', label: '\uD83C\uDDFA\uD83C\uDDF8 Trump' },
 ]
 
 export function Layout() {
@@ -22,7 +22,6 @@ export function Layout() {
     <div className="min-h-screen bg-bg">
       <header className="sticky top-0 z-50 bg-bg/95 backdrop-blur-xl border-b border-border">
         <div className="max-w-[1400px] mx-auto px-4">
-          {/* Brand row */}
           <div className="flex items-center justify-between h-11">
             <div className="flex items-center gap-3">
               <img
@@ -43,7 +42,6 @@ export function Layout() {
               )}
             </div>
           </div>
-          {/* Nav row */}
           <nav className="flex gap-0.5 overflow-x-auto pb-1.5 -mx-1 px-1 scrollbar-hide">
             {NAV_ITEMS.map(({ to, label }) => (
               <NavLink
