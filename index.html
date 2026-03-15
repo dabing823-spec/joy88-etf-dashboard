@@ -269,8 +269,13 @@
             }
 
             nav button {
-                padding: 0.4rem 0.8rem;
-                font-size: 1rem;
+                padding: 0.35rem 0.65rem;
+                font-size: 0.85rem;
+            }
+
+            /* R7: P2 macro panel 2-col on mobile */
+            .p2-macro-inner {
+                grid-template-columns: repeat(2, 1fr) !important;
             }
 
             .chart-area, .chart-area-lg {
@@ -903,7 +908,7 @@
         .risk-signals-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
+            gap: 1.25rem;
             margin-bottom: 2rem;
         }
 
@@ -1213,6 +1218,38 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
+        /* R10: P4 consistent section spacing */
+        #p4 .charts-row,
+        #p4 .table-container,
+        #p4 .comparison-tool,
+        #p4 .kpi-grid {
+            margin-bottom: 1.5rem;
+        }
+
+        /* R9: Loading skeleton shimmer */
+        @keyframes shimmer {
+            0% { background-position: -200px 0; }
+            100% { background-position: 200px 0; }
+        }
+        .skeleton {
+            display: inline-block;
+            width: 48px;
+            height: 1.1em;
+            border-radius: 4px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+            background-size: 200px 100%;
+            animation: shimmer 1.5s infinite linear;
+            vertical-align: middle;
+        }
+
+        /* R6: P3 signal table row hover highlight */
+        #p3-table-signals tbody tr:hover {
+            background-color: rgba(79, 142, 247, 0.12);
+        }
+        #p3-table-signals tbody tr.signal-high-confidence {
+            border-left: 3px solid var(--orange);
+        }
+
         /* Smooth scroll for table containers */
         .table-scroll {
             scroll-behavior: smooth;
@@ -1284,19 +1321,19 @@
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">期貨保證金</div>
-                    <div class="kpi-value" id="p1-kpi-futures">-</div>
+                    <div class="kpi-value" id="p1-kpi-futures"><span class="skeleton"></span></div>
                     <div class="kpi-subtext" id="p1-kpi-futures-trend">-</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">今日申贖</div>
-                    <div class="kpi-value" id="p1-kpi-units">-</div>
+                    <div class="kpi-value" id="p1-kpi-units"><span class="skeleton"></span></div>
                     <div class="kpi-subtext" id="p1-kpi-units-desc">-</div>
                     <div id="p1-kpi-units-trend" style="margin-top:0.5rem; display:flex; gap:2px; align-items:flex-end; height:24px;"></div>
                     <div class="kpi-subtext" id="p1-kpi-units-extra" style="margin-top:0.3rem;">-</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">攻防模式</div>
-                    <div class="kpi-value" id="p1-kpi-mode">-</div>
+                    <div class="kpi-value" id="p1-kpi-mode"><span class="skeleton"></span></div>
                     <div class="kpi-subtext" id="p1-kpi-mode-desc">-</div>
                 </div>
             </div>
@@ -1546,7 +1583,7 @@
                 <!-- Top bar: score + level + link -->
                 <div style="display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem; border-bottom:1px solid var(--border);">
                     <div style="display:flex; align-items:center; gap:1rem;">
-                        <div id="p2-risk-score-badge" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.3rem;border:3px solid var(--green);color:var(--green);background:rgba(0,196,140,0.06);transition:all 0.3s;">-</div>
+                        <div id="p2-risk-score-badge" style="width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.4rem;border:3px solid var(--green);color:var(--green);background:rgba(0,196,140,0.06);transition:all 0.3s;">-</div>
                         <div>
                             <div id="p2-risk-label" style="font-size:1.05rem; font-weight:600;">風險訊號載入中</div>
                             <div id="p2-risk-sub" style="font-size: 1rem; color:var(--text-muted); margin-top:2px;">-</div>
@@ -1565,22 +1602,22 @@
             <div class="kpi-grid">
                 <div class="kpi-card">
                     <div class="kpi-label">近5日申購/贖回</div>
-                    <div class="kpi-value" id="p2-kpi-units5d">-</div>
+                    <div class="kpi-value" id="p2-kpi-units5d"><span class="skeleton"></span></div>
                     <div class="kpi-subtext" id="p2-kpi-units5d-sub">-</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">加權指數 5日變化</div>
-                    <div class="kpi-value" id="p2-kpi-taiex5d">-</div>
+                    <div class="kpi-value" id="p2-kpi-taiex5d"><span class="skeleton"></span></div>
                     <div class="kpi-subtext" id="p2-kpi-taiex5d-sub">-</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">跟單加分狀態</div>
-                    <div class="kpi-value" id="p2-kpi-copyedge">-</div>
+                    <div class="kpi-value" id="p2-kpi-copyedge"><span class="skeleton"></span></div>
                     <div class="kpi-subtext" id="p2-kpi-copyedge-sub">-</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">今日異動</div>
-                    <div class="kpi-value" id="p2-kpi-signals">-</div>
+                    <div class="kpi-value" id="p2-kpi-signals"><span class="skeleton"></span></div>
                     <div class="kpi-subtext" id="p2-kpi-signals-sub">-</div>
                 </div>
             </div>
@@ -1781,7 +1818,7 @@
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">最新日期</div>
-                    <div class="kpi-value" id="p4-kpi-date">-</div>
+                    <div class="kpi-value" id="p4-kpi-date"><span class="skeleton"></span></div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">持股集中度 (Top 5)</div>
@@ -2255,11 +2292,11 @@
                     <summary class="news-layer-header layer1-header"><span class="news-layer-badge">L1</span><span>表面資訊 — 當前市場環境</span></summary>
                     <div class="news-layer-body" id="p8-macro-l1"></div>
                 </details>
-                <details class="news-layer">
+                <details class="news-layer" open>
                     <summary class="news-layer-header layer2-header"><span class="news-layer-badge layer2-badge">L2</span><span>隱藏資訊 — 市場定價落差</span></summary>
                     <div class="news-layer-body" id="p8-macro-l2"></div>
                 </details>
-                <details class="news-layer">
+                <details class="news-layer" open>
                     <summary class="news-layer-header layer3-header"><span class="news-layer-badge layer3-badge">L3</span><span>系統決策 — 基於風險訊號的行動</span></summary>
                     <div class="news-layer-body" id="p8-macro-l3"></div>
                 </details>
@@ -2374,17 +2411,17 @@
                     開啟 AI 問答
                 </a>
                 <div style="margin-top:2.5rem; display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; max-width:600px; margin-left:auto; margin-right:auto;">
-                    <div style="background:rgba(255,255,255,0.03); border-radius:10px; padding:1rem;">
+                    <div class="p9-example-card" style="background:rgba(255,255,255,0.03); border-radius:10px; padding:1rem; cursor:pointer; position:relative; transition:background 0.2s;" onclick="copyP9Question(this)" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
                         <div style="font-size: 1.05rem; color:var(--text-muted); margin-bottom:0.3rem;">可以問</div>
-                        <div style="font-size: 1rem; color:var(--text);">00981A 最近為什麼加碼台積電？</div>
+                        <div class="p9-q-text" style="font-size: 1rem; color:var(--text);">00981A 最近為什麼加碼台積電？</div>
                     </div>
-                    <div style="background:rgba(255,255,255,0.03); border-radius:10px; padding:1rem;">
+                    <div class="p9-example-card" style="background:rgba(255,255,255,0.03); border-radius:10px; padding:1rem; cursor:pointer; position:relative; transition:background 0.2s;" onclick="copyP9Question(this)" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
                         <div style="font-size: 1.05rem; color:var(--text-muted); margin-bottom:0.3rem;">可以問</div>
-                        <div style="font-size: 1rem; color:var(--text);">五檔 ETF 的共識標的有哪些？</div>
+                        <div class="p9-q-text" style="font-size: 1rem; color:var(--text);">五檔 ETF 的共識標的有哪些？</div>
                     </div>
-                    <div style="background:rgba(255,255,255,0.03); border-radius:10px; padding:1rem;">
+                    <div class="p9-example-card" style="background:rgba(255,255,255,0.03); border-radius:10px; padding:1rem; cursor:pointer; position:relative; transition:background 0.2s;" onclick="copyP9Question(this)" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
                         <div style="font-size: 1.05rem; color:var(--text-muted); margin-bottom:0.3rem;">可以問</div>
-                        <div style="font-size: 1rem; color:var(--text);">現在的現金水位代表什麼？</div>
+                        <div class="p9-q-text" style="font-size: 1rem; color:var(--text);">現在的現金水位代表什麼？</div>
                     </div>
                 </div>
             </div>
@@ -2406,6 +2443,7 @@
     <!-- Footer -->
     <footer style="max-width:1600px;margin:0 auto;padding:1rem 2rem 2rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;font-size: 1.05rem;color:var(--text-muted);">
         <div>JOY88 ETF Dashboard &copy; 2025-2026. 資料來源：TWSE、TAIFEX、MoneyDJ、Yahoo Finance、CNN。</div>
+        <div id="footer-status" style="font-size:0.85rem;color:var(--text-muted);opacity:0.7;"></div>
         <div style="display:flex;gap:1rem;">
             <a href="#" onclick="document.getElementById('disclaimer-modal').style.display='block';return false;" style="color:var(--text-muted);text-decoration:none;">免責聲明</a>
             <a href="#" onclick="document.getElementById('privacy-modal').style.display='block';return false;" style="color:var(--text-muted);text-decoration:none;">隱私政策</a>
@@ -2944,6 +2982,16 @@
                             yAxisID: 'y'
                         },
                         {
+                            label: '20MA',
+                            data: sliced.map(d => d.cash_20ma),
+                            borderColor: 'rgba(168, 85, 247, 0.5)',
+                            borderWidth: 1,
+                            borderDash: [6, 3],
+                            pointRadius: 0,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
                             label: '加權指數',
                             data: sliced.map(d => d.taiex),
                             borderColor: '#00c48c',
@@ -3029,7 +3077,35 @@
                                 x: { minRange: 5 }
                             }
                         },
-                        annotation: { annotations: {} }
+                        annotation: (function() {
+                            if (!window.Chart || !Chart.registry.plugins.get('annotation')) return { annotations: {} };
+                            const last5ma = sliced.filter(d => d.cash_5ma != null).slice(-1)[0];
+                            const last20ma = sliced.filter(d => d.cash_20ma != null).slice(-1)[0];
+                            const anns = {};
+                            if (last5ma) {
+                                anns.label5ma = {
+                                    type: 'label',
+                                    xValue: labels[labels.length - 1],
+                                    yValue: last5ma.cash_5ma,
+                                    content: ['5MA'],
+                                    color: 'rgba(255, 165, 2, 0.85)',
+                                    font: { size: 11, weight: '600' },
+                                    position: 'start'
+                                };
+                            }
+                            if (last20ma) {
+                                anns.label20ma = {
+                                    type: 'label',
+                                    xValue: labels[labels.length - 1],
+                                    yValue: last20ma.cash_20ma,
+                                    content: ['20MA'],
+                                    color: 'rgba(168, 85, 247, 0.85)',
+                                    font: { size: 11, weight: '600' },
+                                    position: 'start'
+                                };
+                            }
+                            return { annotations: anns };
+                        })()
                     },
                     scales: {
                         y: {
@@ -4132,12 +4208,14 @@
                 const typeClass = getSignalClass(signal.type);
                 const typeBadge = getSignalBadge(signal.type);
                 const confidenceStars = signal.confidence || '-';
+                const _cs = String(confidenceStars);
+                const isHighConf = _cs.includes('\u2B50\u2B50\u2B50') || _cs.includes('\u2605\u2605\u2605') || Number(confidenceStars) >= 3;
 
                 const chg = signal.weight_chg || 0;
                 const chgClass = chg > 0 ? 'delta-up' : chg < 0 ? 'delta-down' : '';
 
                 return `
-                    <tr>
+                    <tr${isHighConf ? ' class="signal-high-confidence"' : ''}>
                         <td>${signal.date}</td>
                         <td><span class="badge ${typeClass}">${typeBadge}</span></td>
                         <td>${signal.code}</td>
@@ -4812,16 +4890,17 @@
                 const scoreBadge = r.score >= 8 ? 'badge-green' :
                                    r.score >= 5 ? 'badge-blue' :
                                    r.score >= 2 ? 'badge-yellow' : 'badge-red';
-                const recClass = r.recommendation === '強力買進' ? 'mode-attack' :
-                                 r.recommendation === '買進' ? 'mode-neutral' :
-                                 r.recommendation === '觀望' ? 'mode-defense' : 'mode-high-defense';
+                const recStyle = r.recommendation === '強力買進' ? 'background:rgba(255,71,87,0.85);color:#fff;' :
+                                 r.recommendation === '買進' ? 'background:rgba(255,165,2,0.85);color:#fff;' :
+                                 r.recommendation === '觀望' ? 'background:rgba(100,105,120,0.7);color:#e4e6eb;' :
+                                 'background:rgba(0,196,140,0.85);color:#fff;';
                 return `<tr>
                     <td class="text-center">${i + 1}</td>
                     <td>${r.code}</td>
                     <td>${r.name}</td>
                     <td class="text-right">${(r.current_weight || 0).toFixed(2)}%</td>
                     <td class="text-center"><span class="badge ${scoreBadge}">${r.score.toFixed(1)}</span></td>
-                    <td><span class="mode-indicator ${recClass}" style="font-size: 1.05rem; padding:0.25rem 0.6rem;">${r.recommendation}</span></td>
+                    <td><span style="display:inline-block;padding:0.25rem 0.7rem;border-radius:6px;font-size:1.05rem;font-weight:600;${recStyle}">${r.recommendation}</span></td>
                 </tr>`;
             }).join('');
 
@@ -4858,21 +4937,28 @@
 
             // KPIs
             const kpiDiv = document.getElementById('p5-backtest-kpis');
+            const wr10 = summary.win_rate_10d || 0;
+            const wr20 = summary.win_rate_20d || 0;
+            const wr10Color = wr10 >= 50 ? 'var(--green)' : 'var(--red)';
+            const wr20Color = wr20 >= 50 ? 'var(--green)' : 'var(--red)';
+            const _donut = (pct, color) => `<div style="width:56px;height:56px;border-radius:50%;background:conic-gradient(${color} ${pct * 3.6}deg, var(--border) 0);display:flex;align-items:center;justify-content:center;margin:0 auto 0.4rem;"><div style="width:40px;height:40px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:${color};">${pct.toFixed(0)}%</div></div>`;
             kpiDiv.innerHTML = `
                 <div class="kpi-card">
                     <div class="kpi-label">總信號數</div>
                     <div class="kpi-value">${summary.total_signals || 0}</div>
                 </div>
-                <div class="kpi-card">
+                <div class="kpi-card" style="text-align:center;">
                     <div class="kpi-label">10日勝率</div>
-                    <div class="kpi-value" style="color: ${(summary.win_rate_10d || 0) >= 50 ? 'var(--green)' : 'var(--red)'}">
-                        ${(summary.win_rate_10d || 0).toFixed(1)}%
+                    ${_donut(wr10, wr10Color)}
+                    <div class="kpi-value" style="color:${wr10Color};font-size:1.3rem;">
+                        ${wr10.toFixed(1)}%
                     </div>
                 </div>
-                <div class="kpi-card">
+                <div class="kpi-card" style="text-align:center;">
                     <div class="kpi-label">20日勝率</div>
-                    <div class="kpi-value" style="color: ${(summary.win_rate_20d || 0) >= 50 ? 'var(--green)' : 'var(--red)'}">
-                        ${(summary.win_rate_20d || 0).toFixed(1)}%
+                    ${_donut(wr20, wr20Color)}
+                    <div class="kpi-value" style="color:${wr20Color};font-size:1.3rem;">
+                        ${wr20.toFixed(1)}%
                     </div>
                 </div>
                 <div class="kpi-card">
@@ -5598,11 +5684,11 @@
                         <summary class="news-layer-header layer1-header"><span class="news-layer-badge">L1</span><span>表面資訊 — 發生了什麼</span></summary>
                         <div class="news-layer-body">${_renderLayer1(a.layer1)}</div>
                     </details>
-                    <details class="news-layer">
+                    <details class="news-layer" open>
                         <summary class="news-layer-header layer2-header"><span class="news-layer-badge layer2-badge">L2</span><span>隱藏資訊 — 市場沒告訴你的</span></summary>
                         <div class="news-layer-body">${_renderLayer2(a.layer2)}</div>
                     </details>
-                    <details class="news-layer">
+                    <details class="news-layer" open>
                         <summary class="news-layer-header layer3-header"><span class="news-layer-badge layer3-badge">L3</span><span>系統決策 — 我該怎麼做</span></summary>
                         <div class="news-layer-body">${_renderLayer3(a.layer3)}</div>
                     </details>
@@ -5634,6 +5720,15 @@
             if (el && dashboardData && dashboardData.report_date) {
                 el.textContent = '📅 ' + dashboardData.report_date;
             }
+            // R18: Footer system status
+            const footerEl = document.getElementById('footer-status');
+            if (footerEl && dashboardData) {
+                const reportDate = dashboardData.report_date || '-';
+                const cashSeries = dashboardData.cash_series || [];
+                const coverageDays = cashSeries.length;
+                const url = window.location.href.split('?')[0];
+                footerEl.textContent = `最後更新: ${reportDate} | 資料涵蓋: ${coverageDays} 天 | ${url}`;
+            }
         }
 
         // R5: Chart.js global font size increase
@@ -5643,6 +5738,18 @@
             Chart.defaults.plugins.tooltip.titleFont = { size: 14 };
             Chart.defaults.plugins.tooltip.bodyFont = { size: 13 };
             Chart.defaults.scale = Chart.defaults.scale || {};
+        }
+
+        // R15: P9 click-to-copy example question
+        function copyP9Question(card) {
+            const text = card.querySelector('.p9-q-text').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const tooltip = document.createElement('div');
+                tooltip.textContent = '已複製';
+                tooltip.style.cssText = 'position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;padding:2px 10px;border-radius:4px;font-size:0.8rem;z-index:10;pointer-events:none;';
+                card.appendChild(tooltip);
+                setTimeout(() => tooltip.remove(), 1200);
+            });
         }
 
         // R17: Back to top button
