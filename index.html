@@ -1304,7 +1304,7 @@
 
             <!-- Page Intro -->
             <div class="intro-box accent">
-                追蹤 00981A（統一台股增長）的每日持股變化、申購贖回量與現金水位。圖表可縮放拖曳，持股權重可自選個股比較。
+                追蹤 00981A（主動統一台股增長 ETF）的每日持股變化、經理人操作動向與現金水位。持股異動事件可作為跟單參考（新增跟 5 天、加碼跟 3 天）。圖表支援拖曳縮放。
             </div>
 
             <!-- KPIs -->
@@ -1325,7 +1325,7 @@
                     <div class="kpi-subtext" id="p1-kpi-futures-trend">-</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-label">今日申贖</div>
+                    <div class="kpi-label">今日申購/贖回</div>
                     <div class="kpi-value" id="p1-kpi-units"><span class="skeleton"></span></div>
                     <div class="kpi-subtext" id="p1-kpi-units-desc">-</div>
                     <div id="p1-kpi-units-trend" style="margin-top:0.5rem; display:flex; gap:2px; align-items:flex-end; height:24px;"></div>
@@ -2816,13 +2816,17 @@
                 unitsEl.style.color = 'var(--text-muted)';
             }
 
-            // Fund size estimate
+            // Fund size estimate + dollar amount of change
             const totalUnits = latestCS.units || 0;
             const nav = latestCS.nav || 0;
             const fundSize = totalUnits * nav;
-            const fundSizeText = fundSize > 0 ? `規模 ${(fundSize / 1e9).toFixed(1)} 億` : '';
+            const fundSizeText = fundSize > 0 ? `基金規模 ${(fundSize / 1e9).toFixed(1)} 億` : '';
+            const changeAmt = Math.abs(unitsChange) * (nav || 1);
+            let changeAmtText = '';
+            if (changeAmt >= 1e8) changeAmtText = `約 ${(changeAmt / 1e8).toFixed(1)} 億元`;
+            else if (changeAmt >= 1e4) changeAmtText = `約 ${(changeAmt / 1e4).toFixed(0)} 萬元`;
             document.getElementById('p1-kpi-units-desc').textContent =
-                `NAV: ${nav || '-'} | ${fundSizeText}`;
+                `${changeAmtText}${changeAmtText && fundSizeText ? ' | ' : ''}${fundSizeText}`;
 
             // Mini bar chart: last 10 days subscription/redemption
             const trendEl = document.getElementById('p1-kpi-units-trend');
@@ -2996,20 +3000,19 @@
                             label: '現金比例 (%)',
                             data: sliced.map(d => d.cash_pct),
                             borderColor: '#4f8ef7',
-                            backgroundColor: 'rgba(79, 142, 247, 0.08)',
-                            borderWidth: 2,
+                            backgroundColor: 'rgba(79, 142, 247, 0.1)',
+                            borderWidth: 2.5,
                             tension: 0.3,
-                            pointRadius: sliced.length > 60 ? 0 : 1,
-                            pointHoverRadius: 4,
+                            pointRadius: sliced.length > 60 ? 0 : 2,
+                            pointHoverRadius: 5,
                             fill: true,
                             yAxisID: 'y'
                         },
                         {
                             label: '5MA',
                             data: sliced.map(d => d.cash_5ma),
-                            borderColor: 'rgba(255, 165, 2, 0.6)',
-                            borderWidth: 1,
-                            borderDash: [4, 4],
+                            borderColor: 'rgba(255, 165, 2, 0.7)',
+                            borderWidth: 1.5,
                             pointRadius: 0,
                             tension: 0.3,
                             yAxisID: 'y'
@@ -3017,9 +3020,8 @@
                         {
                             label: '20MA',
                             data: sliced.map(d => d.cash_20ma),
-                            borderColor: 'rgba(168, 85, 247, 0.5)',
-                            borderWidth: 1,
-                            borderDash: [6, 3],
+                            borderColor: 'rgba(168, 85, 247, 0.6)',
+                            borderWidth: 1.5,
                             pointRadius: 0,
                             tension: 0.3,
                             yAxisID: 'y'
@@ -3028,8 +3030,8 @@
                             label: '加權指數',
                             data: sliced.map(d => d.taiex),
                             borderColor: '#00c48c',
-                            backgroundColor: 'rgba(0, 196, 140, 0.05)',
-                            borderWidth: 2,
+                            backgroundColor: 'rgba(0, 196, 140, 0.06)',
+                            borderWidth: 2.5,
                             tension: 0.3,
                             pointRadius: 0,
                             fill: false,
@@ -3039,10 +3041,9 @@
                             label: '櫃買指數',
                             data: sliced.map(d => d.tpex),
                             borderColor: '#a855f7',
-                            borderWidth: 1.5,
+                            borderWidth: 2,
                             tension: 0.3,
                             pointRadius: 0,
-                            borderDash: [6, 3],
                             fill: false,
                             yAxisID: 'y2'
                         },
@@ -3240,22 +3241,20 @@
             datasets.push({
                 label: '加權指數',
                 data: allDates.map(d => taiexMap[d] ?? null),
-                borderColor: 'rgba(255,255,255,0.3)',
-                borderWidth: 1.5,
+                borderColor: 'rgba(255,255,255,0.35)',
+                borderWidth: 2,
                 tension: 0.3,
                 pointRadius: 0,
-                borderDash: [6, 3],
                 spanGaps: true,
                 yAxisID: 'y1',
             });
             datasets.push({
                 label: '櫃買指數',
                 data: allDates.map(d => tpexMap[d] ?? null),
-                borderColor: 'rgba(255,255,255,0.15)',
-                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.2)',
+                borderWidth: 1.5,
                 tension: 0.3,
                 pointRadius: 0,
-                borderDash: [3, 3],
                 spanGaps: true,
                 yAxisID: 'y2',
             });
@@ -3473,7 +3472,7 @@
             if (!container) return;
             const changes = ((dashboardData.daily_changes || {})['00981A'] || []).slice().reverse();
             if (!changes.length) {
-                container.innerHTML = '<div style="color:var(--text-muted); font-size: 1rem; padding:0.5rem 0;">暫無異動資料</div>';
+                container.innerHTML = '<div style="color:var(--text-muted);padding:1rem 0;">暫無異動資料</div>';
                 return;
             }
 
@@ -3487,38 +3486,80 @@
             const rows = changes.map(day => {
                 const items = [];
                 const cashHigh = (day.cash_pct || 0) > 4;
-                const cashBadge = cashHigh ? '<span style="font-size: 1.05rem; padding:1px 4px; border-radius:3px; background:rgba(255,71,87,0.15); color:#ff4757; margin-left:2px;">現金↑</span>' : '';
+                const cashTag = cashHigh ? `<span class="badge badge-red" style="font-size:0.7rem;padding:2px 6px;">現金&gt;4%</span>` : '';
+                const nNew = (day.new||[]).length;
+                const nExit = (day.exited||[]).length;
+                const nAdd = (day.added||[]).length;
+                const nReduce = (day.reduced||[]).length;
+                const totalEvents = nNew + nExit + nAdd + nReduce;
+                if (totalEvents === 0) return '';
+
+                // New positions
                 (day.new || []).forEach(s => {
-                    const amt = s.est_amount ? ` ≈${fmtAmt(s.est_amount)}` : '';
-                    items.push(`<span style="color:#ff4757; font-weight:500;">+${s.name}<span style="font-size: 1.05rem; opacity:0.7;">${amt}</span> <span style="font-size: 1.05rem; padding:1px 4px; border-radius:3px; background:rgba(255,71,87,0.15); color:#ff4757;">跟5天</span>${cashBadge}</span>`);
+                    const amt = s.est_amount ? fmtAmt(s.est_amount) : '';
+                    items.push(`<div class="signal-card signal-new" style="padding:0.6rem 0.8rem;margin-bottom:0;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span class="signal-title" style="color:var(--green);">+ 新增 ${s.name}</span>
+                            <span class="badge badge-red" style="font-size:0.72rem;">建議跟 5 天</span>
+                        </div>
+                        ${amt ? `<div class="signal-text">估計金額 ${amt} ${cashTag}</div>` : ''}
+                    </div>`);
                 });
+
+                // Exit positions
                 (day.exited || []).forEach(s => {
-                    const amt = s.est_amount ? ` ≈${fmtAmt(s.est_amount)}` : '';
-                    items.push(`<span style="color:#00c48c; font-weight:500;">-${s.name}<span style="font-size: 1.05rem; opacity:0.7;">${amt}</span></span>`);
+                    const amt = s.est_amount ? fmtAmt(s.est_amount) : '';
+                    items.push(`<div class="signal-card signal-exit" style="padding:0.6rem 0.8rem;margin-bottom:0;">
+                        <div class="signal-title" style="color:var(--red);">- 出場 ${s.name}</div>
+                        ${amt ? `<div class="signal-text">估計金額 ${amt}</div>` : ''}
+                    </div>`);
                 });
+
+                // Added weight
                 (day.added || []).forEach(s => {
-                    const amt = s.est_amount ? ` ≈${fmtAmt(s.est_amount)}` : '';
-                    items.push(`<span style="color:#ff4757;">▲${s.name}<span style="font-size: 1.05rem; opacity:0.7;">(${s.weight_chg > 0 ? '+' : ''}${s.weight_chg.toFixed(1)}%${amt})</span> <span style="font-size: 1.05rem; padding:1px 4px; border-radius:3px; background:rgba(79,142,247,0.15); color:#4f8ef7;">跟3天</span>${cashBadge}</span>`);
+                    const amt = s.est_amount ? fmtAmt(s.est_amount) : '';
+                    const chg = s.weight_chg > 0 ? `+${s.weight_chg.toFixed(1)}%` : `${s.weight_chg.toFixed(1)}%`;
+                    items.push(`<div class="signal-card signal-add" style="padding:0.6rem 0.8rem;margin-bottom:0;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span class="signal-title">&#9650; 加碼 ${s.name} <span style="color:var(--accent);">${chg}</span></span>
+                            <span class="badge badge-blue" style="font-size:0.72rem;">建議跟 3 天</span>
+                        </div>
+                        ${amt ? `<div class="signal-text">估計金額 ${amt} ${cashTag}</div>` : ''}
+                    </div>`);
                 });
+
+                // Reduced weight
                 (day.reduced || []).forEach(s => {
-                    const amt = s.est_amount ? ` ≈${fmtAmt(s.est_amount)}` : '';
-                    items.push(`<span style="color:#00c48c;">▼${s.name}<span style="font-size: 1.05rem; opacity:0.7;">(${s.weight_chg.toFixed(1)}%${amt})</span></span>`);
+                    const amt = s.est_amount ? fmtAmt(s.est_amount) : '';
+                    items.push(`<div class="signal-card signal-reduce" style="padding:0.6rem 0.8rem;margin-bottom:0;">
+                        <div class="signal-title">&#9660; 減碼 ${s.name} <span style="color:var(--orange);">${s.weight_chg.toFixed(1)}%</span></div>
+                        ${amt ? `<div class="signal-text">估計金額 ${amt}</div>` : ''}
+                    </div>`);
                 });
-                if (!items.length) return '';
 
-                // Day total
-                const dayTotal = [...(day.new||[]), ...(day.added||[])].reduce((sum, s) => sum + (s.est_amount || 0), 0)
-                    - [...(day.exited||[]), ...(day.reduced||[])].reduce((sum, s) => sum + (s.est_amount || 0), 0);
-                const totalStr = dayTotal ? `<span style="color:var(--text-muted); font-size: 1.05rem; margin-left:auto; white-space:nowrap;">淨 ${dayTotal >= 0 ? '+' : ''}${fmtAmt(Math.abs(dayTotal))}</span>` : '';
+                // Day summary
+                const dayBuy = [...(day.new||[]), ...(day.added||[])].reduce((sum, s) => sum + (s.est_amount || 0), 0);
+                const daySell = [...(day.exited||[]), ...(day.reduced||[])].reduce((sum, s) => sum + (s.est_amount || 0), 0);
+                const dayNet = dayBuy - daySell;
+                let summaryBadges = `<span style="font-size:0.78rem;color:var(--text-muted);">異動 ${totalEvents} 筆</span>`;
+                if (dayNet) {
+                    const netColor = dayNet > 0 ? 'var(--green)' : 'var(--red)';
+                    summaryBadges += ` <span style="font-size:0.78rem;color:${netColor};">淨${dayNet > 0 ? '買' : '賣'} ${fmtAmt(Math.abs(dayNet))}</span>`;
+                }
 
-                return `<div style="display:flex; gap:0.75rem; align-items:baseline; padding:0.35rem 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size: 1rem;">
-                    <span style="color:var(--text-muted); font-family:monospace; min-width:80px;">${day.date}</span>
-                    <div style="display:flex; flex-wrap:wrap; gap:0.4rem 0.75rem; flex:1;">${items.join('')}</div>
-                    ${totalStr}
+                return `<div style="margin-bottom:1rem;">
+                    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                        <span style="font-weight:600;font-family:monospace;color:var(--accent);font-size:0.9rem;">${day.date}</span>
+                        ${summaryBadges}
+                        ${cashHigh ? '<span style="font-size:0.75rem;color:var(--red);">現金水位偏高</span>' : ''}
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:0.5rem;">
+                        ${items.join('')}
+                    </div>
                 </div>`;
             }).filter(Boolean);
 
-            container.innerHTML = rows.join('') || '<div style="color:var(--text-muted); font-size: 1rem;">近期無異動</div>';
+            container.innerHTML = rows.join('') || '<div style="color:var(--text-muted);">近期無異動</div>';
         }
 
         function renderP1HoldingsTables() {
