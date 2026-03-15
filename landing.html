@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JOY88 主動式 ETF 追蹤儀表板</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1117; --card: #1a1d28; --border: #2a2e3d; --text: #e4e6eb;
+    --accent: #4f8ef7; --green: #00c48c; --red: #ff4757; --orange: #ffa502;
+    --muted: #8b8fa3;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  /* Nav */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(15,17,23,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border); padding: 0 2rem; height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand { font-size: 1.15rem; font-weight: 700; color: var(--accent); }
+  .nav-links { display: flex; gap: 1.5rem; font-size: .9rem; }
+  .nav-links a { color: var(--muted); transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  /* Sections */
+  section { padding: 5rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+  .section-title {
+    font-size: 2rem; font-weight: 700; text-align: center; margin-bottom: .5rem;
+  }
+  .section-subtitle {
+    text-align: center; color: var(--muted); margin-bottom: 3rem; font-size: 1.05rem;
+  }
+  /* Hero */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    background: linear-gradient(170deg, #0f1117 40%, #161b2e 70%, #0f1117 100%);
+    padding-top: 60px;
+  }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; margin-bottom: 1rem; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { font-size: 1.15rem; color: var(--muted); max-width: 560px; margin-bottom: 2.5rem; }
+  .btn-primary {
+    display: inline-block; padding: .85rem 2.4rem; background: var(--accent);
+    color: #fff; border-radius: 8px; font-size: 1rem; font-weight: 600;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(79,142,247,.35);
+  }
+  /* Cards grid */
+  .grid-4 {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.8rem; transition: transform .25s, border-color .25s;
+  }
+  .card:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .card-icon {
+    width: 44px; height: 44px; border-radius: 10px; display: flex;
+    align-items: center; justify-content: center; font-size: 1.3rem;
+    margin-bottom: 1rem; font-weight: 700;
+  }
+  .card h3 { font-size: 1.1rem; margin-bottom: .5rem; }
+  .card p { font-size: .9rem; color: var(--muted); line-height: 1.55; }
+  /* Preview */
+  .preview-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    min-height: 340px; display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 1.1rem; position: relative; overflow: hidden;
+  }
+  .preview-box::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(79,142,247,.06) 0%, transparent 60%);
+  }
+  /* Signal cards */
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; }
+  .signal-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.4rem; text-align: center;
+  }
+  .signal-dot {
+    width: 14px; height: 14px; border-radius: 50%; display: inline-block;
+    margin-bottom: .6rem; box-shadow: 0 0 8px currentColor;
+  }
+  .signal-dot.red { background: var(--red); color: var(--red); }
+  .signal-dot.green { background: var(--green); color: var(--green); }
+  .signal-label { font-size: .85rem; color: var(--muted); margin-top: .3rem; }
+  .signal-value { font-size: 1.5rem; font-weight: 700; margin: .3rem 0; }
+  .signal-value.red { color: var(--red); }
+  .signal-value.green { color: var(--green); }
+  /* Steps */
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem; }
+  .step { text-align: center; }
+  .step-num {
+    width: 48px; height: 48px; border-radius: 50%; background: var(--accent);
+    color: #fff; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem;
+  }
+  .step h3 { margin-bottom: .4rem; }
+  .step p { font-size: .9rem; color: var(--muted); }
+  /* Pricing */
+  .pricing-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem;
+    align-items: start;
+  }
+  .pricing-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 2rem; text-align: center; position: relative; transition: transform .25s;
+  }
+  .pricing-card:hover { transform: translateY(-4px); }
+  .pricing-card.popular { border-color: var(--accent); }
+  .pricing-badge {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: #fff; font-size: .75rem; font-weight: 600;
+    padding: .25rem .9rem; border-radius: 20px;
+  }
+  .pricing-card h3 { font-size: 1.15rem; margin-bottom: .4rem; }
+  .pricing-price { font-size: 2.2rem; font-weight: 800; margin: .8rem 0 .3rem; }
+  .pricing-period { font-size: .85rem; color: var(--muted); margin-bottom: 1.2rem; }
+  .pricing-features { list-style: none; text-align: left; margin-bottom: 1.5rem; }
+  .pricing-features li {
+    padding: .4rem 0; font-size: .9rem; color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .pricing-features li::before { content: "/ "; color: var(--accent); font-weight: 700; }
+  .btn-outline {
+    display: inline-block; padding: .65rem 1.8rem; border: 1px solid var(--accent);
+    color: var(--accent); border-radius: 8px; font-size: .9rem; font-weight: 600;
+    transition: background .2s, color .2s;
+  }
+  .btn-outline:hover { background: var(--accent); color: #fff; }
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border); padding: 2.5rem 1.5rem;
+    text-align: center; font-size: .85rem; color: var(--muted);
+  }
+  .footer-links { margin-bottom: .8rem; }
+  .footer-links a { color: var(--muted); margin: 0 .8rem; transition: color .2s; }
+  .footer-links a:hover { color: var(--text); }
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .hero h1, .hero p, .hero .btn-primary {
+    animation: fadeUp .7s ease both;
+  }
+  .hero p { animation-delay: .15s; }
+  .hero .btn-primary { animation-delay: .3s; }
+  /* Responsive */
+  @media (max-width: 640px) {
+    nav { padding: 0 1rem; }
+    .nav-links { gap: .8rem; font-size: .8rem; }
+    section { padding: 3.5rem 1rem; }
+    .section-title { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">JOY88</div>
+  <div class="nav-links">
+    <a href="#features">功能</a>
+    <a href="#signals">風險訊號</a>
+    <a href="#how">運作方式</a>
+    <a href="#pricing">方案</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1><span>JOY88</span> 主動式 ETF 追蹤儀表板</h1>
+  <p>掌握經理人持股異動，提前捕捉市場風險訊號</p>
+  <a href="index.html" class="btn-primary">立即體驗</a>
+</section>
+
+<section id="features">
+  <h2 class="section-title">核心功能</h2>
+  <p class="section-subtitle">為台股投資人打造的專業追蹤工具</p>
+  <div class="grid-4">
+    <div class="card">
+      <div class="card-icon" style="background:rgba(79,142,247,.12);color:var(--accent);">P</div>
+      <h3>經理人持股追蹤</h3>
+      <p>每日追蹤 5 檔主動式 ETF (00981A、00991A 等) 持股變化，掌握經理人買賣動向</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(255,71,87,.12);color:var(--red);">8</div>
+      <h3>8 大風險訊號</h3>
+      <p>基於學術研究的宏觀風險預警系統，追蹤 VIX、SPY/JPY 套利平倉、HYG/TLT 流動性等指標</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(0,196,140,.12);color:var(--green);">50</div>
+      <h3>0050 吃豆腐策略</h3>
+      <p>市值排名預測 0050 成分股調整，提前佈局潛在納入標的</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(255,165,2,.12);color:var(--orange);">AI</div>
+      <h3>AI 雙視角分析</h3>
+      <p>NotebookLM 驅動的法人視角 + 交易者視角每日分析報告</p>
+    </div>
+  </div>
+</section>
+
+<section id="preview">
+  <h2 class="section-title">儀表板預覽</h2>
+  <p class="section-subtitle">即時掌握市場全貌</p>
+  <div class="preview-box">
+    <span style="position:relative;z-index:1;">Dashboard Preview</span>
+  </div>
+</section>
+
+<section id="signals">
+  <h2 class="section-title">多維風險評估</h2>
+  <p class="section-subtitle">融合一階導數（速度）、二階導數（加速度）與統計機率的多維風險評估</p>
+  <div class="grid-3">
+    <div class="signal-card">
+      <div class="signal-dot red"></div>
+      <div class="signal-label">VIX 趨勢</div>
+      <div class="signal-value red">警戒</div>
+      <p style="font-size:.8rem;color:var(--muted);">加速上升中，偏離均值 1.8 sigma</p>
+    </div>
+    <div class="signal-card">
+      <div class="signal-dot red"></div>
+      <div class="signal-label">SPY/JPY 套利平倉壓力</div>
+      <div class="signal-value red">警戒</div>
+      <p style="font-size:.8rem;color:var(--muted);">日圓急升觸發 carry trade 平倉風險</p>
+    </div>
+    <div class="signal-card">
+      <div class="signal-dot green"></div>
+      <div class="signal-label">流動性枯竭</div>
+      <div class="signal-value green">正常</div>
+      <p style="font-size:.8rem;color:var(--muted);">HYG/TLT 利差穩定，流動性充裕</p>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <h2 class="section-title">運作方式</h2>
+  <p class="section-subtitle">三步驟自動化 Pipeline</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>資料抓取</h3>
+      <p>每日自動從 TWSE、TAIFEX、Yahoo Finance 等來源抓取最新數據</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>風險驗證</h3>
+      <p>3 Agent 系統：Data Agent 抓取 / Validator Agent 驗證 / Signal Agent 計算</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>訊號推播</h3>
+      <p>風險燈號即時更新，異動通知直達手機</p>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <h2 class="section-title">選擇方案</h2>
+  <p class="section-subtitle">從免費開始，隨需升級</p>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <h3>Free</h3>
+      <div class="pricing-price">NT$0</div>
+      <div class="pricing-period">每月</div>
+      <ul class="pricing-features">
+        <li>基本儀表板瀏覽</li>
+        <li>數據延遲 1 天</li>
+        <li>8 大風險訊號（概覽）</li>
+        <li>0050 成分股排名</li>
+      </ul>
+      <a href="index.html" class="btn-outline">免費開始</a>
+    </div>
+    <div class="pricing-card popular">
+      <div class="pricing-badge">最受歡迎</div>
+      <h3>Pro</h3>
+      <div class="pricing-price" style="color:var(--accent);">NT$299</div>
+      <div class="pricing-period">每月</div>
+      <ul class="pricing-features">
+        <li>全功能即時數據</li>
+        <li>每日風險訊號推播</li>
+        <li>AI 雙視角分析報告</li>
+        <li>經理人持股異動通知</li>
+        <li>歷史數據回測</li>
+      </ul>
+      <a href="index.html" class="btn-primary" style="font-size:.9rem;padding:.65rem 1.8rem;">立即升級</a>
+    </div>
+    <div class="pricing-card">
+      <h3>Premium</h3>
+      <div class="pricing-price">NT$799</div>
+      <div class="pricing-period">每月</div>
+      <ul class="pricing-features">
+        <li>完整 API 存取</li>
+        <li>自訂 Watchlist</li>
+        <li>優先客服支援</li>
+        <li>自訂風險門檻</li>
+        <li>批量資料匯出</li>
+      </ul>
+      <a href="index.html" class="btn-outline">聯絡我們</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-links">
+    <a href="#">免責聲明</a>
+    <a href="#">隱私政策</a>
+    <a href="#">服務條款</a>
+  </div>
+  <p>JOY88 ETF Dashboard 2025-2026</p>
+  <p style="margin-top:.4rem;font-size:.75rem;">Powered by Wolf Pack Agent Pipeline</p>
+</footer>
+
+</body>
+</html>
