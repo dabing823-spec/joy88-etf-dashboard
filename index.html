@@ -1111,6 +1111,21 @@
                 </div>
             </details>
 
+            <!-- Risk Signal Summary (from P8) -->
+            <div id="p2-risk-banner" style="display:none; margin-bottom:1.25rem; padding:1rem 1.25rem; background:var(--card); border-radius:10px; border:1px solid var(--border); cursor:pointer;" onclick="switchPage('p8')">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <div id="p2-risk-score-badge" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;border:3px solid var(--green);color:var(--green);">-</div>
+                        <div>
+                            <div style="font-size:0.95rem; font-weight:600;" id="p2-risk-label">風險訊號載入中</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);" id="p2-risk-sub">-</div>
+                        </div>
+                    </div>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">點擊查看詳情 &rarr;</span>
+                </div>
+                <div id="p2-risk-pills" style="display:flex; gap:0.5rem; flex-wrap:wrap;"></div>
+            </div>
+
             <!-- ETF Action KPIs -->
             <div class="kpi-grid">
                 <div class="kpi-card">
@@ -2970,6 +2985,42 @@
 
             // Comprehensive View
             renderP2ComprehensiveView();
+
+            // Risk Signal Banner
+            renderP2RiskBanner();
+        }
+
+        function renderP2RiskBanner() {
+            const rs = strategyData && strategyData.risk_signals;
+            const banner = document.getElementById('p2-risk-banner');
+            if (!rs || !rs.signals || !rs.signals.length) return;
+
+            banner.style.display = 'block';
+
+            const score = rs.score || 0;
+            const color = score >= 7 ? 'var(--red)' : score >= 4 ? 'var(--orange)' : 'var(--green)';
+            const levelMap = { high: '高度警戒', medium: '中度警戒', low: '風險偏低' };
+
+            const badge = document.getElementById('p2-risk-score-badge');
+            badge.textContent = score.toFixed(1);
+            badge.style.borderColor = color;
+            badge.style.color = color;
+
+            document.getElementById('p2-risk-label').textContent = `宏觀風險：${levelMap[rs.level] || rs.level}`;
+            document.getElementById('p2-risk-label').style.color = color;
+            document.getElementById('p2-risk-sub').innerHTML =
+                `<span style="color:var(--red);">&#9679;</span> ${rs.n_red} &nbsp;` +
+                `<span style="color:var(--orange);">&#9679;</span> ${rs.n_yellow} &nbsp;` +
+                `<span style="color:var(--green);">&#9679;</span> ${rs.n_green}`;
+
+            const pills = document.getElementById('p2-risk-pills');
+            pills.innerHTML = rs.signals.map(s => {
+                const c = s.signal === 'red' ? 'var(--red)' : s.signal === 'yellow' ? 'var(--orange)' : 'var(--green)';
+                const bg = s.signal === 'red' ? 'rgba(255,71,87,0.12)' : s.signal === 'yellow' ? 'rgba(255,165,2,0.12)' : 'rgba(0,196,140,0.12)';
+                return `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:0.75rem;background:${bg};color:${c};white-space:nowrap;">
+                    <span style="font-size:0.6rem;">&#9679;</span>${s.name}
+                </span>`;
+            }).join('');
         }
 
         function makeGaugeRing(value, max, color, label, sublabel) {
