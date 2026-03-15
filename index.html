@@ -5870,12 +5870,96 @@
                 document.getElementById('p11-kpis').innerHTML = '<div class="kpi-card"><div class="kpi-value" style="color:var(--text-muted);">暫無資料</div></div>';
                 return;
             }
+            renderP11Action(ts);
             renderP11KPIs(ts);
             renderP11SignalsToday(ts);
             renderP11Predictions(ts);
             renderP11Models(ts);
             renderP11Playbook(ts);
             renderP11Summary(ts);
+        }
+
+        function renderP11Action(ts) {
+            const container = document.getElementById('p11-action');
+            if (!container) return;
+            const signals = ts.signals_today || [];
+            const consensus = ts.consensus || 'NEUTRAL';
+
+            // Generate action interpretation
+            let actionLevel = 'neutral';
+            let actionColor = 'var(--text-muted)';
+            let actionIcon = '—';
+            let actionTitle = '觀望';
+            let actionItems = [];
+
+            // Check playbook rules against detected signals
+            const hasRelief = signals.includes('RELIEF');
+            const hasTariff = signals.includes('TARIFF') || signals.includes('TARIFF_ONLY');
+            const hasDeal = signals.includes('DEAL') || signals.includes('DEAL_ONLY');
+            const hasChina = signals.includes('CHINA');
+            const hasThreat = signals.includes('THREAT');
+            const hasAction = signals.includes('ACTION');
+
+            if (hasRelief) {
+                actionLevel = 'bullish';
+                actionColor = 'var(--green)';
+                actionIcon = '&#9650;';
+                actionTitle = '偏多操作';
+                actionItems.push('RELIEF 信號觸發 — 歷史最強買入信號（勝率 72.7%，平均 +1.12%）');
+                actionItems.push('建議：美股開盤前留意 S&P 500 期貨走勢，可考慮短線做多');
+            }
+            if (hasTariff && !hasDeal && !hasRelief) {
+                actionLevel = 'bearish';
+                actionColor = 'var(--red)';
+                actionIcon = '&#9660;';
+                actionTitle = '避險觀望';
+                actionItems.push('純關稅信號（無 Deal/Relief 對沖）— 歷史平均 -1.06%');
+                actionItems.push('建議：降低美股部位或觀望，留意隔日開盤跳空風險');
+            }
+            if (hasDeal && hasTariff) {
+                actionLevel = 'mixed';
+                actionColor = 'var(--orange)';
+                actionIcon = '&#9644;';
+                actionTitle = '觀察中';
+                actionItems.push('Deal + Tariff 同時出現 — 典型談判模式，方向待確認');
+                actionItems.push('建議：等待 17.4 小時窗口（關稅威脅到確認的中位數時間）');
+            }
+            if (hasDeal && !hasTariff) {
+                actionItems.push('DEAL 信號（無關稅） — 溫和正面，但勝率僅 52%，不宜重押');
+            }
+            if (hasChina) {
+                actionItems.push('CHINA 信號 — 中美關係相關貼文，留意地緣政治風險');
+            }
+            if (hasThreat) {
+                actionItems.push('THREAT 信號 — 威脅/制裁語氣，歷史回報低於平均');
+            }
+            if (consensus === 'LONG') {
+                actionTitle = '模型看多';
+                actionColor = 'var(--green)';
+                actionIcon = '&#9650;';
+            } else if (consensus === 'SHORT') {
+                actionTitle = '模型看空';
+                actionColor = 'var(--red)';
+                actionIcon = '&#9660;';
+            }
+            if (actionItems.length === 0) {
+                actionItems.push('今日無顯著信號觸發，維持觀望');
+                actionItems.push('注意：川普貼文主要影響美股 S&P 500，對台股為間接影響（透過美股夜盤→台股隔日開盤）');
+            }
+
+            // Connection to Taiwan market
+            actionItems.push('台股連動：S&P 500 前日漲跌 → 台股隔日開盤方向相關性約 60-70%');
+
+            container.innerHTML = `
+                <div style="display:flex;align-items:flex-start;gap:1rem;padding:1.25rem;background:var(--card);border-radius:12px;border:1px solid var(--border);border-left:4px solid ${actionColor};margin-bottom:1.5rem;">
+                    <div style="font-size:2rem;color:${actionColor};line-height:1;flex-shrink:0;margin-top:2px;">${actionIcon}</div>
+                    <div style="flex:1;">
+                        <div style="font-size:1.2rem;font-weight:700;color:${actionColor};margin-bottom:0.5rem;">今日行動建議：${actionTitle}</div>
+                        <ul style="margin:0;padding-left:1.2rem;color:var(--text-secondary);line-height:1.9;font-size:0.95rem;">
+                            ${actionItems.map(item => '<li>' + item + '</li>').join('')}
+                        </ul>
+                    </div>
+                </div>`;
         }
 
         function renderP11KPIs(ts) {

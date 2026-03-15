@@ -2048,3 +2048,165 @@ details summary:hover {
     .news-layer-grid { grid-template-columns: 1fr; }
     .news-decision-grid { grid-template-columns: 1fr; }
 }
+
+/* ─────────────────────────────────────
+   18. Extended Responsive Breakpoints
+   ───────────────────────────────────── */
+
+/* Touch-friendly minimum sizes */
+nav button, .filter-btn, .tab-btn, .back-to-top {
+    min-height: 44px;
+}
+th { min-height: 44px; }
+
+/* Large desktop (1400px+) */
+@media (min-width: 1400px) {
+    .container { max-width: 1600px; }
+    .kpi-grid { grid-template-columns: repeat(5, 1fr); }
+}
+
+/* Large phones / small tablets (640px) */
+@media (max-width: 640px) {
+    .section-title { font-size: var(--fs-lg); }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    #p2-sentiment-grid { grid-template-columns: 1fr 1fr !important; }
+    .risk-signals-grid { grid-template-columns: 1fr; }
+    .risk-agent-grid { grid-template-columns: 1fr; }
+}
+
+/* Standard phones (480px) */
+@media (max-width: 480px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .insight-grid { grid-template-columns: 1fr; }
+    .charts-row { grid-template-columns: 1fr; }
+    #p2-sentiment-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Small phones (375px) */
+@media (max-width: 375px) {
+    body { font-size: 17px; }
+    .container { padding: var(--sp-3); }
+    .kpi-grid { grid-template-columns: 1fr; gap: var(--sp-3); }
+    .kpi-value { font-size: var(--fs-xl); }
+    .page-title { font-size: var(--fs-lg); }
+    .p2-hero-grid { grid-template-columns: 1fr !important; }
+    .p2-macro-inner { grid-template-columns: 1fr !important; }
+    .chart-area, .chart-area-lg { height: 200px; }
+    th, td { padding: var(--sp-2); font-size: var(--fs-xs); }
+}
+
+/* ─────────────────────────────────────
+   19. Phase C: Additional Component Classes
+   ───────────────────────────────────── */
+
+/* Risk banner hover (P2) — replaces onmouseover/onmouseout */
+#p2-risk-banner:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 16px rgba(79,142,247,0.15);
+}
+
+/* P9 example cards — replaces onmouseover/onmouseout */
+.p9-example-card {
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    padding: 1rem;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.2s;
+}
+
+.p9-example-card:hover {
+    background: rgba(255,255,255,0.06);
+}
+
+/* P9 hero card */
+.p9-hero {
+    background: linear-gradient(135deg, rgba(26,29,40,0.95), rgba(30,34,52,0.95));
+    border: 1px solid rgba(79,142,247,0.15);
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+/* P9 CTA link */
+.p9-cta {
+    display: inline-block;
+    padding: 0.85rem 2.5rem;
+    background: linear-gradient(135deg, var(--accent), #3b7ddb);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    transition: transform var(--duration-normal), box-shadow var(--duration-normal);
+    box-shadow: 0 4px 16px rgba(79,142,247,0.3);
+}
+
+.p9-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(79,142,247,0.4);
+    color: white;
+}
+
+/* AI section header (P1) — collapsible sections */
+.ai-section-header {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ai-section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ai-section-badge {
+    font-size: var(--fs-sm);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.ai-section-badge--inst {
+    background: rgba(99,102,241,0.15);
+    color: #818cf8;
+}
+
+.ai-section-badge--trader {
+    background: rgba(245,158,11,0.15);
+    color: #fbbf24;
+}
+
+.ai-section-content {
+    padding: 0 1rem 1rem;
+    white-space: pre-wrap;
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+    color: var(--text-secondary);
+}
+
+/* Dashboard footer */
+.dashboard-footer {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 1rem 2rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+}
+
+.dashboard-footer a {
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.dashboard-footer a:hover {
+    color: var(--text);
+}
