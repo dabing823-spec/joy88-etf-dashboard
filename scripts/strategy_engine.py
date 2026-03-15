@@ -1864,6 +1864,22 @@ def main():
         print(f"  [A] ERROR: {e}")
         strategy['signal_backtest'] = {'summary': {}, 'by_type': {}, 'signals': []}
 
+    # ── T. Trump Signal ──
+    print("\n  [T] Trump Signal Agent")
+    try:
+        from trump_signal_agent import run as run_trump
+        trump_result = run_trump()
+        strategy['trump_signals'] = trump_result.get('data', {})
+        agent_status['trump_agent'] = {
+            'status': trump_result['status'],
+            'duration_ms': trump_result['duration_ms'],
+            'stats': trump_result.get('stats', {}),
+        }
+    except Exception as e:
+        print(f"  Trump Agent ERROR: {e}")
+        strategy['trump_signals'] = {}
+        agent_status['trump_agent'] = {'status': 'ERROR', 'duration_ms': 0}
+
     # ── Save output ──
     print()
     print("Saving strategy.json...")
