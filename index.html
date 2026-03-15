@@ -4417,18 +4417,40 @@
                 const sparkHtml = _p8Sparkline(sparkData, 120, 32);
                 const valStr = s.value != null ? (typeof s.value === 'number' ? s.value.toFixed(2) : s.value) : '-';
 
+                // Acceleration badge
+                const accel = s.accel || 0;
+                const phase = s.phase || 'stable';
+                let accelHtml = '';
+                if (phase === 'accelerating') {
+                    accelHtml = `<span style="display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:8px;font-size:0.65rem;font-weight:600;background:rgba(255,71,87,0.15);color:var(--red);">&#9650;&#9650; 加速</span>`;
+                } else if (phase === 'decelerating') {
+                    accelHtml = `<span style="display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:8px;font-size:0.65rem;font-weight:600;background:rgba(0,196,140,0.15);color:var(--green);">&#9660; 趨緩</span>`;
+                } else {
+                    accelHtml = `<span style="display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:8px;font-size:0.65rem;font-weight:600;background:rgba(139,143,163,0.15);color:var(--text-muted);">&#8212; 持平</span>`;
+                }
+
+                // Extremity probability
+                const ext = s.extremity_pct;
+                let extHtml = '';
+                if (ext != null) {
+                    const extColor = ext <= 15 ? 'var(--red)' : ext <= 30 ? 'var(--orange)' : 'var(--text-muted)';
+                    const extLabel = ext <= 15 ? '極端罕見' : ext <= 30 ? '偏極端' : '歷史常態';
+                    extHtml = `<span style="font-size:0.7rem;color:${extColor};">近60日僅 ${ext}% 達此水準（${extLabel}）</span>`;
+                }
+
                 return `<div style="background:var(--card); border-radius:10px; border:1px solid var(--border); padding:1rem 1.25rem; display:flex; flex-direction:column; gap:0.5rem;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap:0.5rem;">
                             <span style="color:${signalColor}; font-size:1.1rem;">${signalIcon}</span>
                             <span style="font-weight:600; font-size:0.95rem;">${s.name}</span>
+                            ${accelHtml}
                         </div>
                         <span style="font-size:1.1rem; font-weight:700; color:${signalColor};">${valStr}</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-                        <div style="font-size:0.8rem; color:var(--text-muted); line-height:1.5; flex:1;">
-                            ${s.desc}<br>
-                            <span style="font-size:0.75rem; opacity:0.7;">${s.theory || ''}</span>
+                        <div style="font-size:0.8rem; color:var(--text-muted); line-height:1.6; flex:1;">
+                            ${s.desc}${extHtml ? '<br>' + extHtml : ''}<br>
+                            <span style="font-size:0.72rem; opacity:0.6;">${s.theory || ''}</span>
                         </div>
                         <div style="flex-shrink:0; margin-left:0.75rem;">${sparkHtml}</div>
                     </div>

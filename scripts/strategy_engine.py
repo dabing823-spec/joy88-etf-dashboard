@@ -1305,16 +1305,68 @@ def fetch_indices_history():
     return history
 
 
-def _slope_20d(values):
-    """計算最近 20 天的線性回歸斜率（每日平均變化量）"""
+def _slope(values, window=20):
+    """計算最近 N 天的線性回歸斜率（一階導數：速度）"""
     import numpy as np
-    recent = values[-20:] if len(values) >= 20 else values
+    recent = values[-window:] if len(values) >= window else values
     if len(recent) < 5:
         return 0.0
     x = np.arange(len(recent), dtype=float)
     y = np.array(recent, dtype=float)
     slope = np.polyfit(x, y, 1)[0]
     return round(float(slope), 4)
+
+
+def _slope_20d(values):
+    """向後相容"""
+    return _slope(values, 20)
+
+
+def _acceleration(values):
+    """計算加速度（二階導數）：近 5 日斜率 vs 前 5 日斜率的變化
+    正值 = 惡化加速中，負值 = 趨緩/好轉中"""
+    if len(values) < 15:
+        return 0.0, 'stable'
+    slope_recent = _slope(values, 5)    # 最近 5 天的速度
+    slope_prior = _slope(values[-10:-5], 5)  # 前 5 天的速度
+    accel = round(slope_recent - slope_prior, 4)
+    if abs(accel) < abs(slope_recent) * 0.1:  # 變化不到 10%
+        phase = 'stable'
+    elif (slope_recent > 0 and accel > 0) or (slope_recent < 0 and accel < 0):
+        phase = 'accelerating'   # 同向加速
+    else:
+        phase = 'decelerating'   # 減速/反轉中
+    return accel, phase
+
+
+def _historical_probability(values, threshold_fn, lookback=60):
+    """統計歷史機率：過去 lookback 天中，有多少比例的時間 threshold_fn(value) 為 True
+    用來回答「當前水位在歷史上有多常見」"""
+    recent = values[-lookback:] if len(values) >= lookback else values
+    if len(recent) < 10:
+        return None
+    count = sum(1 for v in recent if threshold_fn(v))
+    return round(count / len(recent) * 100, 1)
+
+
+def _regime_probability(values, current_slope, window=60):
+    """統計在過去 window 天內，斜率達到當前水準的出現頻率
+    頻率越低 = 當前狀態越極端/罕見"""
+    if len(values) < 25:
+        return None
+    import numpy as np
+    # 計算滾動 20 日斜率序列
+    slopes = []
+    for i in range(20, min(len(values), window + 20)):
+        s = _slope(values[i-20:i], 20)
+        slopes.append(s)
+    if not slopes:
+        return None
+    # 比當前斜率更極端的比例
+    abs_current = abs(current_slope)
+    extreme_count = sum(1 for s in slopes if abs(s) >= abs_current)
+    pct = round(extreme_count / len(slopes) * 100, 1)
+    return pct
 
 
 def _ratio_series(hist_a, hist_b):
@@ -1329,7 +1381,7 @@ def _ratio_series(hist_a, hist_b):
 
 
 def calc_risk_signals(history):
-    """根據研究報告計算 8 個風險訊號 + 總分"""
+    """根據研究報告計算 8 個風險訊號 + 加速度 + 統計機率 + 總分"""
     print("  [K] Calculating risk signals...")
 
     signals = []
@@ -1341,6 +1393,22 @@ def calc_risk_signals(history):
         data = history.get(key, [])
         return data[-1]['close'] if data else None
 
+    def _enrich(sig, vals):
+        """為每個訊號補上加速度與統計機率"""
+        accel, phase = _acceleration(vals)
+        sig['accel'] = accel
+        sig['phase'] = phase  # accelerating / decelerating / stable
+        # 當前斜率在歷史上的極端程度（越低=越罕見=越需注意）
+        sig['extremity_pct'] = _regime_probability(vals, sig['slope_20d'])
+        # 相位描述
+        phase_labels = {
+            'accelerating': '加速惡化中',
+            'decelerating': '趨緩/好轉中',
+            'stable': '持平',
+        }
+        sig['phase_label'] = phase_labels.get(phase, phase)
+        return sig
+
     # 1. VIX 趨勢
     vix_vals = _get_closes('vix')
     vix_slope = _slope_20d(vix_vals)
@@ -1351,12 +1419,12 @@ def calc_risk_signals(history):
         vix_signal = 'yellow'
     else:
         vix_signal = 'green'
-    signals.append({
+    signals.append(_enrich({
         'name': 'VIX 趨勢', 'key': 'vix', 'value': vix_latest,
         'slope_20d': vix_slope, 'signal': vix_signal,
-        'desc': f'20日斜率 {vix_slope:+.2f}/日' + (f'，當前 {vix_latest:.1f}' if vix_latest else ''),
+        'desc': f'速度 {vix_slope:+.2f}/日' + (f' | 當前 {vix_latest:.1f}' if vix_latest else ''),
         'theory': '波動率的緩步墊高比絕對數值更重要（研究重要度 13.3%）',
-    })
+    }, vix_vals))
 
     # 2. SPY/JPY 套利平倉壓力
     spy_jpy = _ratio_series(history.get('spy', []), history.get('jpy', []))
@@ -1368,12 +1436,12 @@ def calc_risk_signals(history):
         sj_signal = 'yellow'
     else:
         sj_signal = 'green'
-    signals.append({
+    signals.append(_enrich({
         'name': '套利平倉壓力', 'key': 'spy_jpy', 'value': round(spy_jpy_vals[-1], 4) if spy_jpy_vals else None,
         'slope_20d': spy_jpy_slope, 'signal': sj_signal,
-        'desc': f'SPY/JPY 20日斜率 {spy_jpy_slope:+.4f}',
+        'desc': f'SPY/JPY 速度 {spy_jpy_slope:+.4f}',
         'theory': '日圓套利平倉是美股崩盤最強領先指標（研究重要度 19.9%）',
-    })
+    }, spy_jpy_vals))
 
     # 3. HYG/TLT 流動性枯竭
     hyg_tlt = _ratio_series(history.get('hyg', []), history.get('tlt', []))
@@ -1385,12 +1453,12 @@ def calc_risk_signals(history):
         ht_signal = 'yellow'
     else:
         ht_signal = 'green'
-    signals.append({
+    signals.append(_enrich({
         'name': '流動性枯竭', 'key': 'hyg_tlt', 'value': round(hyg_tlt_vals[-1], 4) if hyg_tlt_vals else None,
         'slope_20d': hyg_tlt_slope, 'signal': ht_signal,
-        'desc': f'HYG/TLT 20日斜率 {hyg_tlt_slope:+.4f}',
+        'desc': f'HYG/TLT 速度 {hyg_tlt_slope:+.4f}',
         'theory': '資金從垃圾債撤回國債的速度反映流動性枯竭（研究重要度 12.5%）',
-    })
+    }, hyg_tlt_vals))
 
     # 4. 美元壓力
     dxy_vals = _get_closes('dxy')
@@ -1401,12 +1469,12 @@ def calc_risk_signals(history):
         dxy_signal = 'yellow'
     else:
         dxy_signal = 'green'
-    signals.append({
+    signals.append(_enrich({
         'name': '美元壓力', 'key': 'dxy', 'value': _latest('dxy'),
         'slope_20d': dxy_slope, 'signal': dxy_signal,
-        'desc': f'DXY 20日斜率 {dxy_slope:+.2f}/日',
+        'desc': f'DXY 速度 {dxy_slope:+.2f}/日',
         'theory': '美元急升對新興市場與資金流造成壓力',
-    })
+    }, dxy_vals))
 
     # 5. 公債殖利率
     us10y_vals = _get_closes('us10y')
@@ -1417,15 +1485,17 @@ def calc_risk_signals(history):
         us10y_signal = 'yellow'
     else:
         us10y_signal = 'green'
-    signals.append({
+    signals.append(_enrich({
         'name': '公債殖利率', 'key': 'us10y', 'value': _latest('us10y'),
         'slope_20d': us10y_slope, 'signal': us10y_signal,
-        'desc': f'US10Y 20日斜率 {us10y_slope:+.3f}/日',
+        'desc': f'US10Y 速度 {us10y_slope:+.3f}/日',
         'theory': '殖利率快速上升代表債券拋售、資金成本攀升',
-    })
+    }, us10y_vals))
 
     # 6. 恐懼貪婪
+    fg_vals = _get_closes('fear_greed')
     fg_latest = _latest('fear_greed')
+    fg_slope = _slope_20d(fg_vals)
     if fg_latest is not None:
         if fg_latest < 25:
             fg_signal = 'red'
@@ -1435,13 +1505,13 @@ def calc_risk_signals(history):
             fg_signal = 'green'
     else:
         fg_signal = 'gray'
-    signals.append({
+    signals.append(_enrich({
         'name': '恐懼貪婪', 'key': 'fear_greed', 'value': fg_latest,
-        'slope_20d': _slope_20d(_get_closes('fear_greed')),
+        'slope_20d': fg_slope,
         'signal': fg_signal,
-        'desc': f'CNN Fear & Greed: {fg_latest}' if fg_latest else '無資料',
+        'desc': f'Fear & Greed: {fg_latest}' if fg_latest else '無資料',
         'theory': '極端恐懼往往伴隨市場超賣，但也可能繼續下跌',
-    })
+    }, fg_vals))
 
     # 7. 黃金避險
     gold_vals = _get_closes('gold')
@@ -1452,12 +1522,12 @@ def calc_risk_signals(history):
         gold_signal = 'yellow'
     else:
         gold_signal = 'green'
-    signals.append({
+    signals.append(_enrich({
         'name': '黃金避險', 'key': 'gold', 'value': _latest('gold'),
         'slope_20d': gold_slope, 'signal': gold_signal,
-        'desc': f'Gold 20日斜率 {gold_slope:+.1f}/日',
+        'desc': f'Gold 速度 {gold_slope:+.1f}/日',
         'theory': '金價急漲代表避險資金湧入，風險偏好降低',
-    })
+    }, gold_vals))
 
     # 8. 油價壓力
     oil_vals = _get_closes('oil')
@@ -1468,12 +1538,12 @@ def calc_risk_signals(history):
         oil_signal = 'yellow'
     else:
         oil_signal = 'green'
-    signals.append({
+    signals.append(_enrich({
         'name': '油價壓力', 'key': 'oil', 'value': _latest('oil'),
         'slope_20d': oil_slope, 'signal': oil_signal,
-        'desc': f'Oil 20日斜率 {oil_slope:+.2f}/日',
+        'desc': f'Oil 速度 {oil_slope:+.2f}/日',
         'theory': '油價急漲推升通膨預期與企業成本壓力',
-    })
+    }, oil_vals))
 
     # Total score: red=2, yellow=1, max=16 -> scale to 0-10
     raw_score = sum(2 if s['signal'] == 'red' else 1 if s['signal'] == 'yellow' else 0 for s in signals)
