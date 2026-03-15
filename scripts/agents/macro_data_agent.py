@@ -310,37 +310,72 @@ def enrich_stocks_with_quotes(stocks, quotes):
 # ── Main Entry ──
 
 def run() -> dict:
-    """執行所有資料抓取，回傳標準 agent result"""
+    """三個資料源同步抓取（ThreadPoolExecutor），回傳標準 agent result"""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     start = time.time()
     warnings = []
+    timings = {}
 
-    # 1. Indices history
-    indices_history = fetch_indices_history()
+    indices_history = {}
+    rankings = []
+    holdings_0050 = set()
 
-    # 2. TAIFEX rankings
-    rankings = fetch_taifex_rankings(limit=200)
-    time.sleep(1)
+    # ── 三源同步抓取 ──
+    log("Starting parallel fetch (Yahoo + TAIFEX + MoneyDJ)...")
 
-    # 3. 0050 holdings
-    holdings_0050 = fetch_etf_holdings('0050')
+    def _task_indices():
+        t0 = time.time()
+        result = fetch_indices_history()
+        return 'indices', result, int((time.time() - t0) * 1000)
 
-    # 4. Stock quotes for 0050 candidates + top 150
-    # (quotes fetching is done later by signal agent, after it determines candidates)
+    def _task_taifex():
+        t0 = time.time()
+        result = fetch_taifex_rankings(limit=200)
+        return 'taifex', result, int((time.time() - t0) * 1000)
 
+    def _task_holdings():
+        t0 = time.time()
+        result = fetch_etf_holdings('0050')
+        return 'holdings', result, int((time.time() - t0) * 1000)
+
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = [
+            executor.submit(_task_indices),
+            executor.submit(_task_taifex),
+            executor.submit(_task_holdings),
+        ]
+        for future in as_completed(futures):
+            try:
+                name, result, dur = future.result()
+                timings[name] = dur
+                if name == 'indices':
+                    indices_history = result
+                elif name == 'taifex':
+                    rankings = result
+                elif name == 'holdings':
+                    holdings_0050 = result
+                log(f"  {name} done in {dur}ms")
+            except Exception as e:
+                log(f"  Task failed: {e}")
+
+    # ── Validation ──
     if not rankings:
         warnings.append({'level': 'ERROR', 'symbol': 'taifex', 'msg': 'TAIFEX 排名抓取失敗'})
     if not holdings_0050:
         warnings.append({'level': 'WARN', 'symbol': '0050', 'msg': '0050 持股抓取失敗'})
 
-    # Count indices stats
+    # ── Stats ──
     indices_count = sum(1 for k, v in indices_history.items() if v)
     min_days = min((len(v) for v in indices_history.values() if v), default=0)
+    max_days = max((len(v) for v in indices_history.values() if v), default=0)
+    total_datapoints = sum(len(v) for v in indices_history.values() if v)
 
     duration = int((time.time() - start) * 1000)
     status = 'ERROR' if any(w['level'] == 'ERROR' for w in warnings) else \
              'WARN' if warnings else 'OK'
 
-    log(f"Done in {duration}ms — status={status}")
+    log(f"All done in {duration}ms (parallel) — status={status}")
 
     return {
         'status': status,
@@ -348,13 +383,16 @@ def run() -> dict:
         'data': {
             'indices_history': indices_history,
             'rankings': rankings,
-            'holdings_0050': list(holdings_0050),  # set → list for JSON
+            'holdings_0050': list(holdings_0050),
         },
         'stats': {
             'indices_symbols': indices_count,
             'indices_min_days': min_days,
+            'indices_max_days': max_days,
+            'indices_total_datapoints': total_datapoints,
             'rankings_count': len(rankings),
             'holdings_0050_count': len(holdings_0050),
+            'task_timings': timings,
         },
         'warnings': warnings,
     }

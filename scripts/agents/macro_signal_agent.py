@@ -335,6 +335,12 @@ def run(data: dict, validation: dict) -> dict:
                 time.sleep(1)
         market_weight['stocks'] = enrich_stocks_with_quotes(market_weight['stocks'], all_quotes)
 
+    # Stats
+    quotes_fetched = len(candidate_codes) + len(market_weight.get('stocks', []))
+    quotes_success = sum(1 for s in strategy_0050.get('potential_in', []) + strategy_0050.get('potential_out', [])
+                         if s.get('price') != '-')
+    quotes_success += sum(1 for s in market_weight.get('stocks', []) if s.get('price') != '-')
+
     duration = int((time.time() - start) * 1000)
     log(f"Done in {duration}ms")
 
@@ -345,6 +351,18 @@ def run(data: dict, validation: dict) -> dict:
         'strategy_0050': strategy_0050,
         'market_weight_top150': market_weight,
         'warnings': warnings,
+        'stats': {
+            'risk_signals_count': len(risk_signals.get('signals', [])),
+            'risk_score': risk_signals.get('score', 0),
+            'n_red': risk_signals.get('n_red', 0),
+            'n_yellow': risk_signals.get('n_yellow', 0),
+            'n_green': risk_signals.get('n_green', 0),
+            '0050_potential_in': len(strategy_0050.get('potential_in', [])),
+            '0050_potential_out': len(strategy_0050.get('potential_out', [])),
+            'market_weight_count': len(market_weight.get('stocks', [])),
+            'quotes_requested': quotes_fetched,
+            'quotes_success': quotes_success,
+        },
     }
 
 

@@ -1833,6 +1833,7 @@ def main():
         agent_status['signal_agent'] = {
             'status': signal_result['status'],
             'duration_ms': signal_result['duration_ms'],
+            'stats': signal_result.get('stats', {}),
         }
         strategy['risk_signals'] = signal_result.get('risk_signals', {})
         strategy['strategy_0050'] = signal_result.get('strategy_0050', {'potential_in': [], 'potential_out': []})
