@@ -817,6 +817,7 @@
             <button class="nav-btn" data-page="p4">🔍 歷史回溯</button>
             <button class="nav-btn" data-page="p5">🧠 策略分析</button>
             <button class="nav-btn" data-page="p6">📊 跟單回測</button>
+            <button class="nav-btn" data-page="p7">🏛 0050 / 市值</button>
         </nav>
     </header>
 
@@ -1652,6 +1653,64 @@
             </div>
         </div>
 
+        <!-- Page 7: 0050 / 市值權重 -->
+        <div class="page" id="p7">
+            <div class="page-title">🏛 0050 納入/剔除 & 市值權重 Top 150</div>
+
+            <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: rgba(79,142,247,0.06); border-radius: 8px; border-left: 3px solid var(--cyan); font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7;">
+                依據期交所市值排名與 0050 ETF 成分股比對，分析潛在納入/剔除候選人。每日更新。<br>
+                <strong>納入門檻：</strong>市值排名 ≤ 40 且不在 0050 成分股中 ｜
+                <strong>剔除門檻：</strong>市值排名 > 60 且在 0050 成分股中
+            </div>
+
+            <!-- 0050 KPI -->
+            <div class="kpi-grid" id="p7-kpi" style="margin-bottom: 1.5rem;">
+                <div class="kpi-card">
+                    <div class="kpi-label">潛在納入</div>
+                    <div class="kpi-value" id="p7-in-count" style="color:var(--green);">-</div>
+                    <div class="kpi-subtext">排名 ≤ 40 且不在 0050</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">潛在剔除</div>
+                    <div class="kpi-value" id="p7-out-count" style="color:var(--red);">-</div>
+                    <div class="kpi-subtext">排名 > 60 且在 0050</div>
+                </div>
+            </div>
+
+            <!-- 0050 Tables -->
+            <div class="charts-row" style="margin-bottom: 2rem;">
+                <div class="chart-container" style="flex:1;">
+                    <div class="table-title" style="color:var(--green);">潛在納入候選</div>
+                    <div class="table-scroll" style="max-height: 400px; overflow-y: auto;">
+                        <table id="p7-table-in">
+                            <thead><tr><th>排名</th><th>代碼</th><th>名稱</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="chart-container" style="flex:1;">
+                    <div class="table-title" style="color:var(--red);">潛在剔除候選</div>
+                    <div class="table-scroll" style="max-height: 400px; overflow-y: auto;">
+                        <table id="p7-table-out">
+                            <thead><tr><th>排名</th><th>代碼</th><th>名稱</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Weight Top 150 -->
+            <div class="table-container">
+                <div class="table-title">市值權重 Top 150</div>
+                <div class="table-scroll" style="max-height: 600px; overflow-y: auto;">
+                    <table id="p7-table-mw">
+                        <thead><tr><th>排名</th><th>代碼</th><th>名稱</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -1814,6 +1873,9 @@
                     break;
                 case 'p6':
                     // Static content, no render needed
+                    break;
+                case 'p7':
+                    renderPage7();
                     break;
             }
         }
@@ -4059,6 +4121,78 @@
                 analysis.trader.source;
             document.getElementById('ai-trader-content').textContent =
                 analysis.trader.analysis;
+        }
+
+        // ============================================================================
+        // Page 7: 0050 / 市值權重
+        // ============================================================================
+        function renderPage7() {
+            renderP7Strategy0050();
+            renderP7MarketWeight();
+        }
+
+        function renderP7Strategy0050() {
+            const data = strategyData && strategyData.strategy_0050;
+            const inCount = document.getElementById('p7-in-count');
+            const outCount = document.getElementById('p7-out-count');
+            const tableIn = document.querySelector('#p7-table-in tbody');
+            const tableOut = document.querySelector('#p7-table-out tbody');
+
+            if (!data) {
+                inCount.textContent = '-';
+                outCount.textContent = '-';
+                tableIn.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">暫無資料</td></tr>';
+                tableOut.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">暫無資料</td></tr>';
+                return;
+            }
+
+            const potentialIn = data.potential_in || [];
+            const potentialOut = data.potential_out || [];
+
+            inCount.textContent = potentialIn.length;
+            outCount.textContent = potentialOut.length;
+
+            if (potentialIn.length === 0) {
+                tableIn.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">目前無潛在納入候選</td></tr>';
+            } else {
+                tableIn.innerHTML = potentialIn.map(s =>
+                    `<tr>
+                        <td>${s.rank}</td>
+                        <td><a href="https://tw.stock.yahoo.com/quote/${s.code}" target="_blank" style="color:var(--accent);text-decoration:none;">${s.code}</a></td>
+                        <td>${s.name}</td>
+                    </tr>`
+                ).join('');
+            }
+
+            if (potentialOut.length === 0) {
+                tableOut.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">目前無潛在剔除候選</td></tr>';
+            } else {
+                tableOut.innerHTML = potentialOut.map(s =>
+                    `<tr>
+                        <td>${s.rank}</td>
+                        <td><a href="https://tw.stock.yahoo.com/quote/${s.code}" target="_blank" style="color:var(--accent);text-decoration:none;">${s.code}</a></td>
+                        <td>${s.name}</td>
+                    </tr>`
+                ).join('');
+            }
+        }
+
+        function renderP7MarketWeight() {
+            const data = strategyData && strategyData.market_weight_top150;
+            const tbody = document.querySelector('#p7-table-mw tbody');
+
+            if (!data || !data.stocks || data.stocks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">暫無資料</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.stocks.map(s =>
+                `<tr>
+                    <td>${s.rank}</td>
+                    <td><a href="https://tw.stock.yahoo.com/quote/${s.code}" target="_blank" style="color:var(--accent);text-decoration:none;">${s.code}</a></td>
+                    <td>${s.name}</td>
+                </tr>`
+            ).join('');
         }
 
         // ============================================================================

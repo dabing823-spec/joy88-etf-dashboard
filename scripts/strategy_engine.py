@@ -28,9 +28,13 @@ import json
 import os
 import time
 import platform
+import io
+import re
 from pathlib import Path
 from datetime import datetime, timedelta
 from collections import defaultdict
+
+import pandas as pd
 
 # ═══════════════════════════════════════
 # 路徑設定（自動偵測 Mac / Windows / GitHub Actions）
@@ -58,6 +62,14 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
                   'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 }
+
+# ═══════════════════════════════════════
+# 0050 / 市值權重 設定
+# ═══════════════════════════════════════
+TAIFEX_RANKING_URL = "https://www.taifex.com.tw/cht/9/futuresQADetail"
+MONEYDJ_ETF_URL = "https://www.moneydj.com/ETF/X/Basic/Basic0007a.xdjhtm?etfid={}.TW"
+THRESHOLD_0050_IN = 40    # rank <= 40 且不在 0050 → 潛在納入
+THRESHOLD_0050_OUT = 60   # rank > 60 且在 0050 → 潛在剔除
 
 # ═══════════════════════════════════════
 # 產業對照表（常見台股代碼 -> 產業）
@@ -943,6 +955,159 @@ def calc_timing_score(dashboard):
 
 
 # ═══════════════════════════════════════
+# J. 0050 Strategy + Market Weight Top 150
+# ═══════════════════════════════════════
+
+def fetch_taifex_rankings(limit=200):
+    """從期交所抓取市值排名，回傳 [{rank, code, name}, ...]"""
+    import requests
+    print(f"  [J] Fetching TAIFEX rankings (top {limit})...")
+
+    try:
+        r = requests.get(TAIFEX_RANKING_URL, headers=HEADERS, timeout=15)
+        r.raise_for_status()
+        encoding = r.apparent_encoding or 'big5'
+        html_text = r.content.decode(encoding, errors='ignore')
+    except Exception as e:
+        print(f"      TAIFEX request failed: {e}")
+        return []
+
+    # Method 1: BeautifulSoup parsing
+    try:
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(html_text, 'html.parser')
+        rows = []
+        for tr in soup.find_all('tr'):
+            tds = tr.find_all('td')
+            if not tds:
+                continue
+            texts = [td.get_text(strip=True) for td in tds]
+            rank, code, name = None, None, None
+            for s in texts:
+                if rank is None and re.fullmatch(r'\d+', s):
+                    rank = int(s)
+                elif rank and not code and re.fullmatch(r'\d{4}', s):
+                    code = s
+                elif rank and code and not name and not re.fullmatch(r'\d+', s):
+                    name = s
+                    break
+            if rank and code and name:
+                rows.append({'rank': rank, 'code': code, 'name': name})
+        if rows:
+            rows.sort(key=lambda x: x['rank'])
+            print(f"      BS4 parsed: {len(rows[:limit])} stocks")
+            return rows[:limit]
+    except ImportError:
+        print("      bs4 not available, trying pd.read_html fallback...")
+
+    # Method 2: pandas fallback
+    try:
+        import io
+        dfs = pd.read_html(io.StringIO(html_text))
+        for df in dfs:
+            cols = ''.join(str(c) for c in df.columns)
+            if '排名' in cols and ('名稱' in cols or '代號' in cols):
+                df.columns = [str(c).replace(' ', '') for c in df.columns]
+                col_map = {}
+                for c in df.columns:
+                    if '排名' in c:
+                        col_map[c] = '排名'
+                    elif '代' in c:
+                        col_map[c] = '股票代碼'
+                    elif '名' in c:
+                        col_map[c] = '股票名稱'
+                df = df.rename(columns=col_map)
+                df = df[pd.to_numeric(df['排名'], errors='coerce').notnull()]
+                df['排名'] = df['排名'].astype(int)
+                df['股票代碼'] = df['股票代碼'].astype(str).str.extract(r'(\d{4})')[0]
+                df = df.sort_values('排名').head(limit)
+                rows = [
+                    {'rank': int(row['排名']), 'code': row['股票代碼'], 'name': row['股票名稱']}
+                    for _, row in df.iterrows()
+                ]
+                print(f"      pandas parsed: {len(rows)} stocks")
+                return rows
+    except Exception as e:
+        print(f"      pandas fallback failed: {e}")
+
+    return []
+
+
+def fetch_etf_holdings(etf_code='0050'):
+    """從 MoneyDJ 抓取 ETF 成分股名稱，回傳 set"""
+    import requests
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+    url = MONEYDJ_ETF_URL.format(etf_code)
+    print(f"  [J] Fetching {etf_code} holdings from MoneyDJ...")
+
+    try:
+        hdrs = {**HEADERS,
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
+                'Referer': 'https://www.moneydj.com/'}
+        r = requests.get(url, headers=hdrs, timeout=15, verify=False)
+        r.encoding = r.apparent_encoding or 'utf-8'
+        dfs = pd.read_html(io.StringIO(r.text))
+
+        names = set()
+        for df in dfs:
+            cols = [str(c[-1] if isinstance(df.columns, pd.MultiIndex) else c).strip()
+                    for c in df.columns]
+            df.columns = cols
+            target_col = next((c for c in cols if '名稱' in c), None)
+            if target_col:
+                for v in df[target_col].astype(str).str.strip():
+                    if v and v != 'nan':
+                        names.add(v)
+
+        print(f"      {etf_code} holdings: {len(names)} stocks")
+        return names
+    except Exception as e:
+        print(f"      MoneyDJ fetch failed: {e}")
+        return set()
+
+
+def calc_0050_and_market_weight():
+    """計算 0050 納入/剔除 + 市值權重 Top 150"""
+    print("  [J] 0050 Strategy + Market Weight Top 150...")
+
+    rankings = fetch_taifex_rankings(limit=200)
+    time.sleep(1)
+    holdings_0050 = fetch_etf_holdings('0050')
+
+    # --- 0050 Inclusion/Exclusion ---
+    potential_in = []
+    potential_out = []
+
+    if rankings and holdings_0050:
+        for stock in rankings[:100]:
+            in_0050 = stock['name'] in holdings_0050
+            if stock['rank'] <= THRESHOLD_0050_IN and not in_0050:
+                potential_in.append(stock.copy())
+            elif stock['rank'] > THRESHOLD_0050_OUT and in_0050:
+                potential_out.append(stock.copy())
+
+    print(f"      0050: {len(potential_in)} potential in, {len(potential_out)} potential out")
+
+    strategy_0050 = {
+        'potential_in': potential_in,
+        'potential_out': potential_out,
+    }
+
+    # --- Market Weight Top 150 ---
+    top150 = rankings[:150] if rankings else []
+    print(f"      Market Weight: {len(top150)} stocks")
+
+    market_weight = {
+        'stocks': top150,
+    }
+
+    return strategy_0050, market_weight
+
+
+# ═══════════════════════════════════════
 # Main
 # ═══════════════════════════════════════
 
@@ -1142,6 +1307,16 @@ def main():
     except Exception as e:
         print(f"  [MKT] ERROR: {e}")
         strategy['market_indices'] = {}
+
+    # ── J. 0050 Strategy + Market Weight Top 150 ──
+    try:
+        s0050, mw150 = calc_0050_and_market_weight()
+        strategy['strategy_0050'] = s0050
+        strategy['market_weight_top150'] = mw150
+    except Exception as e:
+        print(f"  [J] ERROR: {e}")
+        strategy['strategy_0050'] = {"potential_in": [], "potential_out": []}
+        strategy['market_weight_top150'] = {"stocks": []}
 
     # ── A. Signal Backtest (last, because it fetches from API) ──
     try:
