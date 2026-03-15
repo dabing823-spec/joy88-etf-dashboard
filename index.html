@@ -1227,7 +1227,7 @@
             <div class="page-title">📊 ETF 持股追蹤</div>
 
             <!-- Page Intro -->
-            <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: rgba(79,142,247,0.06); border-radius: 8px; border-left: 3px solid var(--accent); font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7;">
+            <div class="intro-box accent">
                 追蹤 00981A（統一台股增長）的每日持股變化、申購贖回量與現金水位。圖表可縮放拖曳，持股權重可自選個股比較。
             </div>
 
@@ -1263,19 +1263,19 @@
             </div>
 
             <!-- Today Summary -->
-            <div id="p1-today-summary" class="strategy-section" style="margin-bottom: 2rem; padding: 1.25rem; display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                    <div class="chart-title" style="margin-bottom: 0;">📌 今日摘要</div>
-                    <div id="p1-summary-date" style="font-size: 0.8rem; color: var(--text-muted);"></div>
+            <div id="p1-today-summary" class="strategy-section mb-4" style="padding: 1.25rem; display: none;">
+                <div class="flex-between" style="margin-bottom: 0.75rem;">
+                    <div class="chart-title mb-0">📌 今日摘要</div>
+                    <div id="p1-summary-date" style="font-size: 0.8rem;" class="text-muted"></div>
                 </div>
                 <div id="p1-summary-content" class="insight-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem;"></div>
             </div>
 
             <!-- AI Research Panel -->
-            <div class="table-container" id="ai-research-panel" style="display:none; margin-bottom: 1.5rem;">
-                <div class="table-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="table-container mb-3" id="ai-research-panel" style="display:none;">
+                <div class="table-title flex-between">
                     <span>🧠 AI 持股異動分析（沈萬鈞 × 巨人傑）</span>
-                    <span style="font-size:0.75rem; color:var(--text-muted);" id="ai-research-date"></span>
+                    <span class="text-xs text-muted" id="ai-research-date"></span>
                 </div>
                 <div id="ai-research-summary" style="padding:0.5rem 1rem; font-size:0.85rem; color:var(--text-muted); border-bottom:1px solid var(--border);"></div>
                 <!-- Institutional (default expanded) -->
@@ -1305,9 +1305,9 @@
             </div>
 
             <!-- Chart: 00981A Cash + Subscription -->
-            <div class="chart-container" style="margin-bottom: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <div class="chart-title" style="margin-bottom: 0;">00981A 現金水位 · 申贖量 vs 加權 · 櫃買</div>
+            <div class="chart-container mb-3">
+                <div class="flex-between" style="margin-bottom: 0.5rem;">
+                    <div class="chart-title mb-0">00981A 現金水位 · 申贖量 vs 加權 · 櫃買</div>
                     <div style="display: flex; gap: 0.4rem; align-items: center;">
                         <button class="filter-btn" onclick="setCashRange(30)" id="cash-range-30">30日</button>
                         <button class="filter-btn" onclick="setCashRange(60)" id="cash-range-60">60日</button>
@@ -1321,14 +1321,14 @@
             </div>
 
             <!-- Chart: 5 ETF Cash Compare + Indices -->
-            <div class="chart-container" style="margin-bottom: 1.5rem;">
+            <div class="chart-container mb-3">
                 <div class="chart-title">5 檔主動 ETF 現金水位 vs 加權 · 櫃買</div>
                 <div class="chart-area-lg" style="height: 320px;"><canvas id="p1-chart-etf-cash-compare"></canvas></div>
             </div>
 
             <!-- Holding Changes Timeline -->
-            <div class="table-container" style="margin-bottom: 1.5rem;">
-                <div class="chart-title" style="padding: 0.75rem 1rem; margin-bottom: 0;">📌 00981A 持股異動事件</div>
+            <div class="table-container mb-3">
+                <div class="chart-title mb-0" style="padding: 0.75rem 1rem;">📌 00981A 持股異動事件</div>
                 <div id="p1-holding-events" style="padding: 0.5rem 1rem; max-height: 200px; overflow-y: auto;"></div>
             </div>
 
@@ -1352,9 +1352,9 @@
             <!-- Charts Row 2 -->
             <div class="charts-row">
                 <div class="chart-container">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                        <div class="chart-title" style="margin-bottom: 0;">00981A 持股權重變化 (30日)</div>
-                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <div class="flex-between" style="margin-bottom: 0.5rem;">
+                        <div class="chart-title mb-0">00981A 持股權重變化 (30日)</div>
+                        <div class="flex-center">
                             <button class="filter-btn active" onclick="setWeightPreset(5)" id="weight-preset-5">Top 5</button>
                             <button class="filter-btn" onclick="setWeightPreset(10)" id="weight-preset-10">Top 10</button>
                             <button class="filter-btn" onclick="setWeightPreset('all')" id="weight-preset-all">全部</button>
@@ -1612,7 +1612,7 @@
             <div class="page-title">📋 老墨跟單策略</div>
 
             <!-- Strategy Overview Cards -->
-            <div class="insight-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="insight-grid mb-3" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
                 <div class="insight-card" style="border-left-color: var(--accent);">
                     <div class="insight-card-title">📌 策略邏輯</div>
                     <div class="insight-card-body" style="font-size: 0.95rem; line-height: 1.8;">
@@ -1630,7 +1630,7 @@
             </div>
 
             <!-- Strategy Rules -->
-            <div class="table-container" style="margin-bottom: 1.5rem;">
+            <div class="table-container mb-3">
                 <div class="table-title" style="font-size: 1rem;">信號定義與操作建議</div>
                 <table>
                     <thead>
@@ -1658,20 +1658,20 @@
                             <td><span class="badge badge-orange" style="font-size: 0.85rem; padding: 4px 12px;">減碼</span></td>
                             <td>持股權重下降 &gt;0.1%</td>
                             <td>風險警訊，考慮獲利了結</td>
-                            <td style="text-align:center; color:var(--text-muted);">—</td>
+                            <td class="text-center text-muted">—</td>
                         </tr>
                         <tr>
                             <td><span class="badge badge-green" style="font-size: 0.85rem; padding: 4px 12px;">退出</span></td>
                             <td>00981A 完全出清</td>
                             <td>強烈賣出信號，及時出場</td>
-                            <td style="text-align:center; color:var(--text-muted);">—</td>
+                            <td class="text-center text-muted">—</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <!-- Filters -->
-            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <div class="mb-2" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                 <button class="filter-btn active" onclick="filterSignals('all')" style="font-size: 0.9rem; padding: 0.5rem 1rem;">全部</button>
                 <button class="filter-btn" onclick="filterSignals('new')" style="font-size: 0.9rem; padding: 0.5rem 1rem;">🆕 新增</button>
                 <button class="filter-btn" onclick="filterSignals('added')" style="font-size: 0.9rem; padding: 0.5rem 1rem;">▲ 加碼</button>
@@ -1679,7 +1679,7 @@
             </div>
 
             <!-- Signals Table -->
-            <div class="table-container" style="margin-bottom: 1.5rem;">
+            <div class="table-container mb-3">
                 <div class="table-title" style="font-size: 1rem;">跟單信號紀錄</div>
                 <div class="table-scroll" style="max-height: 500px;">
                 <table id="p3-table-signals">
@@ -1717,7 +1717,7 @@
             <div class="page-title">🔍 ETF 歷史回溯與對比</div>
 
             <!-- Page Intro -->
-            <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: rgba(79,142,247,0.06); border-radius: 8px; border-left: 3px solid var(--purple); font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7;">
+            <div class="intro-box" style="border-left-color: var(--purple);">
                 各 ETF 的歷史持股數據與對比工具。可切換 5 檔 ETF，查看現金走勢、持股明細、近期異動，並選擇任意兩天進行持股差異比較。
             </div>
 
@@ -1751,8 +1751,8 @@
             </div>
 
             <!-- Copy Trading Strategy Hint -->
-            <div id="p4-strategy-hint" style="display:none; margin-bottom:1.5rem; padding:1rem; background:rgba(79,142,247,0.06); border:1px solid rgba(79,142,247,0.15); border-radius:10px;">
-                <div style="font-weight:600; margin-bottom:0.5rem; color:var(--text);">📊 跟單回測策略（依當前狀態）</div>
+            <div id="p4-strategy-hint" class="mb-3" style="display:none; padding:1rem; background:rgba(79,142,247,0.06); border:1px solid rgba(79,142,247,0.15); border-radius:10px;">
+                <div class="font-bold mb-1" style="color:var(--text);">📊 跟單回測策略（依當前狀態）</div>
                 <div id="p4-strategy-hint-content" style="font-size:0.85rem; color:var(--text-secondary); line-height:1.8;"></div>
             </div>
 
@@ -1798,11 +1798,11 @@
                 <div class="table-title">對比分析工具</div>
                 <div class="comparison-controls">
                     <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">基準日（較早）</label>
+                        <label class="text-sm text-muted mb-1" style="display: block;">基準日（較早）</label>
                         <select class="comparison-select" id="p4-compare-date1"></select>
                     </div>
                     <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">對比日（較晚）</label>
+                        <label class="text-sm text-muted mb-1" style="display: block;">對比日（較晚）</label>
                         <select class="comparison-select" id="p4-compare-date2"></select>
                     </div>
                     <div style="display: flex; align-items: flex-end;">
@@ -1811,7 +1811,7 @@
                 </div>
 
                 <div class="comparison-result" id="p4-comparison-result">
-                    <div class="table-container" style="margin-bottom: 1rem;">
+                    <div class="table-container mb-2">
                         <div class="table-title">新增持股</div>
                         <div class="table-scroll" style="max-height: 300px;">
                         <table id="p4-compare-new">
@@ -1827,7 +1827,7 @@
                         </div>
                     </div>
 
-                    <div class="table-container" style="margin-bottom: 1rem;">
+                    <div class="table-container mb-2">
                         <div class="table-title">退出持股</div>
                         <div class="table-scroll" style="max-height: 300px;">
                         <table id="p4-compare-exited">
@@ -1843,7 +1843,7 @@
                         </div>
                     </div>
 
-                    <div class="table-container" style="margin-bottom: 1rem;">
+                    <div class="table-container mb-2">
                         <div class="table-title">權重變化持股</div>
                         <div class="table-scroll" style="max-height: 300px;">
                         <table id="p4-compare-changed">
@@ -1882,7 +1882,7 @@
             <div class="page-title">🧠 策略分析</div>
 
             <!-- Page Intro -->
-            <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: rgba(79,142,247,0.06); border-radius: 8px; border-left: 3px solid var(--cyan); font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7;">
+            <div class="intro-box">
                 綜合評分操作建議與信號回測績效。操作建議基於權重、動能、共識等多因子評分；回測驗證過去信號的實際報酬表現。
             </div>
 
@@ -1947,12 +1947,12 @@
             <div class="page-title">📊 跟單回測分析</div>
 
             <!-- Page Intro -->
-            <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: rgba(79,142,247,0.06); border-radius: 8px; border-left: 3px solid var(--red); font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7;">
+            <div class="intro-box red">
                 00981A 持股異動信號回測（2025/10/17 ~ 2025/12/26）。分析新增/加碼持股後 3、5、10 日的短線績效與勝率，找出最佳跟單策略與現金水位濾網效果。
             </div>
 
             <!-- KPI Summary -->
-            <div class="kpi-grid" style="margin-bottom: 1.5rem;">
+            <div class="kpi-grid mb-3">
                 <div class="kpi-card">
                     <div class="kpi-label">新增持股</div>
                     <div class="kpi-value" style="color:var(--red);">81%</div>
@@ -1976,7 +1976,7 @@
             </div>
 
             <!-- Detailed Table -->
-            <div class="table-container" style="margin-bottom: 1.5rem;">
+            <div class="table-container mb-3">
                 <div class="table-title">信號類型 × 持有天數 績效明細</div>
                 <table>
                     <thead>
@@ -2051,8 +2051,8 @@
 
             <!-- Conclusions -->
             <div class="strategy-section">
-                <div class="chart-title" style="margin-bottom: 1rem;">📋 結論與策略建議</div>
-                <div class="insight-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+                <div class="chart-title mb-2">📋 結論與策略建議</div>
+                <div class="insight-grid">
                     <div class="insight-card" style="border-left-color: var(--red);">
                         <div class="insight-card-title">結論 1｜整體效果排序</div>
                         <div class="insight-card-body">新增持股（績效最高）＞ 一般加碼 ＞ 5日內二次加碼（最弱）</div>
@@ -2089,7 +2089,7 @@
             <div class="page-title">🏛 0050 納入/剔除 & 市值權重 Top 150</div>
 
             <!-- SOP 吃豆腐戰法 -->
-            <div style="margin-bottom: 1.25rem; padding: 1rem 1.25rem; background: rgba(79,142,247,0.06); border-radius: 8px; border-left: 3px solid var(--cyan); font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+            <div class="intro-box" style="padding: 1rem 1.25rem; line-height: 1.8;">
                 <strong style="color:var(--accent);font-size:1rem;">0050 吃豆腐戰法 (SOP)</strong><br>
                 <strong>核心邏輯：</strong>市值前 40 名必定納入 0050，利用「市值排名」提前預測換股<br>
                 <strong>換股時程：</strong><br>
@@ -2110,7 +2110,7 @@
             </div>
 
             <!-- 0050 KPI -->
-            <div class="kpi-grid" id="p7-kpi" style="margin-bottom: 1.5rem;">
+            <div class="kpi-grid mb-3" id="p7-kpi">
                 <div class="kpi-card">
                     <div class="kpi-label">潛在納入</div>
                     <div class="kpi-value" id="p7-in-count" style="color:var(--green);">-</div>
@@ -2124,7 +2124,7 @@
             </div>
 
             <!-- 0050 Tables -->
-            <div class="charts-row" style="margin-bottom: 2rem;">
+            <div class="charts-row mb-4">
                 <div class="chart-container" style="flex:1;">
                     <div class="table-title" style="color:var(--green);">潛在納入候選</div>
                     <div class="table-scroll" style="max-height: 420px; overflow-y: auto;">
