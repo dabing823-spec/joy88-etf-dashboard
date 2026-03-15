@@ -1069,6 +1069,84 @@ def fetch_etf_holdings(etf_code='0050'):
         return set()
 
 
+def fetch_stock_quotes_batch(codes):
+    """用 Yahoo Finance 批次抓取股價、漲跌、成交量、市值"""
+    import requests as _req
+
+    if not codes:
+        return {}
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                      '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+    }
+
+    result = {}
+    print(f"      Fetching quotes for {len(codes)} stocks...")
+
+    for code in codes:
+        symbol = f"{code}.TW"
+        try:
+            r = _req.get(
+                f'https://query1.finance.yahoo.com/v8/finance/chart/{symbol}'
+                f'?range=5d&interval=1d&includePrePost=false',
+                headers=headers, timeout=10
+            )
+            if r.status_code != 200:
+                continue
+
+            chart = r.json().get('chart', {}).get('result', [{}])[0]
+            meta = chart.get('meta', {})
+            quote = chart.get('indicators', {}).get('quote', [{}])[0]
+
+            closes = [c for c in (quote.get('close') or []) if c is not None]
+            volumes = [v for v in (quote.get('volume') or []) if v is not None]
+
+            if not closes:
+                continue
+
+            price = round(closes[-1], 2)
+            prev_close = round(closes[-2], 2) if len(closes) >= 2 else meta.get('chartPreviousClose', price)
+            change = round(price - prev_close, 2)
+            change_pct = round(change / prev_close * 100, 2) if prev_close else 0
+            volume = volumes[-1] if volumes else 0
+            turnover = int(price * volume) if volume else 0
+            market_cap = meta.get('regularMarketPrice', price) * meta.get('regularMarketVolume', 0)
+
+            # 從 meta 取市值（若有）
+            # Yahoo chart API meta 沒有直接的 marketCap，用另一種方式
+            result[code] = {
+                'price': price,
+                'prev_close': prev_close,
+                'change': change,
+                'change_pct': change_pct,
+                'volume': volume,
+                'turnover': turnover,
+            }
+
+            time.sleep(0.3)  # rate limit
+
+        except Exception as e:
+            print(f"        {code} quote failed: {e}")
+
+    print(f"      Got quotes for {len(result)}/{len(codes)} stocks")
+    return result
+
+
+def _enrich_stocks_with_quotes(stocks, quotes):
+    """將報價資料合併到股票列表"""
+    for s in stocks:
+        q = quotes.get(s['code'], {})
+        s['price'] = q.get('price', '-')
+        s['change'] = q.get('change', '-')
+        s['change_pct'] = q.get('change_pct', '-')
+        s['volume'] = q.get('volume', 0)
+        s['turnover'] = q.get('turnover', 0)
+        s['link'] = f"https://tw.stock.yahoo.com/quote/{s['code']}"
+    return stocks
+
+
 def calc_0050_and_market_weight():
     """計算 0050 納入/剔除 + 市值權重 Top 150"""
     print("  [J] 0050 Strategy + Market Weight Top 150...")
@@ -1091,14 +1169,33 @@ def calc_0050_and_market_weight():
 
     print(f"      0050: {len(potential_in)} potential in, {len(potential_out)} potential out")
 
+    # --- Enrich 0050 candidates with quotes ---
+    candidate_codes = [s['code'] for s in potential_in + potential_out]
+    if candidate_codes:
+        quotes = fetch_stock_quotes_batch(candidate_codes)
+        potential_in = _enrich_stocks_with_quotes(potential_in, quotes)
+        potential_out = _enrich_stocks_with_quotes(potential_out, quotes)
+
     strategy_0050 = {
         'potential_in': potential_in,
         'potential_out': potential_out,
     }
 
     # --- Market Weight Top 150 ---
-    top150 = rankings[:150] if rankings else []
+    top150 = [s.copy() for s in rankings[:150]] if rankings else []
     print(f"      Market Weight: {len(top150)} stocks")
+
+    # Enrich top 150 with quotes (batch in chunks to avoid rate limit)
+    if top150:
+        top150_codes = [s['code'] for s in top150]
+        all_quotes = {}
+        for i in range(0, len(top150_codes), 30):
+            chunk = top150_codes[i:i+30]
+            chunk_quotes = fetch_stock_quotes_batch(chunk)
+            all_quotes.update(chunk_quotes)
+            if i + 30 < len(top150_codes):
+                time.sleep(1)
+        top150 = _enrich_stocks_with_quotes(top150, all_quotes)
 
     market_weight = {
         'stocks': top150,
