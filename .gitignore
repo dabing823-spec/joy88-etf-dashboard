@@ -5,3 +5,7 @@ __pycache__/
 .macro_alert_state.json
 logs/
 history/
+
+# Frontend
+node_modules/
+dist/
