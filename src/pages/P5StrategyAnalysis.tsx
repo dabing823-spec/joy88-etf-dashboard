@@ -100,7 +100,7 @@ export function P5StrategyAnalysis() {
       <TableContainer title="🎯 操作建議 TOP10">
         <details className="mb-3 text-sm">
           <summary className="cursor-pointer text-accent font-medium">這個排行怎麼選出來的？</summary>
-          <div className="mt-2 p-3 bg-accent/5 rounded-lg text-text-muted leading-relaxed">
+          <div className="mt-2 p-3 bg-accent/5 rounded-xl text-text-muted leading-relaxed">
             從 5 檔主動式 ETF 的持股中，用 <strong className="text-text-primary">4 個因子加總評分</strong>，分數越高越值得關注：
             <div className="grid grid-cols-2 gap-2 mt-2 mb-2">
               <div><span className="text-accent font-semibold">共識 (0~5分)</span> 幾檔 ETF 同時持有</div>
@@ -122,7 +122,7 @@ export function P5StrategyAnalysis() {
         <TableContainer title="📈 信號回測績效">
           <details className="mb-3 text-sm">
             <summary className="cursor-pointer text-down font-medium">這些數字怎麼看？怎麼用？</summary>
-            <div className="mt-2 p-3 bg-down/5 rounded-lg text-text-muted leading-relaxed">
+            <div className="mt-2 p-3 bg-down/5 rounded-xl text-text-muted leading-relaxed">
               每當 00981A 經理人新增或加碼一檔股票，就產生一個「信號」。追蹤信號發出後 10 天和 20 天的漲跌表現。
               <br />勝率 &gt; 55% → 值得跟單。勝率 &gt; 65% → 強烈跟單。
             </div>

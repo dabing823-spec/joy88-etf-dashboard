@@ -339,7 +339,7 @@ export function P2StrategicDashboard() {
       {mi && (
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-2.5 border-b border-border">
-            <span className="text-xs font-semibold tracking-wide">Global Macro Dashboard</span>
+            <span className="text-sm font-semibold tracking-wide">Global Macro Dashboard</span>
             <span className="text-[10px] text-text-muted tracking-wider">OIL · DXY · GOLD · YIELD</span>
           </div>
           <div className="grid grid-cols-4">
@@ -410,7 +410,7 @@ export function P2StrategicDashboard() {
           style={totalSignals > 0 ? { background: 'rgba(255,71,87,0.04)' } : undefined}>
           <span className="text-up">📋</span> 今日跟單行動清單
         </div>
-        <div className="p-3">
+        <div className="p-4">
           {!todayChanges || totalSignals === 0 ? (
             <div className="py-2 text-center text-text-muted text-xs">今日無異動</div>
           ) : (
