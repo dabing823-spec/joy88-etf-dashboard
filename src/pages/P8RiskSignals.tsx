@@ -121,21 +121,21 @@ function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; h
 
         {/* KPI Grid */}
         <div className="grid grid-cols-4 gap-3 mb-4">
-          <div className="bg-bg rounded-lg p-3 text-center">
+          <div className="bg-bg rounded-xl p-3 text-center">
             <div className="text-[10px] text-text-muted mb-1">當前值</div>
             <div className="text-lg font-bold tabular-nums" style={{ color }}>{signal.value?.toFixed(4)}</div>
           </div>
-          <div className="bg-bg rounded-lg p-3 text-center">
+          <div className="bg-bg rounded-xl p-3 text-center">
             <div className="text-[10px] text-text-muted mb-1">20日斜率</div>
             <div className="text-lg font-bold tabular-nums" style={{ color }}>{signal.slope_20d >= 0 ? '+' : ''}{signal.slope_20d.toFixed(4)}</div>
           </div>
-          <div className="bg-bg rounded-lg p-3 text-center">
+          <div className="bg-bg rounded-xl p-3 text-center">
             <div className="text-[10px] text-text-muted mb-1">加速度</div>
             <div className={`text-lg font-bold tabular-nums ${signal.accel > 0 ? 'text-up' : signal.accel < 0 ? 'text-down' : 'text-text-muted'}`}>
               {signal.accel >= 0 ? '+' : ''}{signal.accel.toFixed(4)}
             </div>
           </div>
-          <div className="bg-bg rounded-lg p-3 text-center">
+          <div className="bg-bg rounded-xl p-3 text-center">
             <div className="text-[10px] text-text-muted mb-1">極端度</div>
             <div className="text-lg font-bold tabular-nums">{signal.extremity_pct.toFixed(0)}%</div>
           </div>
@@ -227,7 +227,7 @@ export function P8RiskSignals() {
           <summary className="cursor-pointer text-text-muted py-1">Agent Pipeline 狀態</summary>
           <div className="grid grid-cols-3 gap-2 mt-2">
             {Object.entries(agentStatus).map(([key, agent]) => (
-              <div key={key} className="bg-card border border-border rounded-lg p-3">
+              <div key={key} className="bg-card border border-border rounded-xl p-3">
                 <div className="text-[10px] text-text-muted uppercase">{key}</div>
                 <div className={`text-sm font-semibold ${agent.status === 'success' ? 'text-down' : 'text-warning'}`}>
                   {agent.status}

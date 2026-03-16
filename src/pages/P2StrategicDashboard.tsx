@@ -116,10 +116,10 @@ function RiskBanner({ score, maxScore, level, nRed, nYellow, nGreen, updatedAt, 
 
 function GaugeCard({ title, value, mode, modeColor }: { title: string; value: string; mode: string; modeColor: string }) {
   return (
-    <div className="bg-card border border-border rounded-xl p-4 text-center">
+    <div className="bg-card border border-border rounded-xl p-4 text-center hover:bg-card-hover transition-colors">
       <div className="text-[10px] text-text-muted uppercase tracking-wider mb-2">{title}</div>
       <div className="text-xl font-bold text-text-primary mb-2">{value}</div>
-      <div className="px-3 py-1 rounded-lg text-xs font-semibold" style={{ backgroundColor: `${modeColor}20`, color: modeColor }}>
+      <div className="px-3 py-1 rounded-xl text-xs font-semibold" style={{ backgroundColor: `${modeColor}20`, color: modeColor }}>
         {mode}
       </div>
     </div>

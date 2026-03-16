@@ -47,7 +47,7 @@ function NewsDetail({ item }: { item: NewsAnalysisItem }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-2">
-        <h3 className="text-base font-bold text-text-primary">{item.headline}</h3>
+        <h3 className="text-sm font-bold text-text-primary">{item.headline}</h3>
         {item.link && (
           <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-accent text-xs hover:underline shrink-0">
             原文

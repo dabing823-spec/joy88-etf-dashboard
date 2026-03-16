@@ -159,7 +159,7 @@ export function P5StrategyAnalysis() {
       )}
 
       {/* Section 3: 跟單回測分析 (static data) */}
-      <div className="text-lg font-bold text-text-primary mt-6">跟單回測分析</div>
+      <h2 className="text-xl font-bold text-text-primary mt-2">跟單回測分析</h2>
 
       <IntroBox variant="red">
         00981A 持股異動信號回測（2025/10/17 ~ 2025/12/26）。分析新增/加碼持股後 3、5、10 日的短線績效與勝率，找出最佳跟單策略與現金水位濾網效果。
