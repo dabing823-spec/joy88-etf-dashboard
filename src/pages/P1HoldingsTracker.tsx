@@ -79,7 +79,7 @@ export function P1HoldingsTracker() {
   const unitsChange = latestUnits?.units_change || 0
   const unitsColor = unitsChange > 0 ? 'text-up' : unitsChange < 0 ? 'text-down' : 'text-text-muted'
 
-  // ── Chart 1: 現金水位 + 5MA + 20MA + TAIEX + TPEX + 申贖量 ──
+  // ── Chart: 現金水位 + 5MA + 20MA + TAIEX + TPEX + 申贖量 ──
   const cashChartData = useMemo(() => {
     if (!cashSeries.length) return null
     const sliced = cashRange === 'all' ? cashSeries : cashSeries.slice(-cashRange)
@@ -89,48 +89,55 @@ export function P1HoldingsTracker() {
       labels: sliced.map((d: CashSeriesItem) => d.date),
       datasets: [
         {
+          type: 'bar' as const,
+          label: '申購/贖回',
+          data: slicedUnits.map(d => d.units_change || 0),
+          backgroundColor: slicedUnits.map(d => (d.units_change || 0) >= 0 ? 'rgba(255,71,87,0.2)' : 'rgba(0,196,140,0.2)'),
+          borderColor: slicedUnits.map(d => (d.units_change || 0) >= 0 ? 'rgba(255,71,87,0.5)' : 'rgba(0,196,140,0.5)'),
+          borderWidth: 1,
+          yAxisID: 'y3',
+          order: 10,
+        },
+        {
           label: '現金比例 (%)',
           data: sliced.map(d => d.cash_pct),
-          borderColor: '#4f8ef7', backgroundColor: 'rgba(79,142,247,0.08)',
-          borderWidth: 2, tension: 0.3, pointRadius: 0, fill: true, yAxisID: 'y',
+          borderColor: '#4f8ef7', backgroundColor: 'rgba(79,142,247,0.06)',
+          borderWidth: 2.5, tension: 0.35, pointRadius: 0,
+          pointHoverRadius: 4, pointHoverBackgroundColor: '#4f8ef7',
+          fill: true, yAxisID: 'y',
           order: 2,
         },
         {
           label: '5MA',
           data: sliced.map(d => d.cash_5ma ?? null),
-          borderColor: '#ffa502', borderWidth: 1, borderDash: [4, 2],
-          tension: 0.3, pointRadius: 0, yAxisID: 'y',
+          borderColor: 'rgba(255,165,2,0.6)', borderWidth: 1, borderDash: [4, 2],
+          tension: 0.35, pointRadius: 0, yAxisID: 'y',
           order: 3,
         },
         {
           label: '20MA',
           data: sliced.map(d => d.cash_20ma ?? null),
-          borderColor: '#a855f7', borderWidth: 1, borderDash: [6, 3],
-          tension: 0.3, pointRadius: 0, yAxisID: 'y',
+          borderColor: 'rgba(168,85,247,0.6)', borderWidth: 1, borderDash: [6, 3],
+          tension: 0.35, pointRadius: 0, yAxisID: 'y',
           order: 4,
         },
         {
           label: '加權指數',
           data: sliced.map(d => d.taiex ?? null),
-          borderColor: '#00c48c', borderWidth: 1.5,
-          tension: 0.3, pointRadius: 0, yAxisID: 'y1',
+          borderColor: '#00c48c', backgroundColor: 'rgba(0,196,140,0.04)',
+          borderWidth: 2, tension: 0.35, pointRadius: 0,
+          pointHoverRadius: 3, pointHoverBackgroundColor: '#00c48c',
+          fill: true, yAxisID: 'y1',
           order: 5,
         },
         {
           label: '櫃買指數',
           data: sliced.map(d => d.tpex ?? null),
-          borderColor: '#22d3ee', borderWidth: 1.5,
-          tension: 0.3, pointRadius: 0, yAxisID: 'y2',
-          hidden: true,
+          borderColor: '#22d3ee', backgroundColor: 'rgba(34,211,238,0.04)',
+          borderWidth: 1.5, tension: 0.35, pointRadius: 0, borderDash: [8, 4],
+          pointHoverRadius: 3, pointHoverBackgroundColor: '#22d3ee',
+          fill: true, yAxisID: 'y2',
           order: 6,
-        },
-        {
-          type: 'bar' as const,
-          label: '申購/贖回',
-          data: slicedUnits.map(d => d.units_change || 0),
-          backgroundColor: slicedUnits.map(d => (d.units_change || 0) >= 0 ? 'rgba(255,71,87,0.3)' : 'rgba(0,196,140,0.3)'),
-          yAxisID: 'y3',
-          order: 1,
         },
       ],
     }
@@ -141,51 +148,64 @@ export function P1HoldingsTracker() {
     interaction: { mode: 'index' as const, intersect: false },
     plugins: {
       ...defaultPluginOptions,
-      legend: { ...defaultPluginOptions.legend, position: 'top' as const },
-      tooltip: { mode: 'index' as const, intersect: false },
+      legend: {
+        ...defaultPluginOptions.legend,
+        position: 'top' as const,
+        labels: {
+          ...defaultPluginOptions.legend.labels,
+          usePointStyle: true, pointStyle: 'circle', padding: 12,
+          filter: (item: { text: string }) => item.text !== '申購/贖回',
+        },
+      },
+      tooltip: {
+        mode: 'index' as const, intersect: false,
+        backgroundColor: 'rgba(15,17,28,0.95)',
+        borderColor: 'rgba(79,142,247,0.3)', borderWidth: 1,
+        titleColor: '#e4e6eb', bodyColor: '#9ca0b4',
+        padding: 10, cornerRadius: 8,
+        titleFont: { size: 11 },
+        bodyFont: { family: 'monospace', size: 11 },
+        callbacks: {
+          label: (ctx: { dataset: { label: string }; parsed: { y: number } }) => {
+            const label = ctx.dataset.label || ''
+            const v = ctx.parsed.y
+            if (v == null) return ''
+            if (label.includes('現金') || label.includes('MA')) return ` ${label}: ${v.toFixed(2)}%`
+            if (label.includes('加權')) return ` ${label}: ${v.toLocaleString()}`
+            if (label.includes('櫃買')) return ` ${label}: ${v.toFixed(2)}`
+            if (label.includes('申購')) return ` ${label}: ${v >= 0 ? '+' : ''}${v.toFixed(0)}`
+            return ` ${label}: ${v}`
+          },
+        },
+      },
     },
     scales: {
-      y: { type: 'linear' as const, position: 'left' as const, ticks: axisTick, grid: axisGrid, title: { display: true, text: '現金 (%)', color: '#8b8fa3' } },
-      y1: { type: 'linear' as const, position: 'right' as const, ticks: axisTick, grid: { display: false }, title: { display: true, text: '加權指數', color: '#8b8fa3' } },
-      y2: { type: 'linear' as const, position: 'right' as const, display: false, ticks: axisTick, grid: { display: false } },
-      y3: { type: 'linear' as const, position: 'right' as const, display: false, grid: { display: false } },
-      x: { ticks: axisTick, grid: axisGrid },
-    },
-  }), [])
-
-  // ── Chart 2: 5 ETF Cash Compare + TAIEX + TPEX ──
-  const etfCompareData = useMemo(() => {
-    if (!cashSeries.length) return null
-    const last30 = cashSeries.slice(-30)
-    // TODO: Add other ETFs' cash series when available from etfPages
-    return {
-      labels: last30.map(d => d.date),
-      datasets: [
-        {
-          label: '00981A 現金%', data: last30.map(d => d.cash_pct),
-          borderColor: '#4f8ef7', borderWidth: 2, tension: 0.3, pointRadius: 0, yAxisID: 'y',
-        },
-        {
-          label: '加權指數', data: last30.map(d => d.taiex ?? null),
-          borderColor: '#00c48c', borderWidth: 1.5, tension: 0.3, pointRadius: 0, yAxisID: 'y1',
-        },
-        {
-          label: '櫃買指數', data: last30.map(d => d.tpex ?? null),
-          borderColor: '#22d3ee', borderWidth: 1.5, tension: 0.3, pointRadius: 0, yAxisID: 'y2',
-        },
-      ],
-    }
-  }, [cashSeries])
-
-  const etfCompareOptions = useMemo(() => ({
-    responsive: true, maintainAspectRatio: false,
-    interaction: { mode: 'index' as const, intersect: false },
-    plugins: defaultPluginOptions,
-    scales: {
-      y: { type: 'linear' as const, position: 'left' as const, ticks: axisTick, grid: axisGrid, title: { display: true, text: '現金 (%)', color: '#8b8fa3' } },
-      y1: { type: 'linear' as const, position: 'right' as const, ticks: axisTick, grid: { display: false }, title: { display: true, text: '加權指數', color: '#8b8fa3' } },
-      y2: { type: 'linear' as const, position: 'right' as const, display: false, grid: { display: false } },
-      x: { ticks: axisTick, grid: axisGrid },
+      y: {
+        type: 'linear' as const, position: 'left' as const,
+        ticks: { ...axisTick, callback: (v: number) => `${v}%` },
+        grid: { ...axisGrid, drawOnChartArea: true },
+        title: { display: true, text: '現金 (%)', color: '#4f8ef7', font: { size: 11 } },
+      },
+      y1: {
+        type: 'linear' as const, position: 'right' as const,
+        ticks: { ...axisTick, callback: (v: number) => v.toLocaleString() },
+        grid: { display: false },
+        title: { display: true, text: '加權指數', color: '#00c48c', font: { size: 11 } },
+      },
+      y2: {
+        type: 'linear' as const, position: 'right' as const,
+        display: false,
+        grid: { display: false },
+      },
+      y3: {
+        type: 'linear' as const, position: 'right' as const,
+        display: false,
+        grid: { display: false },
+      },
+      x: {
+        ticks: { ...axisTick, maxRotation: 0, autoSkipPadding: 20 },
+        grid: { ...axisGrid, drawOnChartArea: false },
+      },
     },
   }), [])
 
@@ -343,17 +363,11 @@ export function P1HoldingsTracker() {
             ))}
           </div>
         </div>
-        <div className="h-80">
+        <div className="h-96">
           {cashChartData && <Chart type="line" data={cashChartData as never} options={cashChartOptions as never} />}
         </div>
       </TableContainer>
 
-      {/* ── Chart 2: ETF Cash Compare + Indices ── */}
-      <TableContainer title="📊 現金水位 vs 加權 · 櫃買 (30日)">
-        <div className="h-64">
-          {etfCompareData && <Line data={etfCompareData} options={etfCompareOptions} />}
-        </div>
-      </TableContainer>
 
       {/* ── Holding Events Timeline ── */}
       <TableContainer title="📌 00981A 持股異動事件（含跟單信號）" maxHeight="350px">
