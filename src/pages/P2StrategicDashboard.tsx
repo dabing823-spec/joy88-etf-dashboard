@@ -137,7 +137,7 @@ export function P2StrategicDashboard() {
   const dailyChanges = dashboard?.daily_changes?.['00981A'] || []
   const cashSeries = dashboard?.cash_series || []
 
-  // Get TAIEX/TPEX from cash_series (not in market_indices)
+  // Get TAIEX/TPEX from cash_series
   const latestCash = cashSeries.length > 0 ? cashSeries[cashSeries.length - 1] : undefined
   const prevCash = cashSeries.length > 1 ? cashSeries[cashSeries.length - 2] : undefined
   const taiex = latestCash?.taiex
@@ -148,6 +148,27 @@ export function P2StrategicDashboard() {
   const taiexChgPct = taiex && prevTaiex ? ((taiex - prevTaiex) / prevTaiex) * 100 : undefined
   const tpexChg = tpex && prevTpex ? tpex - prevTpex : undefined
   const tpexChgPct = tpex && prevTpex ? ((tpex - prevTpex) / prevTpex) * 100 : undefined
+
+  // Calculate MA20/MA60 from cash_series taiex values
+  const taiexValues = cashSeries.map(d => d.taiex).filter((v): v is number => v != null)
+  const calcMA = (arr: number[], period: number) => arr.length >= period ? arr.slice(-period).reduce((a, b) => a + b, 0) / period : undefined
+  const taiexMA20 = calcMA(taiexValues, 20)
+  const taiexMA60 = calcMA(taiexValues, 60)
+  const taiexMaLabel = taiex && taiexMA60 && taiexMA20
+    ? taiex > taiexMA20 ? '月線之上' : taiex > taiexMA60 ? '月線之下 季線之上' : '季線之下'
+    : undefined
+  const taiexMaColor = taiexMaLabel === '月線之上' ? '#00c48c' : taiexMaLabel === '季線之下' ? '#ff4757' : '#ffa502'
+
+  // 攻防模式顏色映射
+  const modeText = cashMode?.mode || ''
+  const modeColor = modeText.includes('進攻') || modeText.includes('積極') ? '#ff4757'
+    : modeText.includes('防守') || modeText.includes('保守') ? '#ffa502'
+    : modeText.includes('恐慌') || modeText.includes('觀望') ? '#00c48c'
+    : '#4f8ef7'
+
+  // Laomo signals map for hold suggestion
+  const laomoSignals = dashboard?.laomo_signals || []
+  const holdMap = Object.fromEntries(laomoSignals.map(s => [s.code, s]))
 
   // VIX classification
   const vixLevel = (v: number) => v < 15 ? 'text-down' : v < 20 ? 'text-text-primary' : v < 30 ? 'text-warning' : 'text-up'
@@ -192,9 +213,26 @@ export function P2StrategicDashboard() {
   return (
     <div className="space-y-3">
       {/* ── Taiwan Indices Hero ── */}
-      <div className="grid grid-cols-2 gap-3">
-        <HeroCard flag="🇹🇼" label="加權指數 TAIEX" value={taiex} chg={taiexChg} chgPct={taiexChgPct} delay="0.05s" />
-        <HeroCard flag="🇹🇼" label="櫃買指數 TPEX" value={tpex} chg={tpexChg} chgPct={tpexChgPct} delay="0.12s" />
+      <div className={`grid ${tpex ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
+        <div className="bg-card border border-border rounded-xl p-5 hover:bg-card-hover transition-all">
+          <div className="text-xs text-text-muted mb-1">🇹🇼 加權指數 TAIEX</div>
+          <div className={`text-3xl font-extrabold tabular-nums ${(taiexChg ?? 0) > 0 ? 'text-up' : (taiexChg ?? 0) < 0 ? 'text-down' : 'text-text-muted'}`}>
+            {taiex != null ? taiex.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '-'}
+          </div>
+          <div className="flex items-center gap-2 mt-1 text-sm">
+            <Chg val={taiexChg} /> <span className="text-text-muted">|</span> <Chg val={taiexChgPct} suffix="%" />
+          </div>
+          {taiexMaLabel && (
+            <div className="mt-2 px-2 py-1 rounded text-[10px] font-semibold inline-block" style={{ backgroundColor: `${taiexMaColor}15`, color: taiexMaColor }}>
+              {taiexMaLabel}
+              {taiexMA20 && <span className="opacity-60"> | 20MA: {taiexMA20.toFixed(0)}</span>}
+              {taiexMA60 && <span className="opacity-60"> | 60MA: {taiexMA60.toFixed(0)}</span>}
+            </div>
+          )}
+        </div>
+        {tpex && (
+          <HeroCard flag="🇹🇼" label="櫃買指數 TPEX" value={tpex} chg={tpexChg} chgPct={tpexChgPct} delay="0.12s" />
+        )}
       </div>
 
       {/* ── Sentiment Row ── */}
@@ -266,8 +304,8 @@ export function P2StrategicDashboard() {
         </div>
         <div className="bg-card border border-border rounded-xl p-4">
           <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">⚔️ 攻防模式</div>
-          <div className="text-2xl font-bold text-accent">{cashMode?.mode || '-'}</div>
-          <div className="text-[10px] text-text-muted mt-0.5">趨勢 {cashTrend}</div>
+          <div className="text-2xl font-bold" style={{ color: modeColor }}>{cashMode?.mode?.replace(/🔵|🟢|🟡|🔴/g, '').trim() || '-'}</div>
+          <div className="text-[10px] mt-0.5" style={{ color: modeColor }}>{cashTrend}</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4">
           <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">🎯 跟單狀態</div>
@@ -294,30 +332,44 @@ export function P2StrategicDashboard() {
             <div className="py-2 text-center text-text-muted text-xs">今日無異動</div>
           ) : (
             <div className="space-y-1.5">
-              {(todayChanges?.new || []).map((s, i) => (
-                <div key={`n${i}`} className="flex items-center gap-2 py-1.5 border-b border-border/30 last:border-b-0 text-sm">
-                  <Badge variant="red">🆕 新增</Badge>
-                  <span className="text-accent font-mono">{s.code}</span>
-                  <span className="font-medium">{s.name}</span>
-                  <span className="text-text-muted ml-auto tabular-nums">{s.weight?.toFixed(2)}%</span>
-                </div>
-              ))}
-              {(todayChanges?.added || []).map((s, i) => (
-                <div key={`a${i}`} className="flex items-center gap-2 py-1.5 border-b border-border/30 last:border-b-0 text-sm">
-                  <Badge variant="blue">▲ 加碼</Badge>
-                  <span className="text-accent font-mono">{s.code}</span>
-                  <span className="font-medium">{s.name}</span>
-                  <span className="text-up ml-auto tabular-nums">+{s.weight_chg?.toFixed(2)}%</span>
-                </div>
-              ))}
-              {(todayChanges?.reduced || []).map((s, i) => (
-                <div key={`r${i}`} className="flex items-center gap-2 py-1.5 border-b border-border/30 last:border-b-0 text-sm">
-                  <Badge variant="orange">▼ 減碼</Badge>
-                  <span className="text-accent font-mono">{s.code}</span>
-                  <span className="font-medium">{s.name}</span>
-                  <span className="text-down ml-auto tabular-nums">{s.weight_chg?.toFixed(2)}%</span>
-                </div>
-              ))}
+              {(todayChanges?.new || []).map((s, i) => {
+                const sig = holdMap[s.code]
+                return (
+                  <div key={`n${i}`} className="flex items-center gap-2 py-1.5 border-b border-border/30 last:border-b-0 text-sm">
+                    <Badge variant="red">🆕 新增</Badge>
+                    <span className="text-accent font-mono">{s.code}</span>
+                    <span className="font-medium">{s.name}</span>
+                    <span className="text-text-muted tabular-nums">{s.weight?.toFixed(2)}%</span>
+                    {sig?.hold_suggestion && <span className="text-[10px] text-yellow-400 ml-auto">{sig.hold_suggestion}</span>}
+                    {sig?.confidence && <span className="text-[10px] text-text-muted">{sig.confidence}</span>}
+                  </div>
+                )
+              })}
+              {(todayChanges?.added || []).map((s, i) => {
+                const sig = holdMap[s.code]
+                return (
+                  <div key={`a${i}`} className="flex items-center gap-2 py-1.5 border-b border-border/30 last:border-b-0 text-sm">
+                    <Badge variant="blue">▲ 加碼</Badge>
+                    <span className="text-accent font-mono">{s.code}</span>
+                    <span className="font-medium">{s.name}</span>
+                    <span className="text-up tabular-nums">+{s.weight_chg?.toFixed(2)}%</span>
+                    {sig?.hold_suggestion && <span className="text-[10px] text-yellow-400 ml-auto">{sig.hold_suggestion}</span>}
+                    {sig?.confidence && <span className="text-[10px] text-text-muted">{sig.confidence}</span>}
+                  </div>
+                )
+              })}
+              {(todayChanges?.reduced || []).map((s, i) => {
+                const sig = holdMap[s.code]
+                return (
+                  <div key={`r${i}`} className="flex items-center gap-2 py-1.5 border-b border-border/30 last:border-b-0 text-sm">
+                    <Badge variant="orange">▼ 減碼</Badge>
+                    <span className="text-accent font-mono">{s.code}</span>
+                    <span className="font-medium">{s.name}</span>
+                    <span className="text-down tabular-nums">{s.weight_chg?.toFixed(2)}%</span>
+                    {sig?.hold_suggestion && <span className="text-[10px] text-yellow-400 ml-auto">{sig.hold_suggestion}</span>}
+                  </div>
+                )
+              })}
               {(todayChanges?.exited || []).map((s, i) => (
                 <div key={`x${i}`} className="flex items-center gap-2 py-1.5 border-b border-border/30 last:border-b-0 text-sm">
                   <Badge variant="green">✕ 退出</Badge>
@@ -331,10 +383,9 @@ export function P2StrategicDashboard() {
       </div>
 
       {/* ── Gauges ── */}
-      <div className="grid grid-cols-3 gap-3">
-        <GaugeCard title="📈 現金趨勢" value={`${cashNow.toFixed(1)}%`} mode={cashTrend} modeColor={cashTrendColor} />
-        <GaugeCard title="🎯 持股集中度" value={`${(dashboard?.conviction?.[0]?.avg_weight ?? 0).toFixed(1)}%`} mode="Top 1 權重" modeColor="#4f8ef7" />
-        <GaugeCard title="👨‍💼 經理人動向" value={cashMode?.mode || '-'} mode={cashMode?.mode_desc || '-'} modeColor={cashTrendColor} />
+      <div className="grid grid-cols-2 gap-3">
+        <GaugeCard title="🎯 持股集中度 Top 1" value={`${(dashboard?.conviction?.[0]?.avg_weight ?? 0).toFixed(1)}%`} mode={dashboard?.conviction?.[0]?.name || '-'} modeColor="#4f8ef7" />
+        <GaugeCard title="📊 持股數" value={`${cashMode?.n_holdings || 0}`} mode={cashMode?.mode_desc || '-'} modeColor={modeColor} />
       </div>
 
       {/* ── Bottom: Consensus + Signal Summary ── */}
