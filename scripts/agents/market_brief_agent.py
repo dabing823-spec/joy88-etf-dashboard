@@ -71,12 +71,23 @@ YAHOO_SYMBOLS = {
 }
 
 # ── Google News RSS 查詢 ──
-NEWS_QUERIES = [
-    "台股 半導體",
-    "Fed FOMC 利率",
-    "台積電 AI",
-    "VIX 美股 市場",
-    "CPI 通膨 經濟數據",
+# 台灣財經（中文）
+NEWS_QUERIES_TW = [
+    "台股 半導體 盤後",
+    "Fed FOMC 利率 降息",
+    "台積電 AI 法說",
+    "美股 盤後 財報 earnings",
+    "CPI 通膨 經濟數據 PMI",
+    "地緣政治 關稅 制裁",
+]
+
+# 國際財經（英文，抓彭博/路透/CNBC 等）
+NEWS_QUERIES_EN = [
+    "stock market earnings after hours",
+    "Bloomberg Federal Reserve interest rate",
+    "TSMC semiconductor AI",
+    "S&P 500 Nasdaq market today",
+    "geopolitical tariff trade war",
 ]
 
 # ── VIX 燈號規則 ──
@@ -223,14 +234,40 @@ def calculate_vix_signal(market_data: dict) -> dict:
 # ============================================================================
 # Step 2: 新聞抓取
 # ============================================================================
-def fetch_google_news(query: str, max_items: int = 5) -> list[dict]:
-    """Fetch news from Google News RSS."""
-    encoded = urllib.parse.quote(query)
-    url = f"https://news.google.com/rss/search?q={encoded}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
-    headers = {"User-Agent": "Mozilla/5.0"}
+def _parse_pub_date(pub_date_str: str) -> datetime | None:
+    """Parse RSS pubDate string to datetime."""
+    formats = [
+        "%a, %d %b %Y %H:%M:%S %Z",
+        "%a, %d %b %Y %H:%M:%S %z",
+        "%Y-%m-%dT%H:%M:%S%z",
+    ]
+    for fmt in formats:
+        try:
+            return datetime.strptime(pub_date_str.strip(), fmt)
+        except (ValueError, TypeError):
+            continue
+    # Try replacing timezone abbreviation
+    cleaned = re.sub(r'\s+GMT$', ' +0000', pub_date_str.strip())
+    try:
+        return datetime.strptime(cleaned, "%a, %d %b %Y %H:%M:%S %z")
+    except (ValueError, TypeError):
+        return None
+
+
+def fetch_google_news(query: str, lang: str = "zh-TW", max_items: int = 8) -> list[dict]:
+    """Fetch news from Google News RSS with when:1d for freshness."""
+    # Append when:1d to restrict to last 24 hours
+    q_with_time = f"{query} when:1d"
+    encoded = urllib.parse.quote(q_with_time)
+    if lang == "en":
+        url = f"https://news.google.com/rss/search?q={encoded}&hl=en&gl=US&ceid=US:en"
+    else:
+        url = f"https://news.google.com/rss/search?q={encoded}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
     req = urllib.request.Request(url, headers=headers)
     ctx = ssl.create_default_context()
     results = []
+    cutoff = datetime.now() - timedelta(hours=24)
     try:
         with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
             xml_data = resp.read().decode("utf-8")
@@ -240,6 +277,13 @@ def fetch_google_news(query: str, max_items: int = 5) -> list[dict]:
             pub_date = item.findtext("pubDate", "")
             source = item.findtext("source", "")
             link = item.findtext("link", "")
+            # Filter by freshness
+            parsed_date = _parse_pub_date(pub_date)
+            if parsed_date:
+                # Convert to naive for comparison
+                naive = parsed_date.replace(tzinfo=None) if parsed_date.tzinfo else parsed_date
+                if naive < cutoff:
+                    continue
             # Clean title (remove source suffix like " - 鉅亨網")
             clean_title = re.sub(r'\s*-\s*[^-]+$', '', title).strip()
             results.append({
@@ -247,6 +291,7 @@ def fetch_google_news(query: str, max_items: int = 5) -> list[dict]:
                 "source": source,
                 "pub_date": pub_date,
                 "link": link,
+                "lang": lang,
             })
     except Exception as e:
         log(f"  Google News 抓取失敗 [{query}]: {e}")
@@ -254,20 +299,42 @@ def fetch_google_news(query: str, max_items: int = 5) -> list[dict]:
 
 
 def fetch_all_news() -> list[dict]:
-    """Fetch news from all queries and deduplicate."""
+    """Fetch news from TW + EN queries, deduplicate, sort by freshness."""
     log("Step 2: 抓取新聞...")
     all_news = []
     seen_titles = set()
-    for query in NEWS_QUERIES:
-        items = fetch_google_news(query, max_items=5)
+
+    def _dedup_key(title: str) -> str:
+        """Normalize title for deduplication."""
+        return re.sub(r'[\s\W]+', '', title)[:20].lower()
+
+    # Taiwan financial news
+    for query in NEWS_QUERIES_TW:
+        items = fetch_google_news(query, lang="zh-TW", max_items=8)
         for item in items:
-            # Simple dedup by title similarity
-            key = item["title"][:30]
+            key = _dedup_key(item["title"])
             if key not in seen_titles:
                 seen_titles.add(key)
                 all_news.append(item)
-        log(f"  [{query}]: {len(items)} 則")
-    log(f"  合計: {len(all_news)} 則（去重後）")
+        log(f"  [TW] [{query}]: {len(items)} 則")
+
+    # International financial news (Bloomberg, Reuters, CNBC, etc.)
+    for query in NEWS_QUERIES_EN:
+        items = fetch_google_news(query, lang="en", max_items=8)
+        for item in items:
+            key = _dedup_key(item["title"])
+            if key not in seen_titles:
+                seen_titles.add(key)
+                all_news.append(item)
+        log(f"  [EN] [{query}]: {len(items)} 則")
+
+    # Sort by pub_date (newest first)
+    def _sort_key(item):
+        d = _parse_pub_date(item.get("pub_date", ""))
+        return d if d else datetime.min
+    all_news.sort(key=_sort_key, reverse=True)
+
+    log(f"  合計: {len(all_news)} 則（去重後，24h 內）")
     return all_news
 
 
@@ -336,11 +403,16 @@ def step3_filter_news(client, news_list: list[dict], market_summary: str) -> lis
         messages=[{
             "role": "user",
             "content": (
-                f"以下是今日市場數據和新聞列表。\n\n"
+                f"以下是今日市場數據和新聞列表（含中文和英文來源）。\n\n"
                 f"{market_summary}\n\n"
                 f"{build_positions_text()}\n\n"
                 f"## 新聞列表\n{news_text}\n\n"
-                f"請從中挑選對台股期貨/ETF操作最有影響的 1-3 則新聞。\n"
+                f"請從中挑選對台股期貨/ETF操作最有影響的 2-4 則新聞。\n"
+                f"優先選擇：\n"
+                f"1. 彭博(Bloomberg)、路透(Reuters)、CNBC 等權威國際來源\n"
+                f"2. 盤後財報、earnings 相關\n"
+                f"3. Fed/央行政策、重大經濟數據\n"
+                f"4. 地緣政治、關稅等系統性風險\n\n"
                 f"回傳 JSON 陣列，每則包含 index (原始編號) 和 reason (一句話說明為何重要)。\n"
                 '只回傳 JSON，不要其他文字。範例: [{"index": 3, "reason": "..."}]'
             ),
@@ -518,9 +590,10 @@ def save_output(news_entries: list[dict], macro_entry: dict):
         except (json.JSONDecodeError, KeyError):
             pass
 
-    # Prepend new news (keep latest 30)
-    existing["news_analyses"] = news_entries + existing.get("news_analyses", [])
-    existing["news_analyses"] = existing["news_analyses"][:30]
+    # Prepend new news, deduplicate by headline, keep latest 30
+    seen = {e.get("headline", "") for e in news_entries}
+    old = [e for e in existing.get("news_analyses", []) if e.get("headline", "") not in seen]
+    existing["news_analyses"] = (news_entries + old)[:30]
 
     # Update macro
     existing["macro_analysis"] = macro_entry
