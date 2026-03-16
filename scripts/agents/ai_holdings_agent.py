@@ -87,14 +87,38 @@ def analyze_with_claude(changes_summary: str, cash_mode: dict, date: str) -> tup
                 f"1. 這些異動背後的投資邏輯與產業趨勢\n"
                 f"2. 經理人的操作風格變化（進攻/防守）\n"
                 f"3. 對散戶投資人的建議\n\n"
-                f"回覆格式：先一段總結（2-3句），再列出重點（bullet points）。用繁體中文。"
+                f"回覆格式：先一段總結（2-3句），再用 bullet points 列出重點。用繁體中文。不要用 markdown 粗體語法（** 或 __）。"
             ),
         }],
     )
+    def parse_analysis(text: str) -> tuple:
+        """Parse Claude response into summary + key_points, stripping markdown."""
+        import re
+        # Clean markdown bold
+        clean = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)
+        lines = [l.strip() for l in clean.split("\n") if l.strip()]
+
+        # Find summary = first non-heading paragraph
+        summary = ""
+        points = []
+        for line in lines:
+            stripped = re.sub(r'^[#\s*]+', '', line).strip()
+            if stripped.startswith(("總結", "重點分析", "---")):
+                continue
+            if not summary and len(stripped) > 20 and not stripped.startswith(("•", "-", "1.", "2.", "3.", "4.", "5.")):
+                summary = stripped
+                continue
+            # Bullet points
+            m = re.match(r'^[•\-\*]\s*(.+)', stripped) or re.match(r'^\d+\.\s*(.+)', stripped)
+            if m:
+                point = m.group(1).strip()
+                # Take first sentence or up to 80 chars for display
+                short = point.split("，")[0] + ("..." if len(point) > 60 else "")
+                points.append(point)
+        return summary, points[:5]
+
     inst_text = inst_resp.content[0].text.strip()
-    inst_lines = inst_text.split("\n")
-    inst_summary = inst_lines[0] if inst_lines else ""
-    inst_points = [l.lstrip("*- ").strip() for l in inst_lines[1:] if l.strip().startswith(("*", "-", "1", "2", "3", "4", "5"))]
+    inst_summary, inst_points = parse_analysis(inst_text)
 
     # Trader view (巨人傑)
     log("Generating trader view...")
@@ -112,26 +136,24 @@ def analyze_with_claude(changes_summary: str, cash_mode: dict, date: str) -> tup
                 f"1. 這些標的的短線供需結構與交易機會\n"
                 f"2. 跟單策略建議（進場時機、持有天數、停損）\n"
                 f"3. 風險控管提醒\n\n"
-                f"回覆格式：先一段總結（2-3句），再列出重點（bullet points）。用繁體中文。"
+                f"回覆格式：先一段總結（2-3句），再列出重點（bullet points）。用繁體中文。不要用 markdown 粗體語法。"
             ),
         }],
     )
     trader_text = trader_resp.content[0].text.strip()
-    trader_lines = trader_text.split("\n")
-    trader_summary = trader_lines[0] if trader_lines else ""
-    trader_points = [l.lstrip("*- ").strip() for l in trader_lines[1:] if l.strip().startswith(("*", "-", "1", "2", "3", "4", "5"))]
+    trader_summary, trader_points = parse_analysis(trader_text)
 
     institutional = {
         "source": "沈萬鈞法人視野",
         "analysis": inst_text,
         "summary": inst_summary,
-        "key_points": inst_points[:5],
+        "key_points": inst_points,
     }
     trader = {
         "source": "巨人思維",
         "analysis": trader_text,
         "summary": trader_summary,
-        "key_points": trader_points[:5],
+        "key_points": trader_points,
     }
 
     log(f"Institutional: {len(inst_text)} chars, {len(inst_points)} points")

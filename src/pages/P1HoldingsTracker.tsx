@@ -9,6 +9,8 @@ import type { CashSeriesItem, Holding } from '../types'
 
 type RangeType = 30 | 60 | 90 | 'all'
 
+const stripMd = (s: string) => s.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/__([^_]+)__/g, '$1').replace(/^#+\s*/gm, '').trim()
+
 const STOCK_COLORS = [
   '#4f8ef7', '#ff4757', '#00c48c', '#ffa502', '#a855f7', '#22d3ee', '#ffc312', '#ff6b81',
   '#7bed9f', '#70a1ff', '#eccc68', '#ff6348', '#2ed573', '#1e90ff', '#ff4500', '#dfe6e9',
@@ -322,9 +324,9 @@ export function P1HoldingsTracker() {
             </button>
             {instOpen && aiData.institutional && (
               <div className="px-5 pb-4 text-sm text-text-muted leading-relaxed">
-                <p className="mb-2">{aiData.institutional.summary}</p>
+                <p className="mb-2">{stripMd(aiData.institutional.summary)}</p>
                 <ul className="list-disc pl-5 space-y-1">
-                  {aiData.institutional.key_points?.map((p, i) => <li key={i}>{p}</li>)}
+                  {aiData.institutional.key_points?.map((p, i) => <li key={i}>{stripMd(p)}</li>)}
                 </ul>
               </div>
             )}
@@ -340,9 +342,9 @@ export function P1HoldingsTracker() {
             </button>
             {traderOpen && aiData.trader && (
               <div className="px-5 pb-4 text-sm text-text-muted leading-relaxed">
-                <p className="mb-2">{aiData.trader.summary}</p>
+                <p className="mb-2">{stripMd(aiData.trader.summary)}</p>
                 <ul className="list-disc pl-5 space-y-1">
-                  {aiData.trader.key_points?.map((p, i) => <li key={i}>{p}</li>)}
+                  {aiData.trader.key_points?.map((p, i) => <li key={i}>{stripMd(p)}</li>)}
                 </ul>
               </div>
             )}
