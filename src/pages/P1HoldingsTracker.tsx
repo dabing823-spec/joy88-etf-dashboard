@@ -320,11 +320,11 @@ export function P1HoldingsTracker() {
               </div>
               <span className={`transition-transform ${instOpen ? 'rotate-180' : ''}`}>▼</span>
             </button>
-            {instOpen && aiData.institutional_view && (
+            {instOpen && aiData.institutional && (
               <div className="px-5 pb-4 text-sm text-text-muted leading-relaxed">
-                <p className="mb-2">{aiData.institutional_view.summary}</p>
+                <p className="mb-2">{aiData.institutional.summary}</p>
                 <ul className="list-disc pl-5 space-y-1">
-                  {aiData.institutional_view.key_points?.map((p, i) => <li key={i}>{p}</li>)}
+                  {aiData.institutional.key_points?.map((p, i) => <li key={i}>{p}</li>)}
                 </ul>
               </div>
             )}
@@ -338,11 +338,11 @@ export function P1HoldingsTracker() {
               </div>
               <span className={`transition-transform ${traderOpen ? 'rotate-180' : ''}`}>▼</span>
             </button>
-            {traderOpen && aiData.trader_view && (
+            {traderOpen && aiData.trader && (
               <div className="px-5 pb-4 text-sm text-text-muted leading-relaxed">
-                <p className="mb-2">{aiData.trader_view.summary}</p>
+                <p className="mb-2">{aiData.trader.summary}</p>
                 <ul className="list-disc pl-5 space-y-1">
-                  {aiData.trader_view.key_points?.map((p, i) => <li key={i}>{p}</li>)}
+                  {aiData.trader.key_points?.map((p, i) => <li key={i}>{p}</li>)}
                 </ul>
               </div>
             )}

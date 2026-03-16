@@ -52,8 +52,8 @@ export interface AiResearchAnalysis {
     reduced: Array<{ code: string; name: string; weight: number; weight_chg: number }>
     removed: Array<{ code: string; name: string; weight: number; weight_chg: number }>
   }
-  institutional_view: { summary: string; key_points: string[] }
-  trader_view: { summary: string; key_points: string[] }
+  institutional?: { source: string; analysis: string; summary: string; key_points: string[] }
+  trader?: { source: string; analysis: string; summary: string; key_points: string[] }
 }
 
 export interface AiResearchData {

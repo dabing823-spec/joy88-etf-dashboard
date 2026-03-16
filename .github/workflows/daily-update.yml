@@ -59,6 +59,14 @@ jobs:
           cd scripts
           python strategy_engine.py
 
+      - name: AI Holdings Analysis
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          pip install anthropic -q
+          cd scripts/agents
+          python ai_holdings_agent.py
+
       - name: Generate social card
         run: |
           pip install Pillow -q
