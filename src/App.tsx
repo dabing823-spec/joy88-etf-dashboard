@@ -12,6 +12,7 @@ import { P8RiskSignals } from './pages/P8RiskSignals'
 import { P9AiQA } from './pages/P9AiQA'
 import { P10NewsDeconstruction } from './pages/P10NewsDeconstruction'
 import { P11TrumpSignal } from './pages/P11TrumpSignal'
+import { P12TsmcVolSignal } from './pages/P12TsmcVolSignal'
 
 const router = createHashRouter([
   { path: '/landing', element: <LandingPage /> },
@@ -30,6 +31,7 @@ const router = createHashRouter([
       { path: 'ai-qa', element: <P9AiQA /> },
       { path: 'news', element: <P10NewsDeconstruction /> },
       { path: 'trump', element: <P11TrumpSignal /> },
+      { path: 'tsmc-vol', element: <P12TsmcVolSignal /> },
       { path: '*', element: <Navigate to="/dashboard" replace /> },
     ],
   },

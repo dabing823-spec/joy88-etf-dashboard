@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-import type { DashboardData, UpdateStatus, StrategyData, EtfPagesData, NewsAnalysisData, AiResearchData } from '../types'
+import type { DashboardData, UpdateStatus, StrategyData, EtfPagesData, NewsAnalysisData, AiResearchData, TsmcVolSignalData } from '../types'
 import { BASE_URL } from '../lib/constants'
 
 interface DataState {
@@ -9,6 +9,7 @@ interface DataState {
   etfPages: EtfPagesData | null
   newsAnalysis: NewsAnalysisData | null
   aiResearch: AiResearchData | null
+  tsmcVolSignal: TsmcVolSignalData | null
   isLoading: boolean
   error: string | null
 }
@@ -20,6 +21,7 @@ const DataContext = createContext<DataState>({
   etfPages: null,
   newsAnalysis: null,
   aiResearch: null,
+  tsmcVolSignal: null,
   isLoading: true,
   error: null,
 })
@@ -39,6 +41,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     etfPages: null,
     newsAnalysis: null,
     aiResearch: null,
+    tsmcVolSignal: null,
     isLoading: true,
     error: null,
   })
@@ -53,11 +56,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
         setState((prev) => ({ ...prev, dashboard, etfPages, isLoading: false }))
 
-        const [strategy, aiResearch, newsAnalysis, updateStatus] = await Promise.allSettled([
+        const [strategy, aiResearch, newsAnalysis, updateStatus, tsmcVolSignal] = await Promise.allSettled([
           fetchJson<StrategyData>('strategy.json'),
           fetchJson<AiResearchData>('ai_research.json'),
           fetchJson<NewsAnalysisData>('news_analysis.json'),
           fetchJson<UpdateStatus>('update_status.json'),
+          fetchJson<TsmcVolSignalData>('tsmc_vol_signal.json'),
         ])
 
         setState((prev) => ({
@@ -66,6 +70,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           aiResearch: aiResearch.status === 'fulfilled' ? aiResearch.value : null,
           newsAnalysis: newsAnalysis.status === 'fulfilled' ? newsAnalysis.value : null,
           updateStatus: updateStatus.status === 'fulfilled' ? updateStatus.value : null,
+          tsmcVolSignal: tsmcVolSignal.status === 'fulfilled' ? tsmcVolSignal.value : null,
         }))
       } catch (err) {
         setState((prev) => ({

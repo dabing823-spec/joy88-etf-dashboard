@@ -40,6 +40,12 @@ jobs:
         run: |
           python scripts/download_gdrive.py --days ${{ inputs.days || '7' }}
 
+      - name: Download TSMC Vol Signal
+        env:
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+          GDRIVE_TSMC_FOLDER_ID: ${{ secrets.GDRIVE_TSMC_FOLDER_ID }}
+        run: python scripts/download_tsmc_signal.py
+
       - name: Run Pipeline
         env:
           GITHUB_ACTIONS: 'true'
