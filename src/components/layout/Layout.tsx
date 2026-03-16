@@ -25,8 +25,43 @@ function formatUpdateTime(isoString: string): string {
   return `${mm}/${dd} ${hh}:${min}`
 }
 
+function timeSince(isoString: string): { text: string; stale: boolean } {
+  const diff = Date.now() - new Date(isoString).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 60) return { text: `${mins}m ago`, stale: false }
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return { text: `${hrs}h ago`, stale: hrs > 6 }
+  const days = Math.floor(hrs / 24)
+  return { text: `${days}d ago`, stale: true }
+}
+
+interface StatusItem {
+  label: string
+  time: string | null | undefined
+}
+
+function SystemHealth({ items }: { items: StatusItem[] }) {
+  return (
+    <div className="max-w-[1400px] mx-auto px-4 py-1.5 flex flex-wrap gap-x-4 gap-y-1">
+      {items.map(({ label, time }) => {
+        if (!time) return (
+          <span key={label} className="text-[10px] font-mono text-text-muted">
+            {label}: <span className="text-red-400">N/A</span>
+          </span>
+        )
+        const { text, stale } = timeSince(time)
+        return (
+          <span key={label} className="text-[10px] font-mono text-text-muted">
+            {label}: <span className={stale ? 'text-red-400' : 'text-green-400'}>{text}</span>
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
 export function Layout() {
-  const { isLoading, error, dashboard, updateStatus } = useData()
+  const { isLoading, error, dashboard, updateStatus, macroStatus, newsAnalysis, tsmcVolSignal } = useData()
 
   return (
     <div className="min-h-screen bg-bg">
@@ -91,8 +126,14 @@ export function Layout() {
         )}
       </main>
 
-      <footer className="border-t border-border py-3 mt-6">
-        <div className="max-w-[1400px] mx-auto px-4 flex items-center justify-between">
+      <footer className="border-t border-border mt-6">
+        <SystemHealth items={[
+          { label: 'ETF Pipeline', time: updateStatus?.pipeline_completed_at },
+          { label: 'Macro', time: macroStatus?.macro_updated_at },
+          { label: 'News', time: newsAnalysis?.updated_at },
+          { label: 'TSMC Vol', time: tsmcVolSignal?.更新時間?.replace(' ', 'T') },
+        ]} />
+        <div className="max-w-[1400px] mx-auto px-4 pb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={`${BASE_URL}assets/logo-shanhai-joyle.png`} alt="" className="h-4 rounded opacity-60" />
             <span className="text-[10px] text-text-muted">Shanhai Joyle Capital</span>
