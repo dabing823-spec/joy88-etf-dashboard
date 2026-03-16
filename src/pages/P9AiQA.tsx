@@ -12,7 +12,7 @@ export function P9AiQA() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <h2 className="text-xl font-bold text-text-primary">🤖 AI 問答</h2>
 
       {/* Hero */}

@@ -63,41 +63,37 @@ export function P12TsmcVolSignal() {
   const returnColor = stock['日報酬(%)'] >= 0 ? '#ff4757' : '#00c48c'
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold text-text-primary">
-            {stock.名稱} ({stock.代號}) 波動率信號
-          </h1>
-          <p className="text-xs text-text-muted">{d.系統} | {d.更新時間}</p>
-        </div>
-      </div>
+      <h2 className="text-xl font-bold text-text-primary">
+        {stock.名稱} ({stock.代號}) 波動率信號
+        <span className="text-xs text-text-muted font-normal ml-2">{d.更新時間}</span>
+      </h2>
 
       {/* Row 1: Hero KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <div className="bg-card border border-border rounded-xl p-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
           <div className="text-[10px] text-text-muted mb-1">收盤價</div>
           <div className="text-2xl font-bold font-mono text-text-primary">{stock.收盤價.toLocaleString()}</div>
-          <div className="text-sm font-mono mt-1" style={{ color: returnColor }}>
+          <div className={`text-sm font-mono mt-1 ${stock['日報酬(%)'] >= 0 ? 'text-up' : 'text-down'}`}>
             {stock['日報酬(%)'] >= 0 ? '+' : ''}{stock['日報酬(%)'].toFixed(2)}%
           </div>
         </div>
-        <div className="bg-card border border-border rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
           <div className="text-[10px] text-text-muted mb-1">連續漲跌</div>
-          <div className="text-2xl font-bold font-mono" style={{ color: returnColor }}>
+          <div className={`text-2xl font-bold font-mono ${stock.連續漲跌 >= 0 ? 'text-up' : 'text-down'}`}>
             {stock.連續漲跌 > 0 ? '+' : ''}{stock.連續漲跌} 天
           </div>
           <div className="text-xs text-text-muted mt-1">
             成交量 {(stock.成交量 / 1e6).toFixed(1)}M
           </div>
         </div>
-        <div className="bg-card border border-border rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
           <div className="text-[10px] text-text-muted mb-1">波動率環境</div>
           <div className="text-xl font-bold" style={{ color: tierColor }}>{env.分檔}</div>
           <div className="text-xs mt-1" style={{ color: tierColor }}>{env.趨勢}</div>
         </div>
-        <div className="bg-card border border-border rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
           <div className="text-[10px] text-text-muted mb-1">SC 履約價</div>
           <div className="text-2xl font-bold font-mono text-accent">{sc.SC履約價}</div>
           <div className="text-xs text-text-muted mt-1">{sc.激進度}</div>
@@ -106,7 +102,7 @@ export function P12TsmcVolSignal() {
 
       {/* Row 2: Volatility Term Structure */}
       <div className="bg-card border border-border rounded-xl p-4">
-        <h2 className="text-sm font-semibold text-text-primary mb-3">波動率期限結構</h2>
+        <div className="text-sm font-semibold text-text-primary mb-3">波動率期限結構</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
           <VolBar label="RV 5d" value={vol['RV_5d(%)']} max={80} />
           <VolBar label="RV 10d" value={vol['RV_10d(%)']} max={80} />
@@ -125,7 +121,7 @@ export function P12TsmcVolSignal() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Amplitude Analysis */}
         <div className="bg-card border border-border rounded-xl p-4">
-          <h2 className="text-sm font-semibold text-text-primary mb-3">振幅分析</h2>
+          <div className="text-sm font-semibold text-text-primary mb-3">振幅分析</div>
           <div className="grid grid-cols-3 gap-2 mb-3">
             <StatCell label="今日振幅" value={amp['今日振幅(元)']} unit="元" />
             <StatCell label="今日 Ticks" value={amp['今日振幅(Ticks)']} />
@@ -163,7 +159,7 @@ export function P12TsmcVolSignal() {
 
         {/* Sell Call Strategy */}
         <div className="bg-card border border-border rounded-xl p-4">
-          <h2 className="text-sm font-semibold text-text-primary mb-3">Sell Call 策略</h2>
+          <div className="text-sm font-semibold text-text-primary mb-3">Sell Call 策略</div>
           <div className="grid grid-cols-3 gap-2 mb-3">
             <StatCell label="履約價" value={sc.SC履約價} color="#4f8ef7" />
             <StatCell label="距離 Ticks" value={sc['SC距離(Ticks)']} />
@@ -183,7 +179,7 @@ export function P12TsmcVolSignal() {
               <span className="font-mono text-text-primary text-right max-w-[60%]">{sc.邏輯}</span>
             </div>
             {sc.事件警告 && (
-              <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+              <div className="mt-2 p-2 bg-up/10 border border-up/20 rounded-xl text-up">
                 {sc.事件警告}
               </div>
             )}
@@ -217,7 +213,7 @@ export function P12TsmcVolSignal() {
       {/* Row 4: Weekly Options Strategy */}
       {weeklyStrats.length > 0 && (
         <div className="bg-card border border-border rounded-xl p-4">
-          <h2 className="text-sm font-semibold text-text-primary mb-3">台指周選策略</h2>
+          <div className="text-sm font-semibold text-text-primary mb-3">台指周選策略</div>
           <div className="space-y-2">
             {weeklyStrats.map((s, i) => (
               <div key={i} className="p-3 bg-bg rounded-lg">

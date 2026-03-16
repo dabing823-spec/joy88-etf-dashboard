@@ -110,7 +110,7 @@ function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; h
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="bg-card border border-border rounded-2xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto">
+      <div className="bg-card border border-border rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <span className="w-4 h-4 rounded-full shadow-[0_0_8px]" style={{ backgroundColor: color, color }} />

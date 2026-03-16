@@ -231,7 +231,7 @@ export function P2StrategicDashboard() {
   const cashTrendColor = cashTrend === '上升' ? '#ff4757' : cashTrend === '下降' ? '#00c48c' : '#9ca0b4'
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* ── Taiwan Indices Hero ── */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-all">
@@ -313,7 +313,7 @@ export function P2StrategicDashboard() {
               {mi.vix_prev != null && (
                 <span className="px-1 py-0.5 rounded bg-bg text-text-muted">前: {mi.vix_prev.toFixed(1)}</span>
               )}
-              <span className={`px-1 py-0.5 rounded ${(mi.vix_chg_pct ?? 0) > 5 ? 'bg-red-500/10 text-up' : (mi.vix_chg_pct ?? 0) < -5 ? 'bg-green-500/10 text-down' : 'bg-bg text-text-muted'}`}>
+              <span className={`px-1 py-0.5 rounded ${(mi.vix_chg_pct ?? 0) > 5 ? 'bg-up/10 text-up' : (mi.vix_chg_pct ?? 0) < -5 ? 'bg-down/10 text-down' : 'bg-bg text-text-muted'}`}>
                 {(mi.vix_chg_pct ?? 0) >= 0 ? '+' : ''}{mi.vix_chg_pct?.toFixed(1) ?? 0}%
               </span>
             </div>
@@ -327,7 +327,7 @@ export function P2StrategicDashboard() {
               {mi.fear_greed_prev != null && (
                 <span className="px-1 py-0.5 rounded bg-bg text-text-muted">前: {mi.fear_greed_prev}</span>
               )}
-              <span className={`px-1 py-0.5 rounded ${(mi.fear_greed_chg ?? 0) > 0 ? 'bg-green-500/10 text-down' : 'bg-red-500/10 text-up'}`}>
+              <span className={`px-1 py-0.5 rounded ${(mi.fear_greed_chg ?? 0) > 0 ? 'bg-down/10 text-down' : 'bg-up/10 text-up'}`}>
                 {(mi.fear_greed_chg ?? 0) >= 0 ? '+' : ''}{mi.fear_greed_chg?.toFixed(1) ?? 0}
               </span>
             </div>
@@ -378,26 +378,26 @@ export function P2StrategicDashboard() {
 
       {/* ── KPI Grid ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-card border border-border rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
           <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">💰 現金水位</div>
           <div className={`text-2xl font-bold ${cashNow >= 5 ? 'text-up' : cashNow >= 3 ? 'text-warning' : 'text-down'}`}>
             {cashNow.toFixed(1)}%
           </div>
           <div className="text-[10px] text-text-muted mt-0.5">{cashMode?.mode_desc || '-'}</div>
         </div>
-        <div className="bg-card border border-border rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
           <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">⚔️ 攻防模式</div>
           <div className="text-2xl font-bold" style={{ color: modeColor }}>{cashMode?.mode?.replace(/🔵|🟢|🟡|🔴/g, '').trim() || '-'}</div>
           <div className="text-[10px] mt-0.5" style={{ color: modeColor }}>{cashTrend}</div>
         </div>
-        <div className="bg-card border border-border rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
           <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">🎯 跟單狀態</div>
           <div className={`text-2xl font-bold ${cashNow > 4 ? 'text-up' : 'text-text-muted'}`}>
             {cashNow > 4 ? '加分中' : '一般'}
           </div>
           <div className="text-[10px] text-text-muted mt-0.5">{cashNow > 4 ? '現金>4%, 勝率提升' : '一般狀態'}</div>
         </div>
-        <div className="bg-card border border-border rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
           <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">📊 今日異動</div>
           <div className="text-2xl font-bold text-accent">{totalSignals}</div>
           <div className="text-[10px] text-text-muted mt-0.5">🆕{nNew} ▲{nAdded} ▼{nReduced} ✕{nExited}</div>
