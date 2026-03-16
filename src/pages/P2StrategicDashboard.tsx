@@ -213,7 +213,7 @@ export function P2StrategicDashboard() {
   return (
     <div className="space-y-3">
       {/* ── Taiwan Indices Hero ── */}
-      <div className={`grid ${tpex ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
+      <div className="grid grid-cols-2 gap-3">
         <div className="bg-card border border-border rounded-xl p-5 hover:bg-card-hover transition-all">
           <div className="text-xs text-text-muted mb-1">🇹🇼 加權指數 TAIEX</div>
           <div className={`text-3xl font-extrabold tabular-nums ${(taiexChg ?? 0) > 0 ? 'text-up' : (taiexChg ?? 0) < 0 ? 'text-down' : 'text-text-muted'}`}>
@@ -230,9 +230,19 @@ export function P2StrategicDashboard() {
             </div>
           )}
         </div>
-        {tpex && (
-          <HeroCard flag="🇹🇼" label="櫃買指數 TPEX" value={tpex} chg={tpexChg} chgPct={tpexChgPct} delay="0.12s" />
-        )}
+        <div className="bg-card border border-border rounded-xl p-5 hover:bg-card-hover transition-all">
+          <div className="text-xs text-text-muted mb-1">🇹🇼 櫃買指數 TPEX</div>
+          <div className={`text-3xl font-extrabold tabular-nums ${(tpexChg ?? 0) > 0 ? 'text-up' : (tpexChg ?? 0) < 0 ? 'text-down' : 'text-text-muted'}`}>
+            {tpex != null ? tpex.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '等待資料'}
+          </div>
+          {tpex ? (
+            <div className="flex items-center gap-2 mt-1 text-sm">
+              <Chg val={tpexChg} /> <span className="text-text-muted">|</span> <Chg val={tpexChgPct} suffix="%" />
+            </div>
+          ) : (
+            <div className="text-[10px] text-text-muted mt-1">Pipeline 尚未產出櫃買指數</div>
+          )}
+        </div>
       </div>
 
       {/* ── Sentiment Row ── */}
