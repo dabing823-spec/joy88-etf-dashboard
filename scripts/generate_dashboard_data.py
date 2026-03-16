@@ -96,6 +96,39 @@ def fetch_market_indices(start_year=2025, start_month=10):
             m = 1
             y += 1
 
+    # ── Yahoo Finance fallback (for GitHub Actions / overseas IP) ──
+    if len(taiex) == 0 or len(tpex) == 0:
+        print("  ⚠️ TWSE/TPEX 官網資料不足，嘗試 Yahoo Finance fallback...")
+        import urllib.request, ssl, json as _json
+        ctx = ssl.create_default_context()
+        yh_headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+        symbols = []
+        if len(taiex) == 0:
+            symbols.append(("^TWII", "TAIEX"))
+        if len(tpex) == 0:
+            symbols.append(("^TWO", "TPEX"))
+        for symbol, label in symbols:
+            try:
+                url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=6mo&interval=1d"
+                req = urllib.request.Request(url, headers=yh_headers)
+                with urllib.request.urlopen(req, timeout=15, context=ctx) as resp:
+                    ydata = _json.loads(resp.read().decode())
+                result = ydata["chart"]["result"][0]
+                timestamps = result.get("timestamp", [])
+                closes = result["indicators"]["quote"][0]["close"]
+                for ts, c in zip(timestamps, closes):
+                    if c is None:
+                        continue
+                    from datetime import timezone
+                    dt = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
+                    if label == "TAIEX":
+                        taiex[dt] = round(c, 2)
+                    else:
+                        tpex[dt] = round(c, 2)
+                print(f"  ✅ Yahoo {label}: {len(timestamps)} 天")
+            except Exception as e:
+                print(f"  ❌ Yahoo {label} fallback 失敗: {e}")
+
     print(f"  📈 TAIEX: {len(taiex)} 天, TPEX: {len(tpex)} 天")
     return taiex, tpex
 
