@@ -1,11 +1,19 @@
 import { useState, useMemo } from 'react'
-import { Line } from 'react-chartjs-2'
+import { Line, Bar, Chart } from 'react-chartjs-2'
 import { useData } from '../contexts/DataContext'
 import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable } from '../components/shared'
 import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
 import { ETF_LIST, ETF_SHORT_NAMES } from '../lib/constants'
 import '../lib/chartDefaults'
 import type { EtfPageData, DateRecord } from '../types'
+
+const ETF_COLORS: Record<string, string> = {
+  '00981A': '#4f8ef7',
+  '00980A': '#ffa502',
+  '00982A': '#a855f7',
+  '00991A': '#00c48c',
+  '00993A': '#22d3ee',
+}
 
 function getLatestRecord(etfData: EtfPageData): DateRecord | null {
   const records = etfData.date_records
@@ -57,42 +65,156 @@ export function P4EtfHistoryComparison() {
     return h.slice(0, 5).reduce((sum, item) => sum + (item.weight || 0), 0)
   }, [latest])
 
-  // Cash vs Index chart
-  const cashChartData = useMemo(() => {
-    if (!etfData?.cash_series) return null
-    const last30 = etfData.cash_series.slice(-30)
+  // ── Chart 1: 五檔 ETF 現金權重 + 加權指數 套圖 ──
+  const allCashChartData = useMemo(() => {
+    if (!etfPages) return null
+    // Use 00981A dates as base (longest series)
+    const baseSeries = etfPages['00981A']?.cash_series
+    if (!baseSeries?.length) return null
+    const sliced = baseSeries.slice(-90)
+    const labels = sliced.map(d => d.date)
+
+    const etfDatasets = ETF_LIST.map(etf => {
+      const series = etfPages[etf]?.cash_series || []
+      const dateMap = Object.fromEntries(series.map(d => [d.date, d.cash_pct]))
+      return {
+        label: `${ETF_SHORT_NAMES[etf]} 現金%`,
+        data: labels.map(d => dateMap[d] ?? null),
+        borderColor: ETF_COLORS[etf],
+        backgroundColor: `${ETF_COLORS[etf]}08`,
+        borderWidth: etf === currentETF ? 2.5 : 1.2,
+        tension: 0.35, pointRadius: 0,
+        pointHoverRadius: 3, pointHoverBackgroundColor: ETF_COLORS[etf],
+        fill: etf === currentETF, yAxisID: 'y',
+        borderDash: etf === currentETF ? [] : [4, 2],
+        order: etf === currentETF ? 1 : 5,
+      }
+    })
+
     return {
-      labels: last30.map(d => d.date),
+      labels,
+      datasets: [
+        ...etfDatasets,
+        {
+          label: '加權指數',
+          data: sliced.map(d => d.taiex ?? null),
+          borderColor: '#ff475780', backgroundColor: 'rgba(255,71,87,0.03)',
+          borderWidth: 1.5, tension: 0.35, pointRadius: 0, fill: true,
+          yAxisID: 'y1', order: 8,
+        },
+      ],
+    }
+  }, [etfPages, currentETF])
+
+  const allCashChartOptions = useMemo(() => ({
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index' as const, intersect: false },
+    plugins: {
+      ...defaultPluginOptions,
+      legend: { ...defaultPluginOptions.legend, position: 'top' as const, labels: { ...defaultPluginOptions.legend.labels, usePointStyle: true, pointStyle: 'circle', padding: 10 } },
+      tooltip: {
+        mode: 'index' as const, intersect: false,
+        backgroundColor: 'rgba(15,17,28,0.95)', borderColor: 'rgba(79,142,247,0.3)', borderWidth: 1,
+        titleColor: '#e4e6eb', bodyColor: '#9ca0b4', padding: 10, cornerRadius: 8,
+        bodyFont: { family: 'monospace', size: 11 },
+        callbacks: {
+          label: (ctx: { dataset: { label: string }; parsed: { y: number } }) => {
+            const v = ctx.parsed.y
+            if (v == null) return ''
+            if (ctx.dataset.label.includes('加權')) return ` ${ctx.dataset.label}: ${v.toLocaleString()}`
+            return ` ${ctx.dataset.label}: ${v.toFixed(2)}%`
+          },
+        },
+      },
+    },
+    scales: {
+      y: { type: 'linear' as const, position: 'left' as const, ticks: { color: '#8b8fa3', callback: (v: number) => `${v}%` }, grid: { color: 'rgba(42,46,61,0.5)' }, title: { display: true, text: '現金比例 (%)', color: '#4f8ef7', font: { size: 11 } } },
+      y1: { type: 'linear' as const, position: 'right' as const, ticks: { color: '#8b8fa3', callback: (v: number) => v.toLocaleString() }, grid: { display: false }, title: { display: true, text: '加權指數', color: '#ff4757', font: { size: 11 } } },
+      x: { ticks: { color: '#8b8fa3', maxRotation: 0, autoSkipPadding: 20 }, grid: { display: false } },
+    },
+  }), [])
+
+  // ── Chart 2: 持股數 K 棒 (日增減) ──
+  const holdingsBarData = useMemo(() => {
+    if (!etfData || dates.length < 2) return null
+    const last30 = dates.slice(-30)
+    const values: number[] = []
+    const deltas: number[] = []
+    last30.forEach((d, i) => {
+      const r = getRecordByDate(etfData, d)
+      const n = r?.n_stocks || 0
+      values.push(n)
+      if (i === 0) {
+        const idx = dates.indexOf(d)
+        const prev = idx > 0 ? getRecordByDate(etfData, dates[idx - 1]) : null
+        deltas.push(prev ? n - (prev.n_stocks || 0) : 0)
+      } else {
+        deltas.push(n - values[i - 1])
+      }
+    })
+    return {
+      labels: last30,
       datasets: [
         {
-          label: '現金比例',
-          data: last30.map(d => d.cash_pct),
-          borderColor: chartColors.accent,
-          backgroundColor: 'rgba(79, 142, 247, 0.1)',
-          borderWidth: 2, tension: 0.3, pointRadius: 0, fill: true, yAxisID: 'y',
+          type: 'bar' as const, label: '持股增減',
+          data: deltas,
+          backgroundColor: deltas.map(d => d > 0 ? 'rgba(255,71,87,0.6)' : d < 0 ? 'rgba(0,196,140,0.6)' : 'rgba(139,143,163,0.3)'),
+          borderColor: deltas.map(d => d > 0 ? '#ff4757' : d < 0 ? '#00c48c' : '#8b8fa3'),
+          borderWidth: 1, yAxisID: 'y1', order: 1,
+        },
+        {
+          type: 'line' as const, label: '持股數',
+          data: values,
+          borderColor: '#a855f7', backgroundColor: 'rgba(168,85,247,0.06)',
+          borderWidth: 2, tension: 0.35, pointRadius: 0, fill: true, yAxisID: 'y', order: 2,
+        },
+      ],
+    }
+  }, [etfData, dates])
+
+  // ── Chart 3: 現金水位 K 棒 (日增減) ──
+  const cashBarData = useMemo(() => {
+    if (!etfData?.cash_series || etfData.cash_series.length < 2) return null
+    const series = etfData.cash_series.slice(-30)
+    const deltas = series.map((d, i) => i === 0 ? 0 : d.cash_pct - series[i - 1].cash_pct)
+    return {
+      labels: series.map(d => d.date),
+      datasets: [
+        {
+          type: 'bar' as const, label: '現金增減',
+          data: deltas,
+          backgroundColor: deltas.map(d => d > 0 ? 'rgba(255,71,87,0.6)' : d < 0 ? 'rgba(0,196,140,0.6)' : 'rgba(139,143,163,0.3)'),
+          borderColor: deltas.map(d => d > 0 ? '#ff4757' : d < 0 ? '#00c48c' : '#8b8fa3'),
+          borderWidth: 1, yAxisID: 'y1', order: 1,
+        },
+        {
+          type: 'line' as const, label: '現金水位',
+          data: series.map(d => d.cash_pct),
+          borderColor: '#4f8ef7', backgroundColor: 'rgba(79,142,247,0.06)',
+          borderWidth: 2, tension: 0.35, pointRadius: 0, fill: true, yAxisID: 'y', order: 2,
         },
       ],
     }
   }, [etfData])
 
-  // Holdings trend chart
-  const holdingsTrendData = useMemo(() => {
-    if (!etfData || dates.length < 2) return null
-    const last30Dates = dates.slice(-30)
-    return {
-      labels: last30Dates,
-      datasets: [{
-        label: '持股數',
-        data: last30Dates.map(d => {
-          const r = getRecordByDate(etfData, d)
-          return r?.n_stocks || 0
-        }),
-        borderColor: chartColors.purple,
-        backgroundColor: 'rgba(168, 85, 247, 0.1)',
-        borderWidth: 2, tension: 0.3, pointRadius: 0, fill: true,
-      }],
-    }
-  }, [etfData, dates])
+  const barChartOptions = useMemo(() => ({
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index' as const, intersect: false },
+    plugins: {
+      ...defaultPluginOptions,
+      tooltip: {
+        mode: 'index' as const, intersect: false,
+        backgroundColor: 'rgba(15,17,28,0.95)', borderColor: 'rgba(79,142,247,0.3)', borderWidth: 1,
+        titleColor: '#e4e6eb', bodyColor: '#9ca0b4', padding: 10, cornerRadius: 8,
+        bodyFont: { family: 'monospace', size: 11 },
+      },
+    },
+    scales: {
+      y: { type: 'linear' as const, position: 'left' as const, ticks: { color: '#8b8fa3' }, grid: { color: 'rgba(42,46,61,0.5)' } },
+      y1: { type: 'linear' as const, position: 'right' as const, ticks: { color: '#8b8fa3' }, grid: { display: false }, title: { display: true, text: '日增減', color: '#8b8fa3', font: { size: 10 } } },
+      x: { ticks: { color: '#8b8fa3', maxRotation: 0, autoSkipPadding: 15 }, grid: { display: false } },
+    },
+  }), [])
 
   // Holdings table
   const holdingColumns = [
@@ -205,29 +327,24 @@ export function P4EtfHistoryComparison() {
         <KpiCard label="持股集中度 (Top 5)" value={`${top5Weight.toFixed(1)}%`} valueColor={top5Weight >= 40 ? 'text-up' : top5Weight >= 30 ? 'text-warning' : 'text-down'} />
       </KpiGrid>
 
-      {/* Charts */}
+      {/* Chart 1: 五檔 ETF 現金權重 + 加權指數 */}
+      <TableContainer title="五檔 ETF 現金權重 vs 加權指數">
+        <div className="h-80">
+          {allCashChartData && <Chart type="line" data={allCashChartData as never} options={allCashChartOptions as never} />}
+        </div>
+      </TableContainer>
+
+      {/* Chart 2 & 3: K 棒 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <TableContainer title="現金權重趨勢">
-          <div className="h-56">
-            {cashChartData && (
-              <Line data={cashChartData} options={{
-                responsive: true, maintainAspectRatio: false,
-                plugins: defaultPluginOptions,
-                scales: { y: { ...defaultScaleOptions, title: { display: true, text: '現金比例 (%)', color: chartColors.textMuted } }, x: defaultScaleOptions },
-              }} />
-            )}
+        <TableContainer title={`${ETF_SHORT_NAMES[currentETF]} 現金水位 K 棒`}>
+          <div className="h-64">
+            {cashBarData && <Chart type="bar" data={cashBarData as never} options={barChartOptions as never} />}
           </div>
         </TableContainer>
 
-        <TableContainer title="持股數量變化">
-          <div className="h-56">
-            {holdingsTrendData && (
-              <Line data={holdingsTrendData} options={{
-                responsive: true, maintainAspectRatio: false,
-                plugins: defaultPluginOptions,
-                scales: { y: defaultScaleOptions, x: defaultScaleOptions },
-              }} />
-            )}
+        <TableContainer title={`${ETF_SHORT_NAMES[currentETF]} 持股數 K 棒`}>
+          <div className="h-64">
+            {holdingsBarData && <Chart type="bar" data={holdingsBarData as never} options={barChartOptions as never} />}
           </div>
         </TableContainer>
       </div>
