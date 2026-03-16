@@ -27,8 +27,8 @@ export interface NewsAnalysisItem {
   headline: string
   category: string
   category_color: string
-  source: string
-  link: string
+  source?: string
+  link?: string
   layer1: NewsLayer1
   layer2: NewsLayer2
   layer3: NewsLayer3

@@ -114,7 +114,7 @@ export function P12TsmcVolSignal() {
           <VolBar label="RV 60d" value={vol['RV_60d(%)']} max={80} />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 mt-4 border-t border-border pt-3">
-          <StatCell label="RV 20d 百分位" value={vol['RV_20d_Percentile']} color={vol['RV_20d_Percentile'] > 80 ? '#ff4757' : vol['RV_20d_Percentile'] > 50 ? '#ffa502' : '#00c48c'} />
+          <StatCell label="RV 20d 百分位" value={`${vol['RV_20d_Percentile']?.toFixed(0)}`} color={vol['RV_20d_Percentile'] > 80 ? '#ff4757' : vol['RV_20d_Percentile'] > 50 ? '#ffa502' : '#00c48c'} />
           <StatCell label="Parkinson 20d" value={`${vol['Parkinson_20d(%)']?.toFixed(1)}`} unit="%" />
           <StatCell label="YangZhang 20d" value={`${vol['YangZhang_20d(%)']?.toFixed(1)}`} unit="%" />
           <StatCell label="ATR / 股價" value={`${vol['ATR佔股價(%)']?.toFixed(2)}`} unit="%" />

@@ -19,7 +19,7 @@ function NewsCard({ item, isActive, onClick }: { item: NewsAnalysisItem; isActiv
         <span className="text-sm font-semibold text-text-primary leading-snug">{item.headline}</span>
         <Badge variant={categoryColors[item.category_color] || 'blue'}>{item.category}</Badge>
       </div>
-      <div className="text-xs text-text-muted">{item.source} | {item.date}</div>
+      <div className="text-xs text-text-muted">{item.source && <>{item.source} | </>}{item.date}</div>
     </button>
   )
 }
