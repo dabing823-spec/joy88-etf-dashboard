@@ -257,7 +257,7 @@ export function P1HoldingsTracker() {
       .sort(([a], [b]) => b.localeCompare(a))
       .slice(0, 15)
       .map(([date, signals]) => ({ date, signals }))
-  }, [dailyChanges])
+  }, [laomoSignals])
 
   const formatUnits = (v: number) => {
     const abs = Math.abs(v)

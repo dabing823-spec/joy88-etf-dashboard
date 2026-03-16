@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useData } from '../contexts/DataContext'
 import { Badge, TableContainer, DataTable } from '../components/shared'
-import { RISK_LEVEL_COLORS } from '../lib/constants'
 import type { MarketIndices, ConsensusItem, CashSeriesItem } from '../types'
 
 /* ── helpers ─────────────────────────────────────────── */

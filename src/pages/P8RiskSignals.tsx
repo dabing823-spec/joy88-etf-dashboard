@@ -199,7 +199,7 @@ export function P8RiskSignals() {
   const riskSignals = strategy?.risk_signals
   const agentStatus = strategy?.agent_status
   const signals = (riskSignals?.signals || []) as unknown as SignalItem[]
-  const historyMap = (riskSignals?.history || {}) as unknown as Record<string, HistoryPoint[]>
+  const historyMap = riskSignals?.history || {}
 
   if (!riskSignals) {
     return (

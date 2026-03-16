@@ -118,7 +118,7 @@ export interface RiskSignals {
   n_yellow: number
   n_green: number
   signals: RiskSignal[]
-  history: Array<{ date: string; score: number; level: string }>
+  history: Record<string, Array<{ date: string; close: number }>>
   updated_at: string
 }
 
