@@ -9,7 +9,7 @@ on:
       days:
         description: '下載最近 N 天的 Excel'
         required: false
-        default: '7'
+        default: '150'
 
 permissions:
   contents: write
