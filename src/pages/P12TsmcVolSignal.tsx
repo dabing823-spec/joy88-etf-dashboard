@@ -191,7 +191,7 @@ export function P12TsmcVolSignal() {
               <h3 className="text-xs font-semibold text-text-muted mb-2">事件倒數</h3>
               <div className="space-y-2">
                 {events.map((ev, i) => (
-                  <div key={i} className="flex items-center justify-between p-2 bg-bg rounded-lg">
+                  <div key={i} className="flex items-center justify-between p-2 bg-bg rounded-xl">
                     <div>
                       <span className="text-xs font-medium text-text-primary">{ev.事件}</span>
                       <span className="text-[10px] text-text-muted ml-2">{ev.日期}</span>
@@ -216,7 +216,7 @@ export function P12TsmcVolSignal() {
           <div className="text-sm font-semibold text-text-primary mb-3">台指周選策略</div>
           <div className="space-y-2">
             {weeklyStrats.map((s, i) => (
-              <div key={i} className="p-3 bg-bg rounded-lg">
+              <div key={i} className="p-3 bg-bg rounded-xl">
                 {s.策略 ? (
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">

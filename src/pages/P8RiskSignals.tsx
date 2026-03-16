@@ -142,7 +142,7 @@ function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; h
         </div>
 
         {/* Phase + Theory */}
-        <div className="mb-4 p-3 bg-bg rounded-lg">
+        <div className="mb-4 p-3 bg-bg rounded-xl">
           <div className="text-sm font-medium mb-1" style={{ color: signal.phase === 'accelerating' ? '#ff4757' : '#00c48c' }}>
             {signal.phase_label}
           </div>
@@ -279,24 +279,24 @@ export function P8RiskSignals() {
         <summary className="cursor-pointer font-semibold text-text-primary">📚 研究依據與理論基礎</summary>
         <div className="mt-4 text-sm text-text-muted leading-relaxed space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="p-4 bg-up/5 rounded-lg border-l-4 border-l-up">
+            <div className="p-4 bg-up/5 rounded-xl border-l-4 border-l-up">
               <div className="font-semibold text-text-primary mb-1">1. SPY/JPY 套利平倉壓力 <span className="text-up text-xs">重要度 19.9%</span></div>
               <p>借入低利率日圓買進美股的 Carry Trade。日圓走強迫使平倉，2024年8月台股同步重挫千點。</p>
             </div>
-            <div className="p-4 bg-up/5 rounded-lg border-l-4 border-l-up">
+            <div className="p-4 bg-up/5 rounded-xl border-l-4 border-l-up">
               <div className="font-semibold text-text-primary mb-1">2. VIX 波動率趨勢 <span className="text-up text-xs">重要度 13.3%</span></div>
               <p>VIX 緩步墊高比突然飆升更能預測崩盤。20日斜率持續正值且加速 = 恐慌累積。</p>
             </div>
-            <div className="p-4 bg-warning/5 rounded-lg border-l-4 border-l-warning">
+            <div className="p-4 bg-warning/5 rounded-xl border-l-4 border-l-warning">
               <div className="font-semibold text-text-primary mb-1">3. HYG/TLT 流動性枯竭 <span className="text-warning text-xs">重要度 12.5%</span></div>
               <p>HYG/TLT 比值下降 = 資金從垃圾債撤出湧入國債。信用市場領先股市 1-2 週。</p>
             </div>
-            <div className="p-4 bg-accent/5 rounded-lg border-l-4 border-l-accent">
+            <div className="p-4 bg-accent/5 rounded-xl border-l-4 border-l-accent">
               <div className="font-semibold text-text-primary mb-1">4-8. DXY / US10Y / F&G / Gold / Oil</div>
               <p>美元壓力、殖利率、恐懼指數、黃金避險、油價通膨 — 五大輔助指標。</p>
             </div>
           </div>
-          <div className="p-4 bg-purple/5 rounded-lg border-l-4 border-l-purple">
+          <div className="p-4 bg-purple/5 rounded-xl border-l-4 border-l-purple">
             <div className="font-semibold text-text-primary mb-1">方法論：速度 + 加速度 + 統計機率</div>
             <p>一階導數（20日斜率）判斷趨勢，二階導數（加速度）判斷惡化擴大程度。紅燈x2 + 黃燈x1 → 0-10 分制。</p>
           </div>
