@@ -149,15 +149,35 @@ export function P2StrategicDashboard() {
   const tpexChg = tpex && prevTpex ? tpex - prevTpex : undefined
   const tpexChgPct = tpex && prevTpex ? ((tpex - prevTpex) / prevTpex) * 100 : undefined
 
-  // Calculate MA20/MA60 from cash_series taiex values
-  const taiexValues = cashSeries.map(d => d.taiex).filter((v): v is number => v != null)
+  // Calculate MA20/MA60 from cash_series
   const calcMA = (arr: number[], period: number) => arr.length >= period ? arr.slice(-period).reduce((a, b) => a + b, 0) / period : undefined
-  const taiexMA20 = calcMA(taiexValues, 20)
-  const taiexMA60 = calcMA(taiexValues, 60)
-  const taiexMaLabel = taiex && taiexMA60 && taiexMA20
-    ? taiex > taiexMA20 ? '月線之上' : taiex > taiexMA60 ? '月線之下 季線之上' : '季線之下'
-    : undefined
-  const taiexMaColor = taiexMaLabel === '月線之上' ? '#00c48c' : taiexMaLabel === '季線之下' ? '#ff4757' : '#ffa502'
+  const getMaInfo = (values: number[], current: number | undefined) => {
+    const ma20 = calcMA(values, 20)
+    const ma60 = calcMA(values, 60)
+    const label = current && ma60 && ma20
+      ? current > ma20 ? '月線之上' : current > ma60 ? '月線之下 季線之上' : '季線之下'
+      : undefined
+    const color = label === '月線之上' ? '#00c48c' : label === '季線之下' ? '#ff4757' : '#ffa502'
+    return { ma20, ma60, label, color }
+  }
+  const taiexValues = cashSeries.map(d => d.taiex).filter((v): v is number => v != null)
+  const tpexValues = cashSeries.map(d => d.tpex).filter((v): v is number => v != null)
+  const taiexMa = getMaInfo(taiexValues, taiex)
+  const tpexMa = getMaInfo(tpexValues, tpex)
+
+  // Recent 4-day history for mini sparkline tables
+  const recent4 = cashSeries.slice(-4)
+  const getRecentDeltas = (key: 'taiex' | 'tpex') => {
+    return recent4.map((d, i) => {
+      const val = d[key]
+      const prev = i > 0 ? recent4[i - 1][key] : (cashSeries.length > 4 ? cashSeries[cashSeries.length - 5]?.[key] : undefined)
+      const chg = val != null && prev != null ? val - prev : undefined
+      const pct = val != null && prev != null && prev !== 0 ? ((val - prev) / prev) * 100 : undefined
+      return { date: d.date.slice(5), val, chg, pct }
+    })
+  }
+  const taiexRecent = getRecentDeltas('taiex')
+  const tpexRecent = getRecentDeltas('tpex')
 
   // 攻防模式顏色映射
   const modeText = cashMode?.mode || ''
@@ -214,25 +234,34 @@ export function P2StrategicDashboard() {
     <div className="space-y-3">
       {/* ── Taiwan Indices Hero ── */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-card border border-border rounded-xl p-5 hover:bg-card-hover transition-all">
-          <div className="text-xs text-text-muted mb-1">🇹🇼 加權指數 TAIEX</div>
-          <div className={`text-3xl font-extrabold tabular-nums ${(taiexChg ?? 0) > 0 ? 'text-up' : (taiexChg ?? 0) < 0 ? 'text-down' : 'text-text-muted'}`}>
+        <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-all">
+          <div className="text-xs text-text-muted mb-1">加權指數 TAIEX</div>
+          <div className={`text-2xl font-extrabold tabular-nums ${(taiexChg ?? 0) > 0 ? 'text-up' : (taiexChg ?? 0) < 0 ? 'text-down' : 'text-text-muted'}`}>
             {taiex != null ? taiex.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '-'}
           </div>
           <div className="flex items-center gap-2 mt-1 text-sm">
             <Chg val={taiexChg} /> <span className="text-text-muted">|</span> <Chg val={taiexChgPct} suffix="%" />
           </div>
-          {taiexMaLabel && (
-            <div className="mt-2 px-2 py-1 rounded text-[10px] font-semibold inline-block" style={{ backgroundColor: `${taiexMaColor}15`, color: taiexMaColor }}>
-              {taiexMaLabel}
-              {taiexMA20 && <span className="opacity-60"> | 20MA: {taiexMA20.toFixed(0)}</span>}
-              {taiexMA60 && <span className="opacity-60"> | 60MA: {taiexMA60.toFixed(0)}</span>}
+          {taiexMa.label && (
+            <div className="mt-1.5 px-2 py-0.5 rounded text-[10px] font-semibold inline-block" style={{ backgroundColor: `${taiexMa.color}15`, color: taiexMa.color }}>
+              {taiexMa.label}
             </div>
           )}
+          {/* 近 4 日變動 */}
+          <div className="mt-2 grid grid-cols-4 gap-1 text-[9px] font-mono">
+            {taiexRecent.map((d, i) => (
+              <div key={i} className="text-center py-0.5 rounded bg-bg">
+                <div className="text-text-muted">{d.date}</div>
+                <div className={d.pct != null ? (d.pct > 0 ? 'text-up' : d.pct < 0 ? 'text-down' : 'text-text-muted') : 'text-text-muted'}>
+                  {d.pct != null ? `${d.pct > 0 ? '+' : ''}${d.pct.toFixed(1)}%` : '-'}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="bg-card border border-border rounded-xl p-5 hover:bg-card-hover transition-all">
-          <div className="text-xs text-text-muted mb-1">🇹🇼 櫃買指數 TPEX</div>
-          <div className={`text-3xl font-extrabold tabular-nums ${(tpexChg ?? 0) > 0 ? 'text-up' : (tpexChg ?? 0) < 0 ? 'text-down' : 'text-text-muted'}`}>
+        <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-all">
+          <div className="text-xs text-text-muted mb-1">櫃買指數 TPEX</div>
+          <div className={`text-2xl font-extrabold tabular-nums ${(tpexChg ?? 0) > 0 ? 'text-up' : (tpexChg ?? 0) < 0 ? 'text-down' : 'text-text-muted'}`}>
             {tpex != null ? tpex.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '等待資料'}
           </div>
           {tpex ? (
@@ -240,25 +269,69 @@ export function P2StrategicDashboard() {
               <Chg val={tpexChg} /> <span className="text-text-muted">|</span> <Chg val={tpexChgPct} suffix="%" />
             </div>
           ) : (
-            <div className="text-[10px] text-text-muted mt-1">Pipeline 尚未產出櫃買指數</div>
+            <div className="text-[10px] text-text-muted mt-1">Pipeline 尚未產出</div>
           )}
+          {tpexMa.label && (
+            <div className="mt-1.5 px-2 py-0.5 rounded text-[10px] font-semibold inline-block" style={{ backgroundColor: `${tpexMa.color}15`, color: tpexMa.color }}>
+              {tpexMa.label}
+            </div>
+          )}
+          {/* 近 4 日變動 */}
+          <div className="mt-2 grid grid-cols-4 gap-1 text-[9px] font-mono">
+            {tpexRecent.map((d, i) => (
+              <div key={i} className="text-center py-0.5 rounded bg-bg">
+                <div className="text-text-muted">{d.date}</div>
+                <div className={d.pct != null ? (d.pct > 0 ? 'text-up' : d.pct < 0 ? 'text-down' : 'text-text-muted') : 'text-text-muted'}>
+                  {d.pct != null ? `${d.pct > 0 ? '+' : ''}${d.pct.toFixed(1)}%` : '-'}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* ── Sentiment Row ── */}
+      {/* ── Sentiment Row (VIX + F&G with 3-day history) ── */}
       {mi && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className={`grid ${mi.vix_tw != null ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}>
           {mi.vix_tw != null && (
-            <SentimentCard icon="⚡" label="VIX 台灣" value={mi.vix_tw.toFixed(2)}
-              sub={`${(mi.vix_tw_chg ?? 0) >= 0 ? '+' : ''}${mi.vix_tw_chg?.toFixed(2) ?? '-'}`}
-              color={vixLevel(mi.vix_tw)} />
+            <div className="bg-card border border-border rounded-xl p-4 text-center hover:bg-card-hover transition-colors">
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">VIX 台灣</div>
+              <div className={`text-xl font-bold tabular-nums ${vixLevel(mi.vix_tw)}`}>{mi.vix_tw.toFixed(2)}</div>
+              <div className="text-[10px] text-text-muted mt-0.5">
+                {(mi.vix_tw_chg ?? 0) >= 0 ? '+' : ''}{mi.vix_tw_chg?.toFixed(2) ?? '-'}
+              </div>
+            </div>
           )}
-          <SentimentCard icon="⚡" label="VIX S&P500" value={mi.vix?.toFixed(2) || '-'}
-            sub={`${(mi.vix_chg ?? 0) >= 0 ? '+' : ''}${mi.vix_chg?.toFixed(2) ?? '-'}`}
-            color={vixLevel(mi.vix)} />
-          <SentimentCard icon="🎭" label="CNN 恐懼與貪婪" value={mi.fear_greed?.toString() || '-'}
-            sub={fgLabel}
-            color={fgLevel(mi.fear_greed)} />
+          <div className="bg-card border border-border rounded-xl p-4 text-center hover:bg-card-hover transition-colors">
+            <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">VIX S&P500</div>
+            <div className={`text-xl font-bold tabular-nums ${vixLevel(mi.vix)}`}>{mi.vix?.toFixed(2) || '-'}</div>
+            <div className="text-[10px] text-text-muted mt-0.5">
+              {(mi.vix_chg ?? 0) >= 0 ? '+' : ''}{mi.vix_chg?.toFixed(2) ?? '-'}
+            </div>
+            {/* VIX 3-day mini */}
+            <div className="mt-2 flex justify-center gap-1 text-[9px] font-mono">
+              {mi.vix_prev != null && (
+                <span className="px-1 py-0.5 rounded bg-bg text-text-muted">前: {mi.vix_prev.toFixed(1)}</span>
+              )}
+              <span className={`px-1 py-0.5 rounded ${(mi.vix_chg_pct ?? 0) > 5 ? 'bg-red-500/10 text-up' : (mi.vix_chg_pct ?? 0) < -5 ? 'bg-green-500/10 text-down' : 'bg-bg text-text-muted'}`}>
+                {(mi.vix_chg_pct ?? 0) >= 0 ? '+' : ''}{mi.vix_chg_pct?.toFixed(1) ?? 0}%
+              </span>
+            </div>
+          </div>
+          <div className="bg-card border border-border rounded-xl p-4 text-center hover:bg-card-hover transition-colors">
+            <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">CNN 恐懼與貪婪</div>
+            <div className={`text-xl font-bold tabular-nums ${fgLevel(mi.fear_greed)}`}>{mi.fear_greed?.toString() || '-'}</div>
+            <div className="text-[10px] text-text-muted mt-0.5">{fgLabel}</div>
+            {/* F&G 3-day mini */}
+            <div className="mt-2 flex justify-center gap-1 text-[9px] font-mono">
+              {mi.fear_greed_prev != null && (
+                <span className="px-1 py-0.5 rounded bg-bg text-text-muted">前: {mi.fear_greed_prev}</span>
+              )}
+              <span className={`px-1 py-0.5 rounded ${(mi.fear_greed_chg ?? 0) > 0 ? 'bg-green-500/10 text-down' : 'bg-red-500/10 text-up'}`}>
+                {(mi.fear_greed_chg ?? 0) >= 0 ? '+' : ''}{mi.fear_greed_chg?.toFixed(1) ?? 0}
+              </span>
+            </div>
+          </div>
         </div>
       )}
 
