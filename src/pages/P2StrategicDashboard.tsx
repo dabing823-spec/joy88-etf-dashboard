@@ -64,12 +64,22 @@ function MacroCell({ emoji, label, value, chgPct, hint }: { emoji: string; label
 
 /* ── Risk Banner (clickable → P8) ────────────────────── */
 
+const LEVEL_MAP: Record<string, { label: string; color: string }> = {
+  red: { label: '🔴 高度警戒', color: '#ff4757' },
+  high: { label: '🔴 高度警戒', color: '#ff4757' },
+  yellow: { label: '🟡 中度警戒', color: '#ffa502' },
+  medium: { label: '🟡 中度警戒', color: '#ffa502' },
+  green: { label: '🟢 正常', color: '#00c48c' },
+  low: { label: '🟢 正常', color: '#00c48c' },
+}
+
 function RiskBanner({ score, maxScore, level, nRed, nYellow, nGreen, updatedAt, signals }: {
   score: number; maxScore: number; level: string; nRed: number; nYellow: number; nGreen: number; updatedAt: string
   signals: Array<{ name: string; level: string }>
 }) {
-  const color = RISK_LEVEL_COLORS[level] || RISK_LEVEL_COLORS.green
-  const label = level === 'red' ? '🔴 高度警戒' : level === 'yellow' ? '🟡 中度警戒' : '🟢 正常'
+  const mapped = LEVEL_MAP[level] || LEVEL_MAP.green
+  const color = mapped.color
+  const label = mapped.label
 
   return (
     <Link to="/risk" className="block bg-card border border-border rounded-xl overflow-hidden mb-3 hover:bg-card-hover transition-colors">
@@ -89,12 +99,15 @@ function RiskBanner({ score, maxScore, level, nRed, nYellow, nGreen, updatedAt, 
         <span className="text-accent text-xs font-medium">詳情 →</span>
       </div>
       <div className="flex flex-wrap gap-1.5 px-4 py-2.5">
-        {signals.map((s, i) => (
-          <span key={i} className="px-2 py-0.5 rounded text-[10px] font-semibold"
-            style={{ backgroundColor: `${RISK_LEVEL_COLORS[s.level]}15`, color: RISK_LEVEL_COLORS[s.level] }}>
-            {s.name}
-          </span>
-        ))}
+        {signals.map((s, i) => {
+          const sc = (LEVEL_MAP[s.level] || LEVEL_MAP.green).color
+          return (
+            <span key={i} className="px-2 py-0.5 rounded text-[10px] font-semibold"
+              style={{ backgroundColor: `${sc}15`, color: sc }}>
+              {s.name}
+            </span>
+          )
+        })}
       </div>
     </Link>
   )
