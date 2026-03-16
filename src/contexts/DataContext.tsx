@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-import type { DashboardData, StrategyData, EtfPagesData, NewsAnalysisData, AiResearchData } from '../types'
+import type { DashboardData, UpdateStatus, StrategyData, EtfPagesData, NewsAnalysisData, AiResearchData } from '../types'
 import { BASE_URL } from '../lib/constants'
 
 interface DataState {
   dashboard: DashboardData | null
+  updateStatus: UpdateStatus | null
   strategy: StrategyData | null
   etfPages: EtfPagesData | null
   newsAnalysis: NewsAnalysisData | null
@@ -14,6 +15,7 @@ interface DataState {
 
 const DataContext = createContext<DataState>({
   dashboard: null,
+  updateStatus: null,
   strategy: null,
   etfPages: null,
   newsAnalysis: null,
@@ -32,6 +34,7 @@ async function fetchJson<T>(path: string): Promise<T> {
 export function DataProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DataState>({
     dashboard: null,
+    updateStatus: null,
     strategy: null,
     etfPages: null,
     newsAnalysis: null,
@@ -50,10 +53,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
         setState((prev) => ({ ...prev, dashboard, etfPages, isLoading: false }))
 
-        const [strategy, aiResearch, newsAnalysis] = await Promise.allSettled([
+        const [strategy, aiResearch, newsAnalysis, updateStatus] = await Promise.allSettled([
           fetchJson<StrategyData>('strategy.json'),
           fetchJson<AiResearchData>('ai_research.json'),
           fetchJson<NewsAnalysisData>('news_analysis.json'),
+          fetchJson<UpdateStatus>('update_status.json'),
         ])
 
         setState((prev) => ({
@@ -61,6 +65,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           strategy: strategy.status === 'fulfilled' ? strategy.value : null,
           aiResearch: aiResearch.status === 'fulfilled' ? aiResearch.value : null,
           newsAnalysis: newsAnalysis.status === 'fulfilled' ? newsAnalysis.value : null,
+          updateStatus: updateStatus.status === 'fulfilled' ? updateStatus.value : null,
         }))
       } catch (err) {
         setState((prev) => ({

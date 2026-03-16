@@ -82,6 +82,12 @@ export interface StockSeriesItem {
   series: Array<{ date: string; weight: number }>
 }
 
+export interface UpdateStatus {
+  pipeline_completed_at: string
+  report_date: string
+  status: string
+}
+
 export interface DashboardData {
   report_date: string
   dates: string[]

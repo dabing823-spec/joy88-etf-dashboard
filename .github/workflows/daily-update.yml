@@ -2,8 +2,8 @@ name: Daily ETF Update
 
 on:
   schedule:
-    # 台灣時間 18:30 (UTC 10:30) — Excel 上傳完成後執行
-    - cron: '30 10 * * 1-5'
+    # 台灣時間 18:00 (UTC 10:00) — 每個交易日收盤後
+    - cron: '0 10 * * 1-5'
   workflow_dispatch:
     inputs:
       days:
@@ -80,6 +80,24 @@ jobs:
             fi
           done
 
+      - name: Write update status
+        run: |
+          python -c "
+          import json
+          from datetime import datetime, timezone, timedelta
+          tw = timezone(timedelta(hours=8))
+          now = datetime.now(tw)
+          dash = json.load(open('data/dashboard.json'))
+          status = {
+            'pipeline_completed_at': now.isoformat(),
+            'report_date': dash['report_date'],
+            'status': 'success'
+          }
+          with open('data/update_status.json', 'w') as f:
+            json.dump(status, f, ensure_ascii=False, indent=2)
+          print(f'Update status written: {now.isoformat()}')
+          "
+
       - name: Commit & Push
         run: |
           git config user.name "github-actions[bot]"
@@ -91,6 +109,31 @@ jobs:
             DATE=$(python -c "import json; print(json.load(open('data/dashboard.json'))['report_date'])")
             git commit -m "📊 Daily update: ${DATE}"
             git push
+          fi
+
+      - name: Notify data updated
+        if: success()
+        env:
+          LINE_NOTIFY_TOKEN: ${{ secrets.LINE_NOTIFY_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          DATE=$(python -c "import json; print(json.load(open('data/dashboard.json'))['report_date'])")
+          # LINE
+          if [ -n "$LINE_NOTIFY_TOKEN" ]; then
+            MSG=$'\n✅ ETF 每日資料已更新\n📅 '"$DATE"$'\n🔗 https://dabing823-spec.github.io/joy88-etf-dashboard/'
+            curl -s -X POST https://notify-api.line.me/api/notify \
+              -H "Authorization: Bearer $LINE_NOTIFY_TOKEN" \
+              -d "message=$MSG"
+            echo "LINE notification sent"
+          fi
+          # Telegram
+          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+            MSG="✅ ETF 每日資料已更新 📅 $DATE 🔗 https://dabing823-spec.github.io/joy88-etf-dashboard/"
+            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              -H "Content-Type: application/json" \
+              -d "{\"chat_id\": \"${TELEGRAM_CHAT_ID}\", \"text\": \"${MSG}\"}"
+            echo "Telegram notification sent"
           fi
 
       - name: Send daily email report

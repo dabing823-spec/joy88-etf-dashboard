@@ -15,8 +15,17 @@ const NAV_ITEMS = [
   { to: '/trump', label: '\uD83C\uDDFA\uD83C\uDDF8 Trump' },
 ]
 
+function formatUpdateTime(isoString: string): string {
+  const d = new Date(isoString)
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const min = String(d.getMinutes()).padStart(2, '0')
+  return `${mm}/${dd} ${hh}:${min}`
+}
+
 export function Layout() {
-  const { isLoading, error, dashboard } = useData()
+  const { isLoading, error, dashboard, updateStatus } = useData()
 
   return (
     <div className="min-h-screen bg-bg">
@@ -38,6 +47,11 @@ export function Layout() {
               {dashboard && (
                 <span className="text-[10px] text-text-muted font-mono">
                   DATA {dashboard.report_date}
+                </span>
+              )}
+              {updateStatus?.status === 'success' && (
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">
+                  Pipeline OK {formatUpdateTime(updateStatus.pipeline_completed_at)}
                 </span>
               )}
             </div>
