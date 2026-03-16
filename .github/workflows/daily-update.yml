@@ -114,6 +114,7 @@ jobs:
           else
             DATE=$(python -c "import json; print(json.load(open('data/dashboard.json'))['report_date'])")
             git commit -m "📊 Daily update: ${DATE}"
+            git pull --rebase
             git push
           fi
 

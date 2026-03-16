@@ -60,6 +60,7 @@ jobs:
           else
             DATE=$(date '+%Y-%m-%d')
             git commit -m "📰 Morning brief: ${DATE}"
+            git pull --rebase
             git push
           fi
 
