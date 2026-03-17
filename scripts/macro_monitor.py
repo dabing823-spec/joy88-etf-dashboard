@@ -24,7 +24,7 @@ import argparse
 import requests
 import re
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR.parent / "data"
@@ -132,7 +132,7 @@ def fetch_all_indices():
     except Exception as e:
         print(f"  [WARN] Fear & Greed: {e}")
 
-    result['updated_at'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    result['updated_at'] = datetime.now(tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     return result
 
 
@@ -299,12 +299,12 @@ def should_send_alert(alerts):
         except Exception:
             pass
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(tz=timezone.utc).isoformat()
     last_sent = state.get('last_sent', '')
     if last_sent:
         try:
             last_dt = datetime.fromisoformat(last_sent)
-            hours_diff = (datetime.utcnow() - last_dt).total_seconds() / 3600
+            hours_diff = (datetime.now(tz=timezone.utc) - last_dt).total_seconds() / 3600
             if hours_diff < 6:
                 # Check if same alerts
                 if state.get('last_alerts') == [a[:30] for a in alerts]:
