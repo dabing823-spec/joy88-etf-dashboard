@@ -327,49 +327,6 @@ export function P4EtfHistoryComparison() {
         <KpiCard label="持股集中度 (Top 5)" value={`${top5Weight.toFixed(1)}%`} valueColor={top5Weight >= 40 ? 'text-up' : top5Weight >= 30 ? 'text-warning' : 'text-down'} />
       </KpiGrid>
 
-      {/* Chart 1: 五檔 ETF 現金權重 + 加權指數 */}
-      <TableContainer title="五檔 ETF 現金權重 vs 加權指數">
-        <div className="h-80">
-          {allCashChartData && <Chart type="line" data={allCashChartData as never} options={allCashChartOptions as never} />}
-        </div>
-      </TableContainer>
-
-      {/* Chart 2 & 3: K 棒 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <TableContainer title={`${ETF_SHORT_NAMES[currentETF]} 現金水位 K 棒`}>
-          <div className="h-64">
-            {cashBarData && <Chart type="bar" data={cashBarData as never} options={barChartOptions as never} />}
-          </div>
-        </TableContainer>
-
-        <TableContainer title={`${ETF_SHORT_NAMES[currentETF]} 持股數 K 棒`}>
-          <div className="h-64">
-            {holdingsBarData && <Chart type="bar" data={holdingsBarData as never} options={barChartOptions as never} />}
-          </div>
-        </TableContainer>
-      </div>
-
-      {/* Holdings Table */}
-      <TableContainer title="完整持股明細">
-        <DataTable columns={holdingColumns} data={latest?.holdings || []} emptyText="無數據" />
-      </TableContainer>
-
-      {/* Changes Timeline */}
-      <TableContainer title="近期異動紀錄" maxHeight="350px">
-        {changesTimeline.length === 0 ? (
-          <div className="py-4 text-text-muted text-center">近期無重大異動</div>
-        ) : (
-          changesTimeline.map(({ date, tags }) => (
-            <div key={date} className="flex gap-3 items-start py-3 border-b border-border last:border-b-0">
-              <span className="text-sm text-text-muted w-20 shrink-0">{date}</span>
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map((t, i) => <Badge key={i} variant={t.variant}>{t.text}</Badge>)}
-              </div>
-            </div>
-          ))
-        )}
-      </TableContainer>
-
       {/* Comparison Tool */}
       <TableContainer title="對比分析工具">
         <div className="flex flex-wrap gap-4 items-end mb-4">
@@ -461,6 +418,50 @@ export function P4EtfHistoryComparison() {
           </div>
         )}
       </TableContainer>
+
+      {/* Chart 1: 五檔 ETF 現金權重 + 加權指數 */}
+      <TableContainer title="五檔 ETF 現金權重 vs 加權指數">
+        <div className="h-80">
+          {allCashChartData && <Chart type="line" data={allCashChartData as never} options={allCashChartOptions as never} />}
+        </div>
+      </TableContainer>
+
+      {/* Chart 2 & 3: K 棒 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <TableContainer title={`${ETF_SHORT_NAMES[currentETF]} 現金水位 K 棒`}>
+          <div className="h-64">
+            {cashBarData && <Chart type="bar" data={cashBarData as never} options={barChartOptions as never} />}
+          </div>
+        </TableContainer>
+
+        <TableContainer title={`${ETF_SHORT_NAMES[currentETF]} 持股數 K 棒`}>
+          <div className="h-64">
+            {holdingsBarData && <Chart type="bar" data={holdingsBarData as never} options={barChartOptions as never} />}
+          </div>
+        </TableContainer>
+      </div>
+
+      {/* Holdings Table */}
+      <TableContainer title="完整持股明細">
+        <DataTable columns={holdingColumns} data={latest?.holdings || []} emptyText="無數據" />
+      </TableContainer>
+
+      {/* Changes Timeline */}
+      <TableContainer title="近期異動紀錄" maxHeight="350px">
+        {changesTimeline.length === 0 ? (
+          <div className="py-4 text-text-muted text-center">近期無重大異動</div>
+        ) : (
+          changesTimeline.map(({ date, tags }) => (
+            <div key={date} className="flex gap-3 items-start py-3 border-b border-border last:border-b-0">
+              <span className="text-sm text-text-muted w-20 shrink-0">{date}</span>
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map((t, i) => <Badge key={i} variant={t.variant}>{t.text}</Badge>)}
+              </div>
+            </div>
+          ))
+        )}
+      </TableContainer>
+
     </div>
   )
 }
