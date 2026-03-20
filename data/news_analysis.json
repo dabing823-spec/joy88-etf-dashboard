@@ -1,8 +1,122 @@
 {
   "version": 1,
-  "updated_at": "2026-03-20 01:52",
+  "updated_at": "2026-03-20 22:33",
   "notebook": "Claude API (Sonnet+Opus)",
   "news_analyses": [
+    {
+      "id": "20260320_001",
+      "date": "2026-03-20",
+      "headline": "Traders Lift Bets on a Fed Hike This Year to 50% as Yields Surge",
+      "category": "央行政策",
+      "category_color": "orange",
+      "source": "Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxQVXctSThwUm1veU1XVEIxSm1fVUJVWmxNUHRUeFQweG9OWElwWnU2X2gxYXFZOWdSd3hHRDExd0IxeGRSdWZVandtdEc3ZmZNSFd6MndqenE3dzVIOE5RSnlLMUo1cDg4UmYtMFVBMHVPajdsZkh5R1F3ZHQxOFNCNEJhTExjN1hWOWdOT2xVRnFBelpKVFZlSmhYd1dqT0FpT3JxTHpNQWwwTzRkVTBDTw?oc=5",
+      "layer1": {
+        "event": "市場對Fed 2026年升息預期從低於25%上升至50%",
+        "data": "10年期殖利率4.39%(+2.57%)，市場定價顯示50%升息機率",
+        "market_reaction": "美股大跌(S&P500 -1.51%、Nasdaq -2.01%)，科技股承壓更重",
+        "timeline": "即時反應，預期影響至少持續到下次Fed會議"
+      },
+      "layer2": {
+        "beneficiaries": [
+          "金融股",
+          "美元資產",
+          "定存族"
+        ],
+        "victims": [
+          "高估值科技股",
+          "新興市場",
+          "高槓桿企業"
+        ],
+        "pricing_status": "市場仍在調整中，尚未充分反映升息預期",
+        "real_motive": "通膨預期再起+經濟數據強勁，Fed被迫重新考慮貨幣政策",
+        "market_blind_spots": "市場可能低估了升息對企業獲利的實質衝擊"
+      },
+      "layer3": {
+        "position_impact": "對台積電、台達電等核心持股負面，估值面臨下修壓力",
+        "expected_value": "短期負EV，須等待VIX回落才能評估買點",
+        "timing": "VIX紅燈期間不動作，等待恐慌情緒消退",
+        "risk_assessment": "系統性風險升高，個股基本面暫時失效",
+        "action_plan": "維持現有部位，準備資金等待VIX<20時加碼優質股"
+      },
+      "generated_at": "2026-03-20 22:33"
+    },
+    {
+      "id": "20260320_002",
+      "date": "2026-03-20",
+      "headline": "Stock Market Today: Dow, S&P 500, Nasdaq Tumble as Iran Conflict Sends Oil to 2022 High",
+      "category": "地緣政治",
+      "category_color": "red",
+      "source": "TechStock²",
+      "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNSkE0T2QwLXFJaEx3al9OdjNYdVg5M1Nab1lPV2F3c19pT1Z0YmRlTF9CRWQ4Z3Bhc1NYcEF1NDBSaEtGZG5DdExKeXMxS3loN2JDU0NrYngzY3ZDRHBpLUxMaGJkeXhYUlVlLXNyM1ZoVC12RG1UWVlBenJqWFR1RnRTbUxEQ2lFc1NBNXBwaFhQZ3l2QUZ0LVVjblVoRENRejh4WlBFRDFXU0Utd253MnZ3OE5lVm9uYlNtcjJ3LVNoNjRtVFdFTg?oc=5",
+      "layer1": {
+        "event": "伊朗衝突升級導致油價飆升至2022年高點",
+        "data": "油價創2022年新高，VIX暴升至26.78(+11.3%)",
+        "market_reaction": "全球股市重挫，避險情緒濃厚，資金流向防禦性資產",
+        "timeline": "衝突持續時間不確定，市場波動可能延續數週"
+      },
+      "layer2": {
+        "beneficiaries": [
+          "能源股",
+          "軍工股",
+          "避險資產"
+        ],
+        "victims": [
+          "航運股",
+          "消費股",
+          "高beta科技股"
+        ],
+        "pricing_status": "恐慌情緒過度，部分優質股被錯殺",
+        "real_motive": "地緣政治風險疊加通膨擔憂，觸發系統性拋售",
+        "market_blind_spots": "市場可能過度反應短期事件，忽略長期基本面"
+      },
+      "layer3": {
+        "position_impact": "全面性負面衝擊，空單(宏碁、微星)可能獲利",
+        "expected_value": "負EV環境，但創造未來買點機會",
+        "timing": "等待VIX見頂回落，油價穩定後再評估",
+        "risk_assessment": "極高風險，避免追高殺低",
+        "action_plan": "持有現金，觀察VIX與油價走勢，準備逢低布局"
+      },
+      "generated_at": "2026-03-20 22:33"
+    },
+    {
+      "id": "20260320_003",
+      "date": "2026-03-20",
+      "headline": "Bond Market's Big 2026 Fed Bet Flipped on Its Head by Oil Surge",
+      "category": "市場動態",
+      "category_color": "blue",
+      "source": "Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxQa0l2dWNJdU1SQWxtVVQtOW5NMEM4WWt4Q0FIT2Z3bl9LLVdXaWdjWVhrbUMwcEtFM2V3bjNQX1lHbk9EMTZhZ2VRR29qamFrdUdxOFIwcV82VXJlRF9NM0xxdHhmLUkyNWZSbkwtaFRCTHNsb09mZk9MSlJ1cDNGSFVWX2FxbE1USWdyYjVNX2Z4eG9KU256ZWhPWG9lMy1HX0h0MUVlaGZCQzZod0Y4ZG50T2Q?oc=5",
+      "layer1": {
+        "event": "債市對2026年Fed政策預期從降息轉為升息",
+        "data": "殖利率曲線大幅上移，2年期vs10年期利差變化",
+        "market_reaction": "債券價格下跌，股債雙殺格局形成",
+        "timeline": "預期調整可能持續1-2個月"
+      },
+      "layer2": {
+        "beneficiaries": [
+          "現金部位",
+          "短天期債券",
+          "浮動利率資產"
+        ],
+        "victims": [
+          "長天期債券",
+          "高股息股票",
+          "REITs"
+        ],
+        "pricing_status": "債市領先股市調整，股市仍有下修空間",
+        "real_motive": "油價衝擊改變通膨軌跡，Fed政策函數被迫調整",
+        "market_blind_spots": "市場忽略了供給面通膨可能是暫時性的"
+      },
+      "layer3": {
+        "position_impact": "對所有風險資產不利，現金為王",
+        "expected_value": "短期負EV，但為長期投資創造機會",
+        "timing": "耐心等待，不急於抄底",
+        "risk_assessment": "流動性風險上升，避免過度槓桿",
+        "action_plan": "維持保守策略，等VIX<20且殖利率穩定後再行動"
+      },
+      "generated_at": "2026-03-20 22:33"
+    },
     {
       "id": "20260320_001",
       "date": "2026-03-20",
@@ -1030,152 +1144,41 @@
         "action_plan": "維持核心倉位，依VIX黃燈減碼40%衛星倉，優先減碼群聯、力積電"
       },
       "generated_at": "2026-03-16 13:22"
-    },
-    {
-      "id": "20260316_002",
-      "date": "2026-03-16",
-      "headline": "Fed 本周將降息1碼 市場關注提出異議官員人數、政策展望及鮑爾談話",
-      "category": "央行政策",
-      "category_color": "orange",
-      "source": "經濟日報",
-      "link": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE1oZXBJNEU2eUZWcl93SEFxNE5zRVYzNDFacklkVzN3SkxGYWtGVnlxcW45Z194STRJTGtxaGVrNFRuWmFERGVrcjFhaE9KN1BMamxHc2c0UTg5WmfSAWBBVV95cUxPcUFMRWZGMGg0S0daMUhlazgzQlV6NUpWMXllcTY2VnN3RDR1Ml9yZjZ0R2QwQ0RoREYxNTJYbTRFc3I3ZE03REhUZ1hWeGl4dEpLNzdnS2RHLWk2VkNleE4?oc=5",
-      "layer1": {
-        "event": "Fed本週預期降息1碼(25bp)",
-        "data": "當前利率水準、通膨數據、就業數據支持降息",
-        "market_reaction": "市場已price in降息1碼",
-        "timeline": "本週三凌晨公布決議"
-      },
-      "layer2": {
-        "beneficiaries": [
-          "成長股",
-          "科技股",
-          "新興市場"
-        ],
-        "victims": [
-          "銀行股",
-          "美元多頭",
-          "價值股"
-        ],
-        "pricing_status": "降息1碼已充分反映，關鍵在於前瞻指引",
-        "real_motive": "Fed試圖在通膨與經濟成長間取得平衡",
-        "market_blind_spots": "鮑爾措辭若偏鷹派可能引發市場震盪"
-      },
-      "layer3": {
-        "position_impact": "有利科技股核心持倉，但需注意301調查抵銷效應",
-        "expected_value": "中性偏多，除非出現鷹派驚喜",
-        "timing": "週三凌晨為關鍵時點",
-        "risk_assessment": "中度風險，主要在於預期管理",
-        "action_plan": "維持現有部位，待Fed決議後再調整"
-      },
-      "generated_at": "2026-03-16 13:22"
-    },
-    {
-      "id": "20260316_003",
-      "date": "2026-03-16",
-      "headline": "統一投信:VIX升破25成美股逆向指標，長線買點現",
-      "category": "市場動態",
-      "category_color": "blue",
-      "source": "台視全球資訊網",
-      "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxPQUM4QWFMM3c2TlRTQnQ5ZUJHckpKYWpHVVdtbWZKbE9qeVowZEl5bVRLMmpTMzlTNVBXZWl6c3M1SG5uX21ERC1oaThWMHlVNlNLZ2JMYjdmdTI1STdVV0JMSl9wdEhycmxqeUdxcW9Yd2I3VVFHWVBsWnBZQ3N0cmZTZ29ielowdUl3Szg3d0JFQQ?oc=5",
-      "layer1": {
-        "event": "VIX升破25，達25.09",
-        "data": "VIX日跌7.7%但仍在25以上，觸發黃燈警示",
-        "market_reaction": "市場恐慌情緒上升，但已從高點回落",
-        "timeline": "當前狀態，需觀察後續走勢"
-      },
-      "layer2": {
-        "beneficiaries": [
-          "長線價值投資人",
-          "低接資金",
-          "避險基金"
-        ],
-        "victims": [
-          "高槓桿多頭",
-          "短線投機者",
-          "動能策略"
-        ],
-        "pricing_status": "恐慌可能過度，出現逆向機會",
-        "real_motive": "301調查引發的不確定性推升避險需求",
-        "market_blind_spots": "VIX已開始回落，恐慌高峰可能已過"
-      },
-      "layer3": {
-        "position_impact": "支持維持核心倉，但須遵守VIX黃燈減倉規則",
-        "expected_value": "長線正面，短線仍需謹慎",
-        "timing": "等VIX回落至20以下再加碼",
-        "risk_assessment": "中度風險，波動仍大",
-        "action_plan": "執行40%衛星倉減碼，保留核心倉位等待機會"
-      },
-      "generated_at": "2026-03-16 13:22"
-    },
-    {
-      "id": "20260315_001",
-      "date": "2026-03-15",
-      "headline": "美重啟301條款調查台入列 台股重挫! 半導體.電子摔慘",
-      "category": "地緣政治",
-      "category_color": "red",
-      "source": "民視新聞",
-      "link": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE1SSGJGMmgzaEUwQTNsZ3dUOWlLRE40Nk5TYzZJb1laaHR6WjhPa3FESjFyVUo3enRDY05JYUlJcFFRVkxTWENxNHVDUjRjZHg0UERBbw",
-      "layer1": {
-        "event": "美國重啟301條款貿易調查，台灣被列入調查名單",
-        "data": "具體調查範圍與關稅威脅程度尚未公布",
-        "market_reaction": "台股半導體與電子類股大跌",
-        "timeline": "調查程序預計需6-12個月"
-      },
-      "layer2": {
-        "beneficiaries": [
-          "美國本土半導體製造商",
-          "東南亞電子組裝廠"
-        ],
-        "victims": [
-          "台積電",
-          "聯發科",
-          "鴻海等電子代工廠"
-        ],
-        "pricing_status": "市場過度反應，尚未有實質關稅落地",
-        "real_motive": "美國加強供應鏈自主，減少對台依賴",
-        "market_blind_spots": "台積電美國廠產能將降低關稅風險"
-      },
-      "layer3": {
-        "position_impact": "核心持股台積電短期承壓，衛星倉位風險升高",
-        "expected_value": "短期負面影響-5%至-10%，長期影響待觀察",
-        "timing": "等待恐慌情緒消退後的反彈機會",
-        "risk_assessment": "中度風險，需密切關注後續發展",
-        "action_plan": "維持核心倉位，依VIX黃燈建議減碼40%衛星倉"
-      },
-      "generated_at": "2026-03-15 16:41"
     }
   ],
   "macro_analysis": {
     "date": "2026-03-20",
-    "risk_context": "VIX 🟡 24.06 | VIX 24.1 > 20.5",
+    "risk_context": "VIX 🔴 26.78 | VIX 26.8 > 25 且仍在上升",
     "layer1": {
-      "event": "通膨擔憂再起導致全球股市調整，VIX維持高檔，但半導體表現分歧",
-      "data": "VIX 24.06黃燈、10Y殖利率4.28%、費半逆勢漲0.87%、DXY跌破100",
-      "market_reaction": "資金從成長股轉向防禦，但科技股跌幅相對溫和",
-      "timeline": "短期震盪1-2週，中期趨勢未變"
+      "event": "地緣政治風險+Fed升息預期+油價飆升形成完美風暴",
+      "data": "VIX 26.78觸發紅燈、殖利率4.39%、油價創新高、美股全線重挫",
+      "market_reaction": "風險資產全面拋售，資金轉向避險，台股ADR大跌預示明日開盤壓力",
+      "timeline": "短期震盪至少2-4週，中期需觀察Fed態度與地緣衝突發展"
     },
     "layer2": {
       "beneficiaries": [
-        "AI半導體龍頭",
-        "電力基建",
-        "防禦型類股"
+        "現金",
+        "美元",
+        "能源股",
+        "防禦型股票"
       ],
       "victims": [
-        "高本益比小型股",
-        "利率敏感股",
-        "非核心科技股"
+        "科技成長股",
+        "新興市場",
+        "高槓桿企業",
+        "週期性股票"
       ],
-      "pricing_status": "恐慌情緒過度，優質科技股錯殺",
-      "real_motive": "Q1末機構調倉，製造震盪低接Q2成長股",
-      "market_blind_spots": "AI投資週期才剛開始，需求遠超預期"
+      "pricing_status": "恐慌初期，尚未見到投降式賣壓，仍有下跌空間",
+      "real_motive": "多重利空共振，觸發系統性去槓桿",
+      "market_blind_spots": "市場過度聚焦短期風險，忽略優質公司長期價值"
     },
     "layer3": {
-      "position_impact": "核心持股影響有限，衛星倉需調整，空單獲利擴大",
-      "expected_value": "大盤修正5-8%後反彈，Q2上漲機率65%",
-      "timing": "3/25-3/31為關鍵支撐區",
-      "risk_assessment": "中度風險，VIX黃燈已反映",
-      "action_plan": "執行減碼衛星倉40%，保留核心倉，空單續抱至目標價，預留30%現金逢低布局"
+      "position_impact": "核心持股(台積電、台達電)面臨10-15%下跌風險，空單提供部分避險",
+      "expected_value": "當前負EV，但3-6個月後可能出現絕佳買點",
+      "timing": "嚴格遵守VIX紅燈規則，等待VIX<20再考慮加碼",
+      "risk_assessment": "系統性風險極高，個股選擇暫時無效，現金管理最重要",
+      "action_plan": "1.維持現有部位不動 2.保留50%以上現金 3.列出VIX<20時的購買清單 4.關注台積電900元以下的買點"
     },
-    "generated_at": "2026-03-20 01:52"
+    "generated_at": "2026-03-20 22:33"
   }
 }
