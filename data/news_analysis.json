@@ -1,8 +1,122 @@
 {
   "version": 1,
-  "updated_at": "2026-03-21 22:30",
+  "updated_at": "2026-03-22 22:31",
   "notebook": "Claude API (Sonnet+Opus)",
   "news_analyses": [
+    {
+      "id": "20260322_001",
+      "date": "2026-03-22",
+      "headline": "Gold Wavers After Worst Week in Four Decades as War Risks Mount",
+      "category": "地緣政治",
+      "category_color": "red",
+      "source": "Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPcUp5TXZVdWY5Z2ZIMFQ1RC1ZMDFNal9kcHlOMFJaQmh4cDFxZjFQT055cHZmQ0FJRXM5UmJuZkYtYXJ3QkZRdzRWbTZ3LVhXbmFwUGpkOVlybGxDRUJ0UW9rM0w4YVl1TjFoN1Jmd2ZGR0hBQmswa0dmdjYtQUNQR0JXNXZCMC1Qa1dBQ3gteWk0MFJOTHcxWGFLVVRzTFM1bkdMWGlOQUZNMXZCMDlSSVBscng?oc=5",
+      "layer1": {
+        "event": "黃金經歷40年來最糟單週表現，同時戰爭風險上升",
+        "data": "Gold: 4515.3 (-1.21%)，暗示過去一週跌幅可能超過10%",
+        "market_reaction": "黃金今日續跌1.21%，與戰爭風險上升的避險需求背離",
+        "timeline": "已發生一週的大跌，目前處於震盪整理"
+      },
+      "layer2": {
+        "beneficiaries": [
+          "美元資產持有者",
+          "風險性資產",
+          "科技股"
+        ],
+        "victims": [
+          "黃金多頭",
+          "避險基金",
+          "新興市場"
+        ],
+        "pricing_status": "市場可能過度反應黃金跌勢，忽略戰爭風險升溫",
+        "real_motive": "可能是流動性緊縮或保證金追繳導致的強制賣壓",
+        "market_blind_spots": "市場低估戰爭擴大的尾部風險，黃金可能出現V型反轉"
+      },
+      "layer3": {
+        "position_impact": "對台股科技股短期正面（資金回流風險資產），但需警戒突發避險",
+        "expected_value": "短期持續震盪，中期若戰爭升級可能反彈20%",
+        "timing": "觀察未來1-2週戰況發展",
+        "risk_assessment": "中高風險 - 黃金與戰爭風險背離屬異常現象",
+        "action_plan": "維持現有部位，但隨時準備在戰爭升級時減碼科技股"
+      },
+      "generated_at": "2026-03-22 22:31"
+    },
+    {
+      "id": "20260322_002",
+      "date": "2026-03-22",
+      "headline": "Traders Brace for Turbulent Open as War Rages On",
+      "category": "地緣政治",
+      "category_color": "red",
+      "source": "Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxOQ3pJMEdlZWRGbHdDX3RWNGhzbUJlMzhmWUJTNGpsejVITEN1RUpOeE9hMjI5UGRFeW1qcHYydElRZlkzazYxN2dZZHh4LUF0U2hlM3hXM0FKUmdOVDBGSmk5SFljbWUzamp0YVEzOGVuQjZQOGJZMFU3d3VBd2ozUndLcHRhbWRYT09KOGdNNXlRbWM2cG1QYzYxYmltdTllNWhNZnVmM0Y4dWl5b2Zz?oc=5",
+      "layer1": {
+        "event": "交易員為戰爭持續下的動盪開盤做準備",
+        "data": "VIX 26.78（黃燈警戒），5日累積+13.9%",
+        "market_reaction": "美股今日持平，但VIX維持高檔顯示市場緊張",
+        "timeline": "即將到來的交易日預期高波動"
+      },
+      "layer2": {
+        "beneficiaries": [
+          "波動率交易者",
+          "防禦性股票",
+          "現金持有者"
+        ],
+        "victims": [
+          "高槓桿投資者",
+          "成長股",
+          "新興市場"
+        ],
+        "pricing_status": "市場已部分反映戰爭風險，但可能低估持續時間",
+        "real_motive": "機構投資人提前布局避險，散戶可能措手不及",
+        "market_blind_spots": "市場可能低估供應鏈中斷和能源價格衝擊"
+      },
+      "layer3": {
+        "position_impact": "VIX黃燈已建議減碼40%衛星倉，符合風控要求",
+        "expected_value": "短期震盪加劇，預期波動率維持20-30區間",
+        "timing": "未來1週為關鍵觀察期",
+        "risk_assessment": "高風險 - 戰爭不確定性持續",
+        "action_plan": "執行VIX黃燈減碼計畫，保留核心倉位觀望"
+      },
+      "generated_at": "2026-03-22 22:31"
+    },
+    {
+      "id": "20260322_003",
+      "date": "2026-03-22",
+      "headline": "The stakes are enormous: how a prolonged Iran war could shock the global economy",
+      "category": "地緣政治",
+      "category_color": "red",
+      "source": "The Guardian",
+      "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPRVNkS3Uxamk5cy1yR2NIRGNiUDUtU3NwaFlDUXZsLWtuSVgzUEJyeWF6WXNvZm94YlVwZkQzTmI5LVN1S1MweEVXZ0pIT0pwUWRGU2xfRGVoZWxNVVBYaW55cV9FZTFROEFXTzhTWEpjR05oWjZyaW93bUpmSFcwelAxcEJha0JBYm9qOGU4N3dhV0dWb29zWnE1LW5nV1VLNEw3S0hVLUg1a1RvRkxnaGE1Tmx3MEZ3?oc=5",
+      "layer1": {
+        "event": "伊朗戰爭可能延長並衝擊全球經濟",
+        "data": "無具體數據，但暗示能源和供應鏈風險",
+        "market_reaction": "市場尚未完全反映長期戰爭的經濟衝擊",
+        "timeline": "中長期風險（數月至數年）"
+      },
+      "layer2": {
+        "beneficiaries": [
+          "能源股",
+          "軍工股",
+          "美國本土製造"
+        ],
+        "victims": [
+          "航運股",
+          "歐洲製造業",
+          "亞洲出口商"
+        ],
+        "pricing_status": "市場嚴重低估prolonged war的系統性風險",
+        "real_motive": "地緣政治重組，美國強化中東控制",
+        "market_blind_spots": "忽略通膨再起風險、供應鏈永久性改變"
+      },
+      "layer3": {
+        "position_impact": "台股電子業面臨成本上升、需求下降雙重壓力",
+        "expected_value": "若戰爭延長，台股可能下修10-20%",
+        "timing": "3-6個月內見分曉",
+        "risk_assessment": "極高風險 - 系統性衝擊",
+        "action_plan": "逐步降低總曝險至50%，增持現金因應"
+      },
+      "generated_at": "2026-03-22 22:31"
+    },
     {
       "id": "20260321_001",
       "date": "2026-03-21",
@@ -1034,153 +1148,41 @@
         "action_plan": "執行VIX黃燈策略，減碼群聯、力積電等衛星倉40%"
       },
       "generated_at": "2026-03-16 22:39"
-    },
-    {
-      "id": "20260316_002",
-      "date": "2026-03-16",
-      "headline": "Why the Iran War Is Reviving US Stagflation Fears",
-      "category": "經濟數據",
-      "category_color": "blue",
-      "source": "Bloomberg.com",
-      "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxObmFHQmg5N3dDM2VvZjh6SEpibkFCdjY1NUV4RkR5R3JMa3hSUWlWazBFTmtNZVM2NWtEQXRxTW00d2wtdjRRNE56TUdqODQxSVF2cUxlTnZQR1g0d1lHd3BpdVlyS3RGbFd6RnVPWXB1UG00by1vM0w5R1I4cm1mZV9hVUxyTF9rNVBhX2VTYVJlRm1JTzJNQmxjRU1NOC1MUEtwRnhUUE5XZzZ6ejFlMzZKRTBtOEcwUmJsaGNfRU90M0FPNFM1V2lEdUJ6bm9xeUR6aU5CbThybFM0?oc=5",
-      "layer1": {
-        "event": "伊朗戰爭重燃美國停滯性通膨擔憂",
-        "data": "費半指數+1.96%領漲，記憶體股MU大漲3.68%",
-        "market_reaction": "科技股逆勢上漲，顯示資金仍偏好成長股避險",
-        "timeline": "預期影響將在未來2-3個月逐步顯現"
-      },
-      "layer2": {
-        "beneficiaries": [
-          "大型科技股",
-          "必需消費品",
-          "公用事業"
-        ],
-        "victims": [
-          "小型成長股",
-          "週期性消費股",
-          "金融股"
-        ],
-        "pricing_status": "市場尚未充分定價停滯性通膨風險",
-        "real_motive": "Fed可能藉此維持較高利率更長時間",
-        "market_blind_spots": "忽略停滯性通膨對企業獲利的侵蝕"
-      },
-      "layer3": {
-        "position_impact": "台積電受惠於定價能力；記憶體股可能因需求疲軟受壓",
-        "expected_value": "防禦性科技龍頭將獲得溢價",
-        "timing": "Q2財報季將是關鍵觀察期",
-        "risk_assessment": "中度風險，需關注企業毛利率變化",
-        "action_plan": "增持核心防禦股，減持週期性衛星倉"
-      },
-      "generated_at": "2026-03-16 22:35"
-    },
-    {
-      "id": "20260316_003",
-      "date": "2026-03-16",
-      "headline": "Nvidia Rubin GPU Faces Possible Delay As HBM4 Supply Falls Short",
-      "category": "半導體",
-      "category_color": "cyan",
-      "source": "Benzinga",
-      "link": "https://news.google.com/rss/articles/CBMijgJBVV95cUxOYkdkNHdsV0ppNzdBOUpzS3JOSzRXZjhCdXJIQVYxOEZwUl9FVjJlTzdaSVRFSU84c1lLdHdtS2RSSGliV2pXZ2ViR2RrVFVDREJzVU1FalQyWVd0Zkk5cVBEMnNmVGF0czJiVXVNazFJeUJab2FUVmNhVDd0SF9uVHkxclZhamNzYlJIdzRDTnlmaXBMTnhjbFNpbFBPUU1EcnlnRXBjTlNMOGpiSW5xVFlYdEpMYURnem5Ea2ZELWRxMF9qeXQ3Z2h6U00zSWpobG5xTU52SGZjUUFaRzJqVlR0NjJnSk1QLUcwM3F2MVE1SHExWjlqUFJOOU9tUkU5eXN3UEwxOFBIMmJheWc?oc=5",
-      "layer1": {
-        "event": "Nvidia新GPU因HBM4供應不足可能延遲，Google TPU需求激增爭奪台積電產能",
-        "data": "MU大漲6.14%，NVDA漲2.16%，TSM ADR漲1.38%",
-        "market_reaction": "記憶體股領漲，晶圓代工受惠產能吃緊",
-        "timeline": "Rubin GPU延遲時程未定，產能競爭持續"
-      },
-      "layer2": {
-        "beneficiaries": [
-          "台積電",
-          "記憶體廠(美光、南亞科、華邦電)",
-          "封測廠"
-        ],
-        "victims": [
-          "二線晶圓代工",
-          "依賴Nvidia的AI伺服器廠"
-        ],
-        "pricing_status": "市場已反映部分利多，但產能緊張可能持續更久",
-        "real_motive": "AI需求超乎預期，供應鏈瓶頸浮現",
-        "market_blind_spots": "HBM4良率提升時程、其他客戶轉單效應"
-      },
-      "layer3": {
-        "position_impact": "極度利多持倉中的南亞科、華邦電、力積電",
-        "expected_value": "高度正面，記憶體股可望續漲",
-        "timing": "短中期趨勢明確向上",
-        "risk_assessment": "低風險，產業趨勢支撐",
-        "action_plan": "加碼南亞科、華邦電，群聯受惠HBM控制IC需求"
-      },
-      "generated_at": "2026-03-16 13:52"
-    },
-    {
-      "id": "20260316_001",
-      "date": "2026-03-16",
-      "headline": "美重啟301條款調查台入列 台股重挫! 半導體.電子摔慘",
-      "category": "地緣政治",
-      "category_color": "red",
-      "source": "Yahoo股市",
-      "link": "https://news.google.com/rss/articles/CBMi3wJBVV95cUxPU3ZGcWN4andfRTdRVWhDVEVfME9QbWpfUThqa185dFhJUkRnMFBrQ1BVQ2tCMm9ySWFXWDUxdkhFbG03b1NyV1VBand1LUM2LUpNWm9PSVpkX0xhTXBoemh3UGdtcXB2Y1pWTDFVb0V0aTFSMGlxdkEyekl0UXFyTWp1UVppVTVVVW4xTER6NTJON0d0N3Nla3pXX0VlZzd4U0xQNmI1UnlueHhQWnI3b2tNa3BtZmdWV21fTlc0Qkk1b0NKVFhZd1lsQVFudVI3WW44cnlrNk1CbFNEbnhuaHpZeUhVMW1ZYVVXWmlhR19RXzVFWGg0UzdSdmxyclZtdXlGOTZXcmVyanJNdHhSWTNsanl3UjRBOEJmQ0JUV1ZoVXV2c0FiSFo0MU15TkRjYi1XUXVoY3JneWNUa2o2Y1NSclVDX3Q5R1BKTXRNd2trcmw1OTMyNVUyQkhGb0E?oc=5",
-      "layer1": {
-        "event": "美國重啟301條款調查，台灣被納入調查對象",
-        "data": "台股半導體、電子類股重挫（具體跌幅未明）",
-        "market_reaction": "台股恐慌性賣壓湧現，半導體電子股領跌",
-        "timeline": "調查程序預計需6-12個月，實際關稅措施時程未定"
-      },
-      "layer2": {
-        "beneficiaries": [
-          "美國本土半導體製造商",
-          "非台灣供應鏈廠商"
-        ],
-        "victims": [
-          "台積電",
-          "聯電",
-          "力積電",
-          "台系電子代工廠"
-        ],
-        "pricing_status": "市場過度反應，恐慌情緒大於實質影響",
-        "real_motive": "美國強化供應鏈自主，施壓台廠赴美投資",
-        "market_blind_spots": "台灣半導體技術優勢短期難以取代，最終可能以談判收場"
-      },
-      "layer3": {
-        "position_impact": "核心持股台積電、衛星持股力積電面臨短期壓力",
-        "expected_value": "短期下跌10-15%後築底反彈機率高",
-        "timing": "等待恐慌殺盤結束，預計1-2週內出現技術性反彈",
-        "risk_assessment": "中度風險，政策不確定性高但基本面未變",
-        "action_plan": "維持核心倉位，衛星倉位按VIX黃燈減碼40%"
-      },
-      "generated_at": "2026-03-16 13:39"
     }
   ],
   "macro_analysis": {
-    "date": "2026-03-21",
+    "date": "2026-03-22",
     "risk_context": "VIX 🟡 26.78 | VIX 26.8 > 20.5",
     "layer1": {
-      "event": "地緣政治風險升溫遇上Fed溫和鴿派組合",
-      "data": "VIX 26.78黃燈警示，Fed預計2年降息50bp，美股暫時持平",
-      "market_reaction": "風險資產短期承壓，避險需求上升",
-      "timeline": "短期風險主導(1-3個月)，中期流動性改善(6-12個月)"
+      "event": "多重地緣政治風險疊加，戰爭風險急劇上升",
+      "data": "VIX 26.78（黃燈）、黃金崩跌後震盪、美股詭異平靜",
+      "market_reaction": "市場反應分歧：避險資產（黃金）大跌vs風險資產（股市）持平",
+      "timeline": "短期1-2週高度不確定，中期3-6個月系統性風險"
     },
     "layer2": {
       "beneficiaries": [
-        "記憶體股(供應鏈中斷預期)",
-        "黃金",
-        "防禦型股票",
-        "現金部位"
+        "美元資產",
+        "軍工能源股",
+        "VIX交易者",
+        "現金持有者"
       ],
       "victims": [
-        "高beta成長股",
-        "全球供應鏈股",
-        "新興市場(含台股)"
+        "新興市場",
+        "高成長科技股",
+        "全球供應鏈",
+        "歐亞製造業"
       ],
-      "pricing_status": "風險部分反映，但台股可能落後反應",
-      "real_motive": "全球資金尋求避險，同時等待地緣風險明朗",
-      "market_blind_spots": "台股可能面臨外資持續賣壓，即使基本面未惡化"
+      "pricing_status": "市場存在認知分歧，尚未充分定價戰爭長期化風險",
+      "real_motive": "美國維持霸權地位，重塑全球秩序",
+      "market_blind_spots": "低估通膨回歸、供應鏈斷裂、金融系統壓力"
     },
     "layer3": {
-      "position_impact": "整體部位面臨10-15%潛在回檔風險，記憶體股可能逆勢表現",
-      "expected_value": "短期負面影響大於中期正面因素，需要防禦操作",
-      "timing": "立即執行風控，4月後重新評估加碼時機",
-      "risk_assessment": "高風險警戒，VIX黃燈+地緣風險=完美風暴前兆",
-      "action_plan": "1.立即執行40%衛星倉減碼(優先減碼欣興、力積電) 2.保留記憶體股(南亞科、華邦電) 3.空單部位維持作避險 4.提高現金部位至40% 5.設定台積電1000元下方分批承接計畫"
+      "position_impact": "現有部位面臨系統性下跌風險，尤其是半導體衛星倉",
+      "expected_value": "基準情境：震盪築底；悲觀情境：下跌20%",
+      "timing": "立即執行風控，未來2週為關鍵",
+      "risk_assessment": "極高風險 - VIX黃燈+戰爭風險+市場分歧",
+      "action_plan": "1.立即減碼衛星倉40%（群聯、力積電等）2.核心倉減半（保留50%台積電、台達電）3.空單（宏碁、微星）維持避險 4.現金比例提高至50%以上"
     },
-    "generated_at": "2026-03-21 22:30"
+    "generated_at": "2026-03-22 22:31"
   }
 }
