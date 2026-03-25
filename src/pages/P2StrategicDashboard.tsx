@@ -232,6 +232,7 @@ export function P2StrategicDashboard() {
 
   return (
     <div className="space-y-4">
+      <h1 className="sr-only">JOY88 ETF 戰略儀表板</h1>
       {/* ── Taiwan Indices Hero ── */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-all">
@@ -339,7 +340,7 @@ export function P2StrategicDashboard() {
       {mi && (
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-2.5 border-b border-border">
-            <span className="text-sm font-semibold tracking-wide">Global Macro Dashboard</span>
+            <h2 className="text-sm font-semibold tracking-wide">Global Macro Dashboard</h2>
             <span className="text-[10px] text-text-muted tracking-wider">OIL · DXY · GOLD · YIELD</span>
           </div>
           <div className="grid grid-cols-4">
@@ -408,7 +409,7 @@ export function P2StrategicDashboard() {
       <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ borderColor: totalSignals > 0 ? 'rgba(255,71,87,0.2)' : undefined }}>
         <div className="px-4 py-2.5 border-b border-border text-xs font-semibold flex items-center gap-2"
           style={totalSignals > 0 ? { background: 'rgba(255,71,87,0.04)' } : undefined}>
-          <span className="text-up">📋</span> 今日跟單行動清單
+          <h2 className="text-xs font-semibold inline">今日跟單行動清單</h2>
         </div>
         <div className="p-4">
           {!todayChanges || totalSignals === 0 ? (

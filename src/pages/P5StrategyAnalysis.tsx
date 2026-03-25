@@ -90,7 +90,7 @@ export function P5StrategyAnalysis() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-text-primary">🧠 策略分析 & 回測</h2>
+      <h1 className="text-xl font-bold text-text-primary">🧠 策略分析 & 回測</h1>
 
       <IntroBox>
         綜合評分操作建議與信號回測績效。操作建議基於權重、動能、共識等多因子評分；回測驗證過去信號的實際報酬表現。
