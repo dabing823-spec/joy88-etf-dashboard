@@ -2,19 +2,36 @@ import { lazy, Suspense } from 'react'
 import { createHashRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { DataProvider } from './contexts/DataContext'
 import { Layout } from './components/layout/Layout'
+import { ErrorBoundary } from './components/shared'
 
-const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })))
-const P1HoldingsTracker = lazy(() => import('./pages/P1HoldingsTracker').then(m => ({ default: m.P1HoldingsTracker })))
-const P2StrategicDashboard = lazy(() => import('./pages/P2StrategicDashboard').then(m => ({ default: m.P2StrategicDashboard })))
-const P3CopyTradingStrategy = lazy(() => import('./pages/P3CopyTradingStrategy').then(m => ({ default: m.P3CopyTradingStrategy })))
-const P4EtfHistoryComparison = lazy(() => import('./pages/P4EtfHistoryComparison').then(m => ({ default: m.P4EtfHistoryComparison })))
-const P5StrategyAnalysis = lazy(() => import('./pages/P5StrategyAnalysis').then(m => ({ default: m.P5StrategyAnalysis })))
-const P7MarketCap0050 = lazy(() => import('./pages/P7MarketCap0050').then(m => ({ default: m.P7MarketCap0050 })))
-const P8RiskSignals = lazy(() => import('./pages/P8RiskSignals').then(m => ({ default: m.P8RiskSignals })))
-const P9AiQA = lazy(() => import('./pages/P9AiQA').then(m => ({ default: m.P9AiQA })))
-const P10NewsDeconstruction = lazy(() => import('./pages/P10NewsDeconstruction').then(m => ({ default: m.P10NewsDeconstruction })))
-const P11TrumpSignal = lazy(() => import('./pages/P11TrumpSignal').then(m => ({ default: m.P11TrumpSignal })))
-const P12TsmcVolSignal = lazy(() => import('./pages/P12TsmcVolSignal').then(m => ({ default: m.P12TsmcVolSignal })))
+function lazyRetry(load: () => Promise<{ [key: string]: any }>, name: string) {
+  return lazy(() =>
+    load()
+      .then(m => ({ default: m[name] }))
+      .catch(() => {
+        // Chunk load failed (stale deploy, network error) — force reload once
+        const key = `chunk-retry-${name}`
+        if (!sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, '1')
+          window.location.reload()
+        }
+        return { default: () => null }
+      })
+  )
+}
+
+const LandingPage = lazyRetry(() => import('./pages/LandingPage'), 'LandingPage')
+const P1HoldingsTracker = lazyRetry(() => import('./pages/P1HoldingsTracker'), 'P1HoldingsTracker')
+const P2StrategicDashboard = lazyRetry(() => import('./pages/P2StrategicDashboard'), 'P2StrategicDashboard')
+const P3CopyTradingStrategy = lazyRetry(() => import('./pages/P3CopyTradingStrategy'), 'P3CopyTradingStrategy')
+const P4EtfHistoryComparison = lazyRetry(() => import('./pages/P4EtfHistoryComparison'), 'P4EtfHistoryComparison')
+const P5StrategyAnalysis = lazyRetry(() => import('./pages/P5StrategyAnalysis'), 'P5StrategyAnalysis')
+const P7MarketCap0050 = lazyRetry(() => import('./pages/P7MarketCap0050'), 'P7MarketCap0050')
+const P8RiskSignals = lazyRetry(() => import('./pages/P8RiskSignals'), 'P8RiskSignals')
+const P9AiQA = lazyRetry(() => import('./pages/P9AiQA'), 'P9AiQA')
+const P10NewsDeconstruction = lazyRetry(() => import('./pages/P10NewsDeconstruction'), 'P10NewsDeconstruction')
+const P11TrumpSignal = lazyRetry(() => import('./pages/P11TrumpSignal'), 'P11TrumpSignal')
+const P12TsmcVolSignal = lazyRetry(() => import('./pages/P12TsmcVolSignal'), 'P12TsmcVolSignal')
 
 const pageFallback = (
   <div className="flex items-center justify-center h-64">
@@ -22,24 +39,32 @@ const pageFallback = (
   </div>
 )
 
+function Page({ children }: { children: React.ReactNode }) {
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={pageFallback}>{children}</Suspense>
+    </ErrorBoundary>
+  )
+}
+
 const router = createHashRouter([
-  { path: '/landing', element: <Suspense fallback={pageFallback}><LandingPage /></Suspense> },
+  { path: '/landing', element: <Page><LandingPage /></Page> },
   {
     path: '/',
     element: <Layout />,
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: 'dashboard', element: <Suspense fallback={pageFallback}><P2StrategicDashboard /></Suspense> },
-      { path: 'risk', element: <Suspense fallback={pageFallback}><P8RiskSignals /></Suspense> },
-      { path: 'holdings', element: <Suspense fallback={pageFallback}><P1HoldingsTracker /></Suspense> },
-      { path: 'copy-trading', element: <Suspense fallback={pageFallback}><P3CopyTradingStrategy /></Suspense> },
-      { path: 'strategy', element: <Suspense fallback={pageFallback}><P5StrategyAnalysis /></Suspense> },
-      { path: 'history', element: <Suspense fallback={pageFallback}><P4EtfHistoryComparison /></Suspense> },
-      { path: '0050', element: <Suspense fallback={pageFallback}><P7MarketCap0050 /></Suspense> },
-      { path: 'ai-qa', element: <Suspense fallback={pageFallback}><P9AiQA /></Suspense> },
-      { path: 'news', element: <Suspense fallback={pageFallback}><P10NewsDeconstruction /></Suspense> },
-      { path: 'trump', element: <Suspense fallback={pageFallback}><P11TrumpSignal /></Suspense> },
-      { path: 'tsmc-vol', element: <Suspense fallback={pageFallback}><P12TsmcVolSignal /></Suspense> },
+      { path: 'dashboard', element: <Page><P2StrategicDashboard /></Page> },
+      { path: 'risk', element: <Page><P8RiskSignals /></Page> },
+      { path: 'holdings', element: <Page><P1HoldingsTracker /></Page> },
+      { path: 'copy-trading', element: <Page><P3CopyTradingStrategy /></Page> },
+      { path: 'strategy', element: <Page><P5StrategyAnalysis /></Page> },
+      { path: 'history', element: <Page><P4EtfHistoryComparison /></Page> },
+      { path: '0050', element: <Page><P7MarketCap0050 /></Page> },
+      { path: 'ai-qa', element: <Page><P9AiQA /></Page> },
+      { path: 'news', element: <Page><P10NewsDeconstruction /></Page> },
+      { path: 'trump', element: <Page><P11TrumpSignal /></Page> },
+      { path: 'tsmc-vol', element: <Page><P12TsmcVolSignal /></Page> },
       { path: '*', element: <Navigate to="/dashboard" replace /> },
     ],
   },

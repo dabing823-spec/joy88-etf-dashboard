@@ -98,7 +98,7 @@ export function Layout() {
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  `px-3 py-2.5 min-h-[44px] flex items-center rounded-md text-xs font-medium whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
+                  `px-3 py-2.5 min-h-[44px] min-w-[44px] justify-center flex items-center rounded-md text-xs font-medium whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
                     isActive
                       ? 'bg-accent text-white'
                       : 'text-text-muted hover:text-text-primary hover:bg-card-hover'
