@@ -3,16 +3,16 @@ import { useData } from '../../contexts/DataContext'
 import { BASE_URL } from '../../lib/constants'
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: '\uD83C\uDFAF 戰略儀表板' },
-  { to: '/risk', label: '\uD83D\uDEE1 風險訊號' },
-  { to: '/holdings', label: '\uD83D\uDCCA 00981A' },
-  { to: '/copy-trading', label: '\uD83D\uDCCB 跟單策略' },
-  { to: '/strategy', label: '\uD83E\uDDE0 策略回測' },
-  { to: '/history', label: '\uD83D\uDD0D 歷史回溯' },
-  { to: '/0050', label: '\uD83C\uDFDB 0050' },
-  { to: '/ai-qa', label: '\uD83E\uDD16 AI' },
-  { to: '/news', label: '\uD83D\uDCF0 新聞' },
-  { to: '/trump', label: '\uD83C\uDDFA\uD83C\uDDF8 Trump' },
+  { to: '/dashboard', label: '戰略儀表板' },
+  { to: '/risk', label: '風險訊號' },
+  { to: '/holdings', label: '00981A' },
+  { to: '/copy-trading', label: '跟單策略' },
+  { to: '/strategy', label: '策略回測' },
+  { to: '/history', label: '歷史回溯' },
+  { to: '/0050', label: '0050' },
+  { to: '/ai-qa', label: 'AI' },
+  { to: '/news', label: '新聞' },
+  { to: '/trump', label: 'US Trump' },
   { to: '/tsmc-vol', label: 'TSMC Vol' },
 ]
 
@@ -92,13 +92,13 @@ export function Layout() {
               )}
             </div>
           </div>
-          <nav className="flex gap-0.5 overflow-x-auto pb-1.5 -mx-1 px-1 scrollbar-hide">
+          <nav className="flex gap-0.5 overflow-x-auto pb-1.5 -mx-1 px-1 scrollbar-hide" role="navigation" aria-label="Main navigation">
             {NAV_ITEMS.map(({ to, label }) => (
               <NavLink
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  `px-2.5 py-1 rounded-md text-[11px] font-medium whitespace-nowrap transition-colors ${
+                  `px-3 py-2.5 min-h-[44px] flex items-center rounded-md text-xs font-medium whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
                     isActive
                       ? 'bg-accent text-white'
                       : 'text-text-muted hover:text-text-primary hover:bg-card-hover'
