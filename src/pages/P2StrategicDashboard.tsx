@@ -399,7 +399,7 @@ export function P2StrategicDashboard() {
           <div className="text-[10px] text-text-muted mt-0.5">{cashNow > 4 ? '現金>4%, 勝率提升' : '一般狀態'}</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
-          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">📊 今日異動</div>
+          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">今日異動</div>
           <div className="text-2xl font-bold text-accent">{totalSignals}</div>
           <div className="text-[10px] text-text-muted mt-0.5">🆕{nNew} ▲{nAdded} ▼{nReduced} ✕{nExited}</div>
         </div>

@@ -290,7 +290,7 @@ export function P1HoldingsTracker() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-text-primary">📊 00981A 持股追蹤</h1>
+      <h1 className="text-xl font-bold text-text-primary">00981A 持股追蹤</h1>
 
       <IntroBox variant="accent">
         追蹤 00981A（主動統一台股增長 ETF）的每日持股變化、經理人操作動向與現金水位。持股異動事件可作為跟單參考（新增跟 5 天、加碼跟 3 天）。圖表支援拖曳縮放。
@@ -372,7 +372,7 @@ export function P1HoldingsTracker() {
 
 
       {/* ── Holding Events Timeline ── */}
-      <TableContainer title="📌 00981A 持股異動事件（含跟單信號）" maxHeight="350px">
+      <TableContainer title="00981A 持股異動事件（含跟單信號）" maxHeight="350px">
         {holdingEvents.length === 0 ? (
           <div className="py-4 text-center text-text-muted">近期無異動事件</div>
         ) : (
@@ -401,7 +401,7 @@ export function P1HoldingsTracker() {
       </TableContainer>
 
       {/* ── Holdings Table ── */}
-      <TableContainer title="📋 00981A 持股明細（統一台股增長 · 市值最大主動式 ETF）">
+      <TableContainer title="00981A 持股明細（統一台股增長 · 市值最大主動式 ETF）">
         <DataTable columns={holdingsColumns} data={holdings00981A} emptyText="無數據" />
       </TableContainer>
 

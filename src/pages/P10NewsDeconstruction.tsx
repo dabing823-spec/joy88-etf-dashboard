@@ -99,7 +99,7 @@ export function P10NewsDeconstruction() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-text-primary">📰 新聞解構 — 巨人傑三層次分析</h1>
+      <h1 className="text-xl font-bold text-text-primary">新聞解構 — 巨人傑三層次分析</h1>
       {newsAnalysis && (
         <div className="text-xs text-text-muted">更新時間：{newsAnalysis.updated_at} | {newsAnalysis.notebook}</div>
       )}
