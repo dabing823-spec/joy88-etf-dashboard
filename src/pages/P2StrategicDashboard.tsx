@@ -293,7 +293,7 @@ export function P2StrategicDashboard() {
 
       {/* ── Sentiment Row (VIX + F&G with 3-day history) ── */}
       {mi && (
-        <div className={`grid ${mi.vix_tw != null ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}>
+        <div className={`grid ${mi.vix_tw != null ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'} gap-3`}>
           {mi.vix_tw != null && (
             <div className="bg-card border border-border rounded-xl p-4 text-center hover:bg-card-hover transition-colors">
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">VIX 台灣</div>
@@ -343,7 +343,7 @@ export function P2StrategicDashboard() {
             <h2 className="text-sm font-semibold tracking-wide">Global Macro Dashboard</h2>
             <span className="text-[10px] text-text-muted tracking-wider">OIL · DXY · GOLD · YIELD</span>
           </div>
-          <div className="grid grid-cols-4">
+          <div className="grid grid-cols-2 md:grid-cols-4">
             <MacroCell emoji="💵" label="DXY 美元指數" value={mi.dxy} chgPct={mi.dxy_chg_pct} hint="看資金流向" />
             <MacroCell emoji="🛢️" label="WTI 原油" value={mi.oil} chgPct={mi.oil_chg_pct} hint="看經濟成本" />
             <MacroCell emoji="🥇" label="黃金 GOLD" value={mi.gold} chgPct={mi.gold_chg_pct} hint="看避險需求" />
