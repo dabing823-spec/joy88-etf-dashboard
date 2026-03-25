@@ -116,7 +116,7 @@ export function P3CopyTradingStrategy() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-text-primary">📋 老墨跟單策略</h2>
+      <h1 className="text-xl font-bold text-text-primary">老墨跟單策略</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InsightCard title="策略邏輯" borderColor="border-l-accent">

@@ -1,37 +1,70 @@
+import { lazy, Suspense } from 'react'
 import { createHashRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { DataProvider } from './contexts/DataContext'
 import { Layout } from './components/layout/Layout'
-import { LandingPage } from './pages/LandingPage'
-import { P1HoldingsTracker } from './pages/P1HoldingsTracker'
-import { P2StrategicDashboard } from './pages/P2StrategicDashboard'
-import { P3CopyTradingStrategy } from './pages/P3CopyTradingStrategy'
-import { P4EtfHistoryComparison } from './pages/P4EtfHistoryComparison'
-import { P5StrategyAnalysis } from './pages/P5StrategyAnalysis'
-import { P7MarketCap0050 } from './pages/P7MarketCap0050'
-import { P8RiskSignals } from './pages/P8RiskSignals'
-import { P9AiQA } from './pages/P9AiQA'
-import { P10NewsDeconstruction } from './pages/P10NewsDeconstruction'
-import { P11TrumpSignal } from './pages/P11TrumpSignal'
-import { P12TsmcVolSignal } from './pages/P12TsmcVolSignal'
+import { ErrorBoundary } from './components/shared'
+
+function lazyRetry(load: () => Promise<{ [key: string]: any }>, name: string) {
+  return lazy(() =>
+    load()
+      .then(m => ({ default: m[name] }))
+      .catch(() => {
+        // Chunk load failed (stale deploy, network error) — force reload once
+        const key = `chunk-retry-${name}`
+        if (!sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, '1')
+          window.location.reload()
+        }
+        return { default: () => null }
+      })
+  )
+}
+
+const LandingPage = lazyRetry(() => import('./pages/LandingPage'), 'LandingPage')
+const P1HoldingsTracker = lazyRetry(() => import('./pages/P1HoldingsTracker'), 'P1HoldingsTracker')
+const P2StrategicDashboard = lazyRetry(() => import('./pages/P2StrategicDashboard'), 'P2StrategicDashboard')
+const P3CopyTradingStrategy = lazyRetry(() => import('./pages/P3CopyTradingStrategy'), 'P3CopyTradingStrategy')
+const P4EtfHistoryComparison = lazyRetry(() => import('./pages/P4EtfHistoryComparison'), 'P4EtfHistoryComparison')
+const P5StrategyAnalysis = lazyRetry(() => import('./pages/P5StrategyAnalysis'), 'P5StrategyAnalysis')
+const P7MarketCap0050 = lazyRetry(() => import('./pages/P7MarketCap0050'), 'P7MarketCap0050')
+const P8RiskSignals = lazyRetry(() => import('./pages/P8RiskSignals'), 'P8RiskSignals')
+const P9AiQA = lazyRetry(() => import('./pages/P9AiQA'), 'P9AiQA')
+const P10NewsDeconstruction = lazyRetry(() => import('./pages/P10NewsDeconstruction'), 'P10NewsDeconstruction')
+const P11TrumpSignal = lazyRetry(() => import('./pages/P11TrumpSignal'), 'P11TrumpSignal')
+const P12TsmcVolSignal = lazyRetry(() => import('./pages/P12TsmcVolSignal'), 'P12TsmcVolSignal')
+
+const pageFallback = (
+  <div className="flex items-center justify-center h-64">
+    <div className="text-text-muted text-sm">Loading...</div>
+  </div>
+)
+
+function Page({ children }: { children: React.ReactNode }) {
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={pageFallback}>{children}</Suspense>
+    </ErrorBoundary>
+  )
+}
 
 const router = createHashRouter([
-  { path: '/landing', element: <LandingPage /> },
+  { path: '/landing', element: <Page><LandingPage /></Page> },
   {
     path: '/',
     element: <Layout />,
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: 'dashboard', element: <P2StrategicDashboard /> },
-      { path: 'risk', element: <P8RiskSignals /> },
-      { path: 'holdings', element: <P1HoldingsTracker /> },
-      { path: 'copy-trading', element: <P3CopyTradingStrategy /> },
-      { path: 'strategy', element: <P5StrategyAnalysis /> },
-      { path: 'history', element: <P4EtfHistoryComparison /> },
-      { path: '0050', element: <P7MarketCap0050 /> },
-      { path: 'ai-qa', element: <P9AiQA /> },
-      { path: 'news', element: <P10NewsDeconstruction /> },
-      { path: 'trump', element: <P11TrumpSignal /> },
-      { path: 'tsmc-vol', element: <P12TsmcVolSignal /> },
+      { path: 'dashboard', element: <Page><P2StrategicDashboard /></Page> },
+      { path: 'risk', element: <Page><P8RiskSignals /></Page> },
+      { path: 'holdings', element: <Page><P1HoldingsTracker /></Page> },
+      { path: 'copy-trading', element: <Page><P3CopyTradingStrategy /></Page> },
+      { path: 'strategy', element: <Page><P5StrategyAnalysis /></Page> },
+      { path: 'history', element: <Page><P4EtfHistoryComparison /></Page> },
+      { path: '0050', element: <Page><P7MarketCap0050 /></Page> },
+      { path: 'ai-qa', element: <Page><P9AiQA /></Page> },
+      { path: 'news', element: <Page><P10NewsDeconstruction /></Page> },
+      { path: 'trump', element: <Page><P11TrumpSignal /></Page> },
+      { path: 'tsmc-vol', element: <Page><P12TsmcVolSignal /></Page> },
       { path: '*', element: <Navigate to="/dashboard" replace /> },
     ],
   },

@@ -232,6 +232,7 @@ export function P2StrategicDashboard() {
 
   return (
     <div className="space-y-4">
+      <h1 className="sr-only">JOY88 ETF 戰略儀表板</h1>
       {/* ── Taiwan Indices Hero ── */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-all">
@@ -292,7 +293,7 @@ export function P2StrategicDashboard() {
 
       {/* ── Sentiment Row (VIX + F&G with 3-day history) ── */}
       {mi && (
-        <div className={`grid ${mi.vix_tw != null ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}>
+        <div className={`grid ${mi.vix_tw != null ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'} gap-3`}>
           {mi.vix_tw != null && (
             <div className="bg-card border border-border rounded-xl p-4 text-center hover:bg-card-hover transition-colors">
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">VIX 台灣</div>
@@ -339,10 +340,10 @@ export function P2StrategicDashboard() {
       {mi && (
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-2.5 border-b border-border">
-            <span className="text-sm font-semibold tracking-wide">Global Macro Dashboard</span>
+            <h2 className="text-sm font-semibold tracking-wide">Global Macro Dashboard</h2>
             <span className="text-[10px] text-text-muted tracking-wider">OIL · DXY · GOLD · YIELD</span>
           </div>
-          <div className="grid grid-cols-4">
+          <div className="grid grid-cols-2 md:grid-cols-4">
             <MacroCell emoji="💵" label="DXY 美元指數" value={mi.dxy} chgPct={mi.dxy_chg_pct} hint="看資金流向" />
             <MacroCell emoji="🛢️" label="WTI 原油" value={mi.oil} chgPct={mi.oil_chg_pct} hint="看經濟成本" />
             <MacroCell emoji="🥇" label="黃金 GOLD" value={mi.gold} chgPct={mi.gold_chg_pct} hint="看避險需求" />
@@ -398,7 +399,7 @@ export function P2StrategicDashboard() {
           <div className="text-[10px] text-text-muted mt-0.5">{cashNow > 4 ? '現金>4%, 勝率提升' : '一般狀態'}</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
-          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">📊 今日異動</div>
+          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">今日異動</div>
           <div className="text-2xl font-bold text-accent">{totalSignals}</div>
           <div className="text-[10px] text-text-muted mt-0.5">🆕{nNew} ▲{nAdded} ▼{nReduced} ✕{nExited}</div>
         </div>
@@ -408,7 +409,7 @@ export function P2StrategicDashboard() {
       <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ borderColor: totalSignals > 0 ? 'rgba(255,71,87,0.2)' : undefined }}>
         <div className="px-4 py-2.5 border-b border-border text-xs font-semibold flex items-center gap-2"
           style={totalSignals > 0 ? { background: 'rgba(255,71,87,0.04)' } : undefined}>
-          <span className="text-up">📋</span> 今日跟單行動清單
+          <h2 className="text-xs font-semibold inline">今日跟單行動清單</h2>
         </div>
         <div className="p-4">
           {!todayChanges || totalSignals === 0 ? (

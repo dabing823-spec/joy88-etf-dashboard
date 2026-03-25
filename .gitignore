@@ -6,7 +6,12 @@ __pycache__/
 logs/
 history/
 
+# Claude Code
+.claude/settings.local.json
+
 # Frontend
 node_modules/
 dist/
 .vite/
+tsconfig.tsbuildinfo
+.gstack/

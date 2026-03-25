@@ -204,7 +204,7 @@ export function P8RiskSignals() {
   if (!riskSignals) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-text-primary">🛡 宏觀風險訊號儀表板</h2>
+        <h1 className="text-xl font-bold text-text-primary">宏觀風險訊號儀表板</h1>
         <div className="bg-card border border-border rounded-xl p-8 text-center text-text-muted">暫無風險訊號資料</div>
       </div>
     )
@@ -214,7 +214,7 @@ export function P8RiskSignals() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-text-primary">🛡 宏觀風險訊號儀表板</h2>
+      <h1 className="text-xl font-bold text-text-primary">宏觀風險訊號儀表板</h1>
 
       <IntroBox>
         基於選擇權隱含特徵研究與流動性風險實驗，追蹤 8 個宏觀風險指標的 20 日趨勢斜率。<br />
