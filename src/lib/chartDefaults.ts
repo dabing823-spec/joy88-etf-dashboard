@@ -6,7 +6,6 @@ import {
   LineElement,
   BarElement,
   ArcElement,
-  Title,
   Tooltip,
   Legend,
   Filler,
@@ -14,6 +13,10 @@ import {
 import zoomPlugin from 'chartjs-plugin-zoom'
 import annotationPlugin from 'chartjs-plugin-annotation'
 
+// Register only what is used across the app:
+// Line (P1, P4, P8) → CategoryScale, LinearScale, PointElement, LineElement, Filler
+// Bar  (P3, P4, P5) → BarElement
+// Doughnut (P3)     → ArcElement
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -21,7 +24,6 @@ ChartJS.register(
   LineElement,
   BarElement,
   ArcElement,
-  Title,
   Tooltip,
   Legend,
   Filler,
