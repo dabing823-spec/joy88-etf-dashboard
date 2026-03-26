@@ -1,19 +1,38 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #0f1117;
-  --color-card: #1a1d28;
-  --color-card-hover: #22263a;
-  --color-border: #2a2e3d;
-  --color-text-primary: #e4e6eb;
-  --color-text-muted: #9ca0b4;
-  --color-accent: #4f8ef7;
-  --color-up: #ff4757;
-  --color-down: #00c48c;
-  --color-warning: #ffa502;
-  --color-yellow: #ffc312;
+  /* Base surfaces */
+  --color-bg: #0b0d14;
+  --color-card: #12141f;
+  --color-card-hover: #1a1d2b;
+  --color-border: #1e2235;
+  --color-border-default: #2d3148;
+
+  /* Text */
+  --color-text-primary: #e8eaef;
+  --color-text-muted: #7d829a;
+  --color-text-tertiary: #4a4f68;
+
+  /* Accent — amber */
+  --color-accent: #e09f3e;
+  --color-accent-muted: #b8832f;
+
+  /* Semantic — Taiwan convention: red=up, green=down */
+  --color-up: #e54545;
+  --color-down: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #6b9fff;
+
+  /* Legacy aliases (keep existing classes working) */
+  --color-yellow: #f59e0b;
   --color-purple: #a855f7;
   --color-cyan: #22d3ee;
+
+  /* Font families */
+  --font-display: 'Satoshi', system-ui, sans-serif;
+  --font-body: 'Noto Sans TC', 'Satoshi', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', monospace;
 }
 
 body {
@@ -21,7 +40,7 @@ body {
   padding: 0;
   background-color: var(--color-bg);
   color: var(--color-text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -39,8 +58,19 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--color-border-default);
   border-radius: 3px;
+}
+
+/* Breathing glow animations for risk status */
+@keyframes pulse-glow-warning {
+  0%, 100% { box-shadow: 0 0 8px -2px var(--color-warning); }
+  50% { box-shadow: 0 0 20px 0px var(--color-warning); }
+}
+
+@keyframes pulse-glow-danger {
+  0%, 100% { box-shadow: 0 0 8px -2px var(--color-danger); }
+  50% { box-shadow: 0 0 24px 2px var(--color-danger); }
 }
 
 @keyframes fadeUp {
