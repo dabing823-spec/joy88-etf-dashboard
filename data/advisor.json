@@ -2,6 +2,68 @@
   "advisories": [
     {
       "date": "2026-03-26",
+      "generated_at": "2026-03-26T20:50:48.952316+08:00",
+      "market_phase": "盤後",
+      "overall_signal": "防守",
+      "data_completeness": 0.5,
+      "action_items": [
+        {
+          "priority": 1,
+          "action": "降低倉位至50%以下，VIX已達27.46觸發黃燈，立即執行40%減倉",
+          "reasoning": "VIX單日漲8.41%且突破25，符合黃燈條件，必須主動降低曝險",
+          "framework": "風控"
+        },
+        {
+          "priority": 2,
+          "action": "檢查並調整停損點，特別是AI概念股部位，參考經理人大幅減碼世芯-KY",
+          "reasoning": "經理人減碼高估值成長股轉向價值股，顯示風險意識提高",
+          "framework": "部位檢核"
+        },
+        {
+          "priority": 3,
+          "action": "若持有期貨部位，評估是否跟隨經理人進行避險操作",
+          "reasoning": "期貨保證金僅0.51%暗示經理人可能有避險布局，現金水位5.34%偏防守",
+          "framework": "三層次分析"
+        }
+      ],
+      "market_summary": "市場進入高風險狀態，VIX跳升至27.46(+8.41%)觸發風控黃燈，油價大漲4.47%增加通膨擔憂，美元走強但金價下跌顯示避險情緒混亂。統一台股增長經理人明顯轉向防禦，大幅減碼AI成長股(世芯-KY -0.7%)，轉進傳統電子價值股，現金水位維持5.34%偏高，暗示對後市謹慎。",
+      "risk_assessment": "風險評分3.8/10看似偏低但需警惕，VIX單日急升觸發黃燈是硬性風控信號，必須立即降低40%曝險。經理人操作透露重要訊息：從高估值成長股轉向低估值價值股，配合期貨保證金異常低(0.51%)，可能已進行避險布局。油價飆升4.47%恐引發停滯性通膨擔憂，美元走強但黃金下跌顯示市場對避險資產看法分歧。建議嚴格執行風控規則，VIX黃燈期間保持0.6倍槓桿係數，優先保護已實現獲利。",
+      "telegram_short": "",
+      "data_sources": {
+        "dashboard": {
+          "date": "2026-03-26",
+          "fresh": true
+        },
+        "strategy": {
+          "date": "2026-03-26",
+          "fresh": false
+        },
+        "news_analysis": {
+          "date": "2026-03-26 07:58",
+          "fresh": true
+        },
+        "ai_research": {
+          "date": "2026-03-26 12:50",
+          "fresh": true
+        },
+        "tsmc_vol_signal": {
+          "date": null,
+          "fresh": false
+        },
+        "indices_history": {
+          "date": null,
+          "fresh": false
+        }
+      },
+      "data_gaps": [
+        "strategy",
+        "tsmc_vol_signal",
+        "indices_history"
+      ],
+      "outcome": null
+    },
+    {
+      "date": "2026-03-26",
       "generated_at": "2026-03-26T18:46:22.478387+08:00",
       "market_phase": "盤後",
       "overall_signal": "防守",
