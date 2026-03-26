@@ -123,21 +123,21 @@ function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; h
         <div className="grid grid-cols-4 gap-3 mb-4">
           <div className="bg-bg rounded-xl p-3 text-center">
             <div className="text-[10px] text-text-muted mb-1">當前值</div>
-            <div className="text-lg font-bold tabular-nums" style={{ color }}>{signal.value?.toFixed(4)}</div>
+            <div className="text-lg font-bold tabular-nums" style={{ color }}>{signal.value != null ? signal.value.toFixed(2) : '-'}</div>
           </div>
           <div className="bg-bg rounded-xl p-3 text-center">
             <div className="text-[10px] text-text-muted mb-1">20日斜率</div>
-            <div className="text-lg font-bold tabular-nums" style={{ color }}>{signal.slope_20d >= 0 ? '+' : ''}{signal.slope_20d.toFixed(4)}</div>
+            <div className="text-lg font-bold tabular-nums" style={{ color }}>{signal.slope_20d != null ? `${signal.slope_20d >= 0 ? '+' : ''}${signal.slope_20d.toFixed(4)}` : '-'}</div>
           </div>
           <div className="bg-bg rounded-xl p-3 text-center">
             <div className="text-[10px] text-text-muted mb-1">加速度</div>
             <div className={`text-lg font-bold tabular-nums ${signal.accel > 0 ? 'text-up' : signal.accel < 0 ? 'text-down' : 'text-text-muted'}`}>
-              {signal.accel >= 0 ? '+' : ''}{signal.accel.toFixed(4)}
+              {signal.accel != null ? `${signal.accel >= 0 ? '+' : ''}${signal.accel.toFixed(4)}` : '-'}
             </div>
           </div>
           <div className="bg-bg rounded-xl p-3 text-center">
             <div className="text-[10px] text-text-muted mb-1">極端度</div>
-            <div className="text-lg font-bold tabular-nums">{signal.extremity_pct.toFixed(0)}%</div>
+            <div className="text-lg font-bold tabular-nums">{signal.extremity_pct != null ? `${signal.extremity_pct.toFixed(0)}%` : '-'}</div>
           </div>
         </div>
 
@@ -179,7 +179,7 @@ function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; h
                   {[...history].reverse().map((h, i) => (
                     <tr key={i} className="border-b border-border/30">
                       <td className="py-1 px-2 font-mono">{h.date}</td>
-                      <td className="py-1 px-2 text-right font-mono tabular-nums">{h.close?.toFixed(4)}</td>
+                      <td className="py-1 px-2 text-right font-mono tabular-nums">{h.close != null ? h.close.toFixed(2) : '-'}</td>
                     </tr>
                   ))}
                 </tbody>
