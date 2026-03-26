@@ -17,6 +17,7 @@ interface DataState {
   aiResearch: AiResearchData | null
   tsmcVolSignal: TsmcVolSignalData | null
   advisor: AdvisorData | null
+  indicesHistory: Record<string, Array<{ date: string; close: number; open?: number; high?: number; low?: number }>> | null
   isLoading: boolean
   error: string | null
 }
@@ -31,6 +32,7 @@ const DataContext = createContext<DataState>({
   aiResearch: null,
   tsmcVolSignal: null,
   advisor: null,
+  indicesHistory: null,
   isLoading: true,
   error: null,
 })
@@ -53,6 +55,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     aiResearch: null,
     tsmcVolSignal: null,
     advisor: null,
+    indicesHistory: null,
     isLoading: true,
     error: null,
   })
@@ -67,7 +70,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
         setState((prev) => ({ ...prev, dashboard, etfPages, isLoading: false }))
 
-        const [strategy, aiResearch, newsAnalysis, updateStatus, macroStatus, tsmcVolSignal, advisor] = await Promise.allSettled([
+        const [strategy, aiResearch, newsAnalysis, updateStatus, macroStatus, tsmcVolSignal, advisor, indicesHistory] = await Promise.allSettled([
           fetchJson<StrategyData>('strategy.json'),
           fetchJson<AiResearchData>('ai_research.json'),
           fetchJson<NewsAnalysisData>('news_analysis.json'),
@@ -75,6 +78,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           fetchJson<MacroStatus>('macro_status.json'),
           fetchJson<TsmcVolSignalData>('tsmc_vol_signal.json'),
           fetchJson<AdvisorData>('advisor.json'),
+          fetchJson<Record<string, any[]>>('indices_history.json'),
         ])
 
         setState((prev) => ({
@@ -86,6 +90,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           macroStatus: macroStatus.status === 'fulfilled' ? macroStatus.value : null,
           tsmcVolSignal: tsmcVolSignal.status === 'fulfilled' ? tsmcVolSignal.value : null,
           advisor: advisor.status === 'fulfilled' ? advisor.value : null,
+          indicesHistory: indicesHistory.status === 'fulfilled' ? indicesHistory.value : null,
         }))
       } catch (err) {
         setState((prev) => ({

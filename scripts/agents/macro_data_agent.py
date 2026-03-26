@@ -36,6 +36,8 @@ RISK_SYMBOLS = {
     'jpy':   'JPY%3DX',
     'hyg':   'HYG',
     'tlt':   'TLT',
+    'taiex': '%5ETWII',
+    'tpex':  '%5ETWO',
 }
 
 TAIFEX_RANKING_URL = "https://www.taifex.com.tw/cht/9/futuresQADetail"
@@ -96,21 +98,45 @@ def fetch_indices_history():
 
             chart = r.json().get('chart', {}).get('result', [{}])[0]
             timestamps = chart.get('timestamp', [])
-            closes = chart.get('indicators', {}).get('quote', [{}])[0].get('close', [])
+            quote = chart.get('indicators', {}).get('quote', [{}])[0]
+            closes = quote.get('close', [])
+            opens = quote.get('open', [])
+            highs = quote.get('high', [])
+            lows = quote.get('low', [])
 
             if not timestamps or not closes:
                 continue
 
-            new_records = {}
-            for ts, c in zip(timestamps, closes):
-                if c is not None:
-                    dt = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d')
-                    new_records[dt] = round(c, 4)
+            # TAIEX/TPEX: store OHLC for K-line charts
+            store_ohlc = key in ('taiex', 'tpex')
 
-            existing = {r['date']: r['close'] for r in history.get(key, [])}
-            existing.update(new_records)
-            sorted_dates = sorted(existing.keys())[-90:]
-            history[key] = [{'date': d, 'close': existing[d]} for d in sorted_dates]
+            if store_ohlc:
+                new_records = {}
+                for i, ts in enumerate(timestamps):
+                    c = closes[i] if i < len(closes) else None
+                    if c is not None:
+                        dt = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d')
+                        new_records[dt] = {
+                            'close': round(c, 2),
+                            'open': round(opens[i], 2) if i < len(opens) and opens[i] else round(c, 2),
+                            'high': round(highs[i], 2) if i < len(highs) and highs[i] else round(c, 2),
+                            'low': round(lows[i], 2) if i < len(lows) and lows[i] else round(c, 2),
+                        }
+                existing = {r['date']: {k: r[k] for k in ('close', 'open', 'high', 'low') if k in r}
+                            for r in history.get(key, []) if isinstance(r, dict)}
+                existing.update(new_records)
+                sorted_dates = sorted(existing.keys())[-90:]
+                history[key] = [{'date': d, **existing[d]} for d in sorted_dates]
+            else:
+                new_records = {}
+                for ts, c in zip(timestamps, closes):
+                    if c is not None:
+                        dt = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d')
+                        new_records[dt] = round(c, 4)
+                existing = {r['date']: r['close'] for r in history.get(key, [])}
+                existing.update(new_records)
+                sorted_dates = sorted(existing.keys())[-90:]
+                history[key] = [{'date': d, 'close': existing[d]} for d in sorted_dates]
 
             log(f"  {key}: {len(history[key])} days")
             time.sleep(0.3)

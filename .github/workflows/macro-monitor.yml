@@ -2,8 +2,10 @@ name: Macro Monitor
 
 on:
   schedule:
-    # 每小時執行一次（含假日）
-    - cron: '0 * * * *'
+    # 台股盤中每 30 分鐘 (TW 09:00-13:30 = UTC 01:00-05:30, 週一~五)
+    - cron: '0,30 1-5 * * 1-5'
+    # 非盤中每小時（其餘時段）
+    - cron: '0 0,6-23 * * *'
   workflow_dispatch:
     inputs:
       mode:

@@ -3,6 +3,38 @@ import { useData } from '../contexts/DataContext'
 import { Badge, TableContainer, DataTable, AdvisorCard } from '../components/shared'
 import type { MarketIndices, ConsensusItem, CashSeriesItem } from '../types'
 
+/* ── Mini K-line (SVG candlestick) ─────────────────── */
+
+interface KBar { date: string; open: number; high: number; low: number; close: number }
+
+function MiniKline({ data, width = 160, height = 48 }: { data: KBar[]; width?: number; height?: number }) {
+  if (data.length < 2) return null
+  const allHigh = Math.max(...data.map(d => d.high))
+  const allLow = Math.min(...data.map(d => d.low))
+  const range = allHigh - allLow || 1
+  const barW = Math.max(2, (width - 4) / data.length - 1)
+  const toY = (v: number) => height - 2 - ((v - allLow) / range) * (height - 4)
+
+  return (
+    <svg width={width} height={height} className="block">
+      {data.map((d, i) => {
+        const x = 2 + i * ((width - 4) / data.length) + barW / 2
+        const isUp = d.close >= d.open
+        const color = isUp ? 'var(--color-up)' : 'var(--color-down)'
+        const bodyTop = toY(Math.max(d.open, d.close))
+        const bodyBot = toY(Math.min(d.open, d.close))
+        const bodyH = Math.max(1, bodyBot - bodyTop)
+        return (
+          <g key={i}>
+            <line x1={x} x2={x} y1={toY(d.high)} y2={toY(d.low)} stroke={color} strokeWidth={0.8} />
+            <rect x={x - barW / 2} y={bodyTop} width={barW} height={bodyH} fill={color} rx={0.5} />
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
 /* ── helpers ─────────────────────────────────────────── */
 
 function Chg({ val, suffix = '' }: { val?: number; suffix?: string }) {
@@ -129,7 +161,7 @@ function GaugeCard({ title, value, mode, modeColor }: { title: string; value: st
 /* ── Main Component ──────────────────────────────────── */
 
 export function P2StrategicDashboard() {
-  const { dashboard, strategy, advisor } = useData()
+  const { dashboard, strategy, advisor, indicesHistory } = useData()
   const mi: MarketIndices | undefined = strategy?.market_indices
   const riskSignals = strategy?.risk_signals
   const cashMode = dashboard?.cash_mode
@@ -240,62 +272,45 @@ export function P2StrategicDashboard() {
         riskScore={strategy?.risk_signals ? `${strategy.risk_signals.score}/${strategy.risk_signals.max_score}` : undefined}
       />
 
-      {/* ── Taiwan Indices Hero ── */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-all">
-          <div className="text-xs text-text-muted mb-1">加權指數 TAIEX</div>
-          <div className={`text-2xl font-extrabold tabular-nums ${(taiexChg ?? 0) > 0 ? 'text-up' : (taiexChg ?? 0) < 0 ? 'text-down' : 'text-text-muted'}`}>
-            {taiex != null ? taiex.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '-'}
-          </div>
-          <div className="flex items-center gap-2 mt-1 text-sm">
-            <Chg val={taiexChg} /> <span className="text-text-muted">|</span> <Chg val={taiexChgPct} suffix="%" />
-          </div>
-          {taiexMa.label && (
-            <div className="mt-1.5 px-2 py-0.5 rounded text-[10px] font-semibold inline-block" style={{ backgroundColor: `${taiexMa.color}15`, color: taiexMa.color }}>
-              {taiexMa.label}
-            </div>
-          )}
-          {/* 近 4 日變動 */}
-          <div className="mt-2 grid grid-cols-4 gap-1 text-[9px] font-mono">
-            {taiexRecent.map((d, i) => (
-              <div key={i} className="text-center py-0.5 rounded bg-bg">
-                <div className="text-text-muted">{d.date}</div>
-                <div className={d.pct != null ? (d.pct > 0 ? 'text-up' : d.pct < 0 ? 'text-down' : 'text-text-muted') : 'text-text-muted'}>
-                  {d.pct != null ? `${d.pct > 0 ? '+' : ''}${d.pct.toFixed(1)}%` : '-'}
+      {/* ── Taiwan Indices (compact + K-line) ── */}
+      <div className="grid grid-cols-2 gap-2">
+        {([
+          { label: 'TAIEX', key: 'taiex' as const, val: taiex, chg: taiexChg, pct: taiexChgPct, ma: taiexMa, digits: 0 },
+          { label: 'TPEX', key: 'tpex' as const, val: tpex, chg: tpexChg, pct: tpexChgPct, ma: tpexMa, digits: 2 },
+        ]).map(idx => {
+          const kData = (indicesHistory?.[idx.key] ?? []).slice(-15).filter(
+            (d): d is KBar => d.open != null && d.high != null && d.low != null && d.close != null
+          )
+          // Fallback: use cashSeries close as pseudo-K if no OHLC
+          const fallbackK: KBar[] = kData.length < 3
+            ? cashSeries.slice(-15).filter(d => d[idx.key] != null).map(d => {
+                const c = d[idx.key] as number
+                return { date: d.date, open: c, high: c, low: c, close: c }
+              })
+            : kData
+          const color = (idx.chg ?? 0) > 0 ? 'text-up' : (idx.chg ?? 0) < 0 ? 'text-down' : 'text-text-muted'
+          return (
+            <div key={idx.key} className="bg-card border border-border rounded-lg p-3 hover:bg-card-hover transition-all">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] text-text-muted uppercase tracking-wider">{idx.label}</div>
+                  <div className={`text-lg font-bold tabular-nums ${color}`}>
+                    {idx.val != null ? idx.val.toLocaleString('en-US', { maximumFractionDigits: idx.digits }) : '-'}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <Chg val={idx.chg} /> <span className="text-text-muted">|</span> <Chg val={idx.pct} suffix="%" />
+                  </div>
                 </div>
+                <MiniKline data={fallbackK} width={120} height={40} />
               </div>
-            ))}
-          </div>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-all">
-          <div className="text-xs text-text-muted mb-1">櫃買指數 TPEX</div>
-          <div className={`text-2xl font-extrabold tabular-nums ${(tpexChg ?? 0) > 0 ? 'text-up' : (tpexChg ?? 0) < 0 ? 'text-down' : 'text-text-muted'}`}>
-            {tpex != null ? tpex.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '等待資料'}
-          </div>
-          {tpex ? (
-            <div className="flex items-center gap-2 mt-1 text-sm">
-              <Chg val={tpexChg} /> <span className="text-text-muted">|</span> <Chg val={tpexChgPct} suffix="%" />
-            </div>
-          ) : (
-            <div className="text-[10px] text-text-muted mt-1">Pipeline 尚未產出</div>
-          )}
-          {tpexMa.label && (
-            <div className="mt-1.5 px-2 py-0.5 rounded text-[10px] font-semibold inline-block" style={{ backgroundColor: `${tpexMa.color}15`, color: tpexMa.color }}>
-              {tpexMa.label}
-            </div>
-          )}
-          {/* 近 4 日變動 */}
-          <div className="mt-2 grid grid-cols-4 gap-1 text-[9px] font-mono">
-            {tpexRecent.map((d, i) => (
-              <div key={i} className="text-center py-0.5 rounded bg-bg">
-                <div className="text-text-muted">{d.date}</div>
-                <div className={d.pct != null ? (d.pct > 0 ? 'text-up' : d.pct < 0 ? 'text-down' : 'text-text-muted') : 'text-text-muted'}>
-                  {d.pct != null ? `${d.pct > 0 ? '+' : ''}${d.pct.toFixed(1)}%` : '-'}
+              {idx.ma.label && (
+                <div className="mt-1.5 px-1.5 py-0.5 rounded text-[9px] font-semibold inline-block" style={{ backgroundColor: `${idx.ma.color}15`, color: idx.ma.color }}>
+                  {idx.ma.label}
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {/* ── Sentiment Row (VIX + F&G with 3-day history) ── */}
