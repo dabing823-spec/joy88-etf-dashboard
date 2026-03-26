@@ -298,12 +298,17 @@ export function P2StrategicDashboard() {
               const kClose: KBar[] = histRaw
                 .filter((d: any) => d.close != null)
                 .map((d: any) => ({ date: d.date, open: d.close, high: d.close, low: d.close, close: d.close }))
-              // Extra fallback for TAIEX/TPEX from cashSeries
+              // Synthesize OHLC from close-only series: open=prev close, high/low from spread
               const csFallback: KBar[] = (c.hk === 'taiex' || c.hk === 'tpex')
-                ? cashSeries.slice(-15).filter(d => d[c.hk as 'taiex' | 'tpex'] != null).map(d => {
-                    const v = d[c.hk as 'taiex' | 'tpex'] as number
-                    return { date: d.date, open: v, high: v, low: v, close: v }
-                  })
+                ? (() => {
+                    const raw = cashSeries.slice(-16).filter(d => d[c.hk as 'taiex' | 'tpex'] != null)
+                    return raw.slice(1).map((d, i) => {
+                      const close = d[c.hk as 'taiex' | 'tpex'] as number
+                      const open = raw[i][c.hk as 'taiex' | 'tpex'] as number
+                      const spread = Math.abs(close - open) * 0.3
+                      return { date: d.date, open, close, high: Math.max(open, close) + spread, low: Math.min(open, close) - spread }
+                    })
+                  })()
                 : []
               const kData = kOhlc.length >= 3 ? kOhlc : kClose.length >= 3 ? kClose : csFallback
               const suffix = c.hk === 'fear_greed' ? '' : '%'
