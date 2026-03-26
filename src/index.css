@@ -48,6 +48,17 @@ body {
   box-sizing: border-box;
 }
 
+/* Global focus-visible for all interactive elements */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent);
+  border-radius: 6px;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
