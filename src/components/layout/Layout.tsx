@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useData } from '../../contexts/DataContext'
 import { BASE_URL } from '../../lib/constants'
+import { formatUpdateTime } from '../../lib/formatters'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: '戰略儀表板' },
@@ -16,14 +17,6 @@ const NAV_ITEMS = [
   { to: '/tsmc-vol', label: 'TSMC Vol' },
 ]
 
-function formatUpdateTime(isoString: string): string {
-  const d = new Date(isoString)
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  const hh = String(d.getHours()).padStart(2, '0')
-  const min = String(d.getMinutes()).padStart(2, '0')
-  return `${mm}/${dd} ${hh}:${min}`
-}
 
 function timeSince(isoString: string): { text: string; stale: boolean } {
   const diff = Date.now() - new Date(isoString).getTime()
@@ -45,13 +38,13 @@ function SystemHealth({ items }: { items: StatusItem[] }) {
     <div className="max-w-[1400px] mx-auto px-4 py-1.5 flex flex-wrap gap-x-4 gap-y-1">
       {items.map(({ label, time }) => {
         if (!time) return (
-          <span key={label} className="text-[10px] font-mono text-text-muted">
+          <span key={label} className="text-2xs font-mono text-text-muted">
             {label}: <span className="text-red-400">N/A</span>
           </span>
         )
         const { text, stale } = timeSince(time)
         return (
-          <span key={label} className="text-[10px] font-mono text-text-muted">
+          <span key={label} className="text-2xs font-mono text-text-muted">
             {label}: <span className={stale ? 'text-red-400' : 'text-green-400'}>{text}</span>
           </span>
         )
@@ -75,18 +68,18 @@ export function Layout() {
                 className="h-7 rounded"
               />
               <div className="flex items-baseline gap-1.5">
-                <span className="text-sm font-bold text-accent tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>JOY88</span>
-                <span className="text-[10px] text-text-muted font-medium tracking-wider uppercase hidden sm:inline">ETF Dashboard</span>
+                <span className="text-sm font-bold text-accent tracking-tight font-display">JOY88</span>
+                <span className="text-2xs text-text-muted font-medium tracking-wider uppercase hidden sm:inline">ETF Dashboard</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
               {dashboard && (
-                <span className="text-[10px] text-text-muted font-mono">
+                <span className="text-2xs text-text-muted font-mono">
                   DATA {dashboard.report_date}
                 </span>
               )}
               {updateStatus?.status === 'success' && (
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">
+                <span className="text-2xs font-mono px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">
                   Pipeline OK {formatUpdateTime(updateStatus.pipeline_completed_at)}
                 </span>
               )}
@@ -136,9 +129,9 @@ export function Layout() {
         <div className="max-w-[1400px] mx-auto px-4 pb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={`${BASE_URL}assets/logo-shanhai-joyle.png`} alt="" className="h-4 rounded opacity-60" />
-            <span className="text-[10px] text-text-muted">Shanhai Joyle Capital</span>
+            <span className="text-2xs text-text-muted">Shanhai Joyle Capital</span>
           </div>
-          <span className="text-[10px] text-text-muted">
+          <span className="text-2xs text-text-muted">
             JOY88 &copy; {new Date().getFullYear()} | 資料僅供參考，不構成投資建議
           </span>
         </div>

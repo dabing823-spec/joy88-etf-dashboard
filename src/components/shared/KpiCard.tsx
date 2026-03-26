@@ -21,11 +21,11 @@ interface KpiGridProps {
 }
 
 export function KpiGrid({ children, columns }: KpiGridProps) {
-  const gridCols = columns
-    ? `grid-cols-${columns}`
-    : 'grid-cols-[repeat(auto-fit,minmax(200px,1fr))]'
   return (
-    <div className={`grid ${gridCols} gap-4 mb-4`}>
+    <div
+      className="grid gap-4 mb-4"
+      style={{ gridTemplateColumns: columns ? `repeat(${columns}, minmax(0, 1fr))` : 'repeat(auto-fit, minmax(200px, 1fr))' }}
+    >
       {children}
     </div>
   )

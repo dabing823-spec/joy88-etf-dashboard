@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 @theme {
+  /* Typography scale extras (DESIGN.md) */
+  --text-2xs: 10px;
+  --text-2xs--line-height: 14px;
+
   /* Base surfaces */
   --color-bg: #0b0d14;
   --color-card: #12141f;
@@ -88,6 +92,11 @@ summary:focus-visible,
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Display font utility (Satoshi for headings) */
+.font-display {
+  font-family: var(--font-display);
 }
 
 /* Tabular nums globally for all monospace/data text */

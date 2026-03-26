@@ -68,9 +68,9 @@ function SentimentCard({ icon, label, value, sub, color }: { icon: string; label
   return (
     <div className="bg-card border border-border rounded-xl p-4 text-center hover:bg-card-hover transition-colors">
       <div className="text-2xl mb-1">{icon}</div>
-      <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{label}</div>
+      <div className="text-2xs text-text-muted uppercase tracking-wider mb-1">{label}</div>
       <div className={`text-xl font-bold tabular-nums ${color || ''}`}>{value}</div>
-      <div className="text-[10px] text-text-muted mt-1">{sub}</div>
+      <div className="text-2xs text-text-muted mt-1">{sub}</div>
     </div>
   )
 }
@@ -82,27 +82,20 @@ function MacroCell({ emoji, label, value, chgPct, hint }: { emoji: string; label
     <div className="p-4 border-r border-border/30 last:border-r-0">
       <div className="flex items-center gap-1.5 mb-1">
         <span className="text-lg">{emoji}</span>
-        <span className="text-[10px] text-text-muted uppercase tracking-wider">{label}</span>
+        <span className="text-2xs text-text-muted uppercase tracking-wider">{label}</span>
       </div>
       <div className="flex items-baseline gap-2">
         <span className="text-lg font-bold text-text-primary tabular-nums">{value?.toFixed(2) ?? '-'}</span>
         <Chg val={chgPct} suffix="%" />
       </div>
-      <div className="text-[10px] text-text-muted mt-1 opacity-50">{hint}</div>
+      <div className="text-2xs text-text-muted mt-1 opacity-50">{hint}</div>
     </div>
   )
 }
 
 /* ── Risk Banner (clickable → P8) ────────────────────── */
 
-const LEVEL_MAP: Record<string, { label: string; color: string }> = {
-  red: { label: '🔴 高度警戒', color: '#ff4757' },
-  high: { label: '🔴 高度警戒', color: '#ff4757' },
-  yellow: { label: '🟡 中度警戒', color: '#ffa502' },
-  medium: { label: '🟡 中度警戒', color: '#ffa502' },
-  green: { label: '🟢 正常', color: '#00c48c' },
-  low: { label: '🟢 正常', color: '#00c48c' },
-}
+import { LEVEL_MAP } from '../lib/constants'
 
 function RiskBanner({ score, maxScore, level, nRed, nYellow, nGreen, updatedAt, signals }: {
   score: number; maxScore: number; level: string; nRed: number; nYellow: number; nGreen: number; updatedAt: string
@@ -133,7 +126,7 @@ function RiskBanner({ score, maxScore, level, nRed, nYellow, nGreen, updatedAt, 
         {signals.map((s, i) => {
           const sc = (LEVEL_MAP[s.level] || LEVEL_MAP.green).color
           return (
-            <span key={i} className="px-2 py-0.5 rounded text-[10px] font-semibold"
+            <span key={i} className="px-2 py-0.5 rounded text-2xs font-semibold"
               style={{ backgroundColor: `${sc}15`, color: sc }}>
               {s.name}
             </span>
@@ -149,7 +142,7 @@ function RiskBanner({ score, maxScore, level, nRed, nYellow, nGreen, updatedAt, 
 function GaugeCard({ title, value, mode, modeColor }: { title: string; value: string; mode: string; modeColor: string }) {
   return (
     <div className="bg-card border border-border rounded-xl p-4 text-center hover:bg-card-hover transition-colors">
-      <div className="text-[10px] text-text-muted uppercase tracking-wider mb-2">{title}</div>
+      <div className="text-2xs text-text-muted uppercase tracking-wider mb-2">{title}</div>
       <div className="text-xl font-bold text-text-primary mb-2">{value}</div>
       <div className="px-3 py-1 rounded-xl text-xs font-semibold" style={{ backgroundColor: `${modeColor}20`, color: modeColor }}>
         {mode}
@@ -313,7 +306,7 @@ export function P2StrategicDashboard() {
                         {c.val != null ? Number(c.val).toLocaleString('en-US', { maximumFractionDigits: c.digits }) : '-'}
                       </div>
                       {c.chgPct != null && (
-                        <div className="text-[10px] tabular-nums"><Chg val={c.chgPct} suffix={suffix} /></div>
+                        <div className="text-2xs tabular-nums"><Chg val={c.chgPct} suffix={suffix} /></div>
                       )}
                     </div>
                     <MiniKline data={kData} width={72} height={30} />
@@ -335,7 +328,7 @@ export function P2StrategicDashboard() {
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-2.5 border-b border-border">
             <h2 className="text-sm font-semibold tracking-wide">Global Macro Dashboard</h2>
-            <span className="text-[10px] text-text-muted tracking-wider">OIL · DXY · GOLD · YIELD</span>
+            <span className="text-2xs text-text-muted tracking-wider">OIL · DXY · GOLD · YIELD</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4">
             <MacroCell emoji="💵" label="DXY 美元指數" value={mi.dxy} chgPct={mi.dxy_chg_pct} hint="看資金流向" />
@@ -345,7 +338,7 @@ export function P2StrategicDashboard() {
           </div>
           {/* Macro Reading Guide */}
           <details className="border-t border-border/30">
-            <summary className="px-5 py-2 text-[10px] text-text-muted cursor-pointer hover:text-text-primary">
+            <summary className="px-5 py-2 text-2xs text-text-muted cursor-pointer hover:text-text-primary">
               ℹ️ 五大指標怎麼看？(點擊展開)
             </summary>
             <div className="px-5 pb-3 text-xs text-text-muted leading-relaxed">
@@ -374,28 +367,28 @@ export function P2StrategicDashboard() {
       {/* ── KPI Grid ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
-          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">💰 現金水位</div>
+          <div className="text-2xs text-text-muted uppercase tracking-wider mb-1">💰 現金水位</div>
           <div className={`text-2xl font-bold ${cashNow >= 5 ? 'text-up' : cashNow >= 3 ? 'text-warning' : 'text-down'}`}>
             {cashNow.toFixed(1)}%
           </div>
-          <div className="text-[10px] text-text-muted mt-0.5">{cashMode?.mode_desc || '-'}</div>
+          <div className="text-2xs text-text-muted mt-0.5">{cashMode?.mode_desc || '-'}</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
-          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">⚔️ 攻防模式</div>
+          <div className="text-2xs text-text-muted uppercase tracking-wider mb-1">⚔️ 攻防模式</div>
           <div className="text-2xl font-bold" style={{ color: modeColor }}>{cashMode?.mode?.replace(/🔵|🟢|🟡|🔴/g, '').trim() || '-'}</div>
-          <div className="text-[10px] mt-0.5" style={{ color: modeColor }}>{cashTrend}</div>
+          <div className="text-2xs mt-0.5" style={{ color: modeColor }}>{cashTrend}</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
-          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">🎯 跟單狀態</div>
+          <div className="text-2xs text-text-muted uppercase tracking-wider mb-1">🎯 跟單狀態</div>
           <div className={`text-2xl font-bold ${cashNow > 4 ? 'text-up' : 'text-text-muted'}`}>
             {cashNow > 4 ? '加分中' : '一般'}
           </div>
-          <div className="text-[10px] text-text-muted mt-0.5">{cashNow > 4 ? '現金>4%, 勝率提升' : '一般狀態'}</div>
+          <div className="text-2xs text-text-muted mt-0.5">{cashNow > 4 ? '現金>4%, 勝率提升' : '一般狀態'}</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
-          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">今日異動</div>
+          <div className="text-2xs text-text-muted uppercase tracking-wider mb-1">今日異動</div>
           <div className="text-2xl font-bold text-accent">{totalSignals}</div>
-          <div className="text-[10px] text-text-muted mt-0.5">🆕{nNew} ▲{nAdded} ▼{nReduced} ✕{nExited}</div>
+          <div className="text-2xs text-text-muted mt-0.5">🆕{nNew} ▲{nAdded} ▼{nReduced} ✕{nExited}</div>
         </div>
       </div>
 
@@ -418,8 +411,8 @@ export function P2StrategicDashboard() {
                     <span className="text-accent font-mono">{s.code}</span>
                     <span className="font-medium">{s.name}</span>
                     <span className="text-text-muted tabular-nums">{s.weight?.toFixed(2)}%</span>
-                    {sig?.hold_suggestion && <span className="text-[10px] text-yellow-400 ml-auto">{sig.hold_suggestion}</span>}
-                    {sig?.confidence && <span className="text-[10px] text-text-muted">{sig.confidence}</span>}
+                    {sig?.hold_suggestion && <span className="text-2xs text-yellow-400 ml-auto">{sig.hold_suggestion}</span>}
+                    {sig?.confidence && <span className="text-2xs text-text-muted">{sig.confidence}</span>}
                   </div>
                 )
               })}
@@ -431,8 +424,8 @@ export function P2StrategicDashboard() {
                     <span className="text-accent font-mono">{s.code}</span>
                     <span className="font-medium">{s.name}</span>
                     <span className="text-up tabular-nums">+{s.weight_chg?.toFixed(2)}%</span>
-                    {sig?.hold_suggestion && <span className="text-[10px] text-yellow-400 ml-auto">{sig.hold_suggestion}</span>}
-                    {sig?.confidence && <span className="text-[10px] text-text-muted">{sig.confidence}</span>}
+                    {sig?.hold_suggestion && <span className="text-2xs text-yellow-400 ml-auto">{sig.hold_suggestion}</span>}
+                    {sig?.confidence && <span className="text-2xs text-text-muted">{sig.confidence}</span>}
                   </div>
                 )
               })}
@@ -444,7 +437,7 @@ export function P2StrategicDashboard() {
                     <span className="text-accent font-mono">{s.code}</span>
                     <span className="font-medium">{s.name}</span>
                     <span className="text-down tabular-nums">{s.weight_chg?.toFixed(2)}%</span>
-                    {sig?.hold_suggestion && <span className="text-[10px] text-yellow-400 ml-auto">{sig.hold_suggestion}</span>}
+                    {sig?.hold_suggestion && <span className="text-2xs text-yellow-400 ml-auto">{sig.hold_suggestion}</span>}
                   </div>
                 )
               })}

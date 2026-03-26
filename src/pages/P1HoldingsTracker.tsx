@@ -4,18 +4,13 @@ import { Chart } from 'react-chartjs-2'
 import { useData } from '../contexts/DataContext'
 import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable } from '../components/shared'
 import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
+import { STOCK_COLORS } from '../lib/constants'
 import '../lib/chartDefaults'
 import type { CashSeriesItem, Holding } from '../types'
 
 type RangeType = 30 | 60 | 90 | 'all'
 
 const stripMd = (s: string) => s.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/__([^_]+)__/g, '$1').replace(/^#+\s*/gm, '').trim()
-
-const STOCK_COLORS = [
-  '#4f8ef7', '#ff4757', '#00c48c', '#ffa502', '#a855f7', '#22d3ee', '#ffc312', '#ff6b81',
-  '#7bed9f', '#70a1ff', '#eccc68', '#ff6348', '#2ed573', '#1e90ff', '#ff4500', '#dfe6e9',
-  '#6c5ce7', '#fdcb6e', '#e17055', '#00b894',
-]
 
 interface CashModeSeriesItem {
   date: string
@@ -290,7 +285,7 @@ export function P1HoldingsTracker() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-text-primary">00981A 持股追蹤</h1>
+      <h1 className="text-2xl font-bold font-display text-text-primary">00981A 持股追蹤</h1>
 
       <IntroBox variant="accent">
         追蹤 00981A（主動統一台股增長 ETF）的每日持股變化、經理人操作動向與現金水位。持股異動事件可作為跟單參考（新增跟 5 天、加碼跟 3 天）。圖表支援拖曳縮放。
@@ -355,7 +350,7 @@ export function P1HoldingsTracker() {
       {/* ── Chart 1: Cash + MA + TAIEX + TPEX + Units ── */}
       <TableContainer title="📈 00981A 現金水位 · 申贖量 vs 加權 · 櫃買">
         <div className="flex items-center justify-between mb-2">
-          <div className="text-[10px] text-text-muted">🖱️ 滾輪縮放 · 拖曳平移 · 雙擊重置</div>
+          <div className="text-2xs text-text-muted">🖱️ 滾輪縮放 · 拖曳平移 · 雙擊重置</div>
           <div className="flex gap-1">
             {([30, 60, 90, 'all'] as const).map(r => (
               <button key={String(r)} onClick={() => setCashRange(r as RangeType)}

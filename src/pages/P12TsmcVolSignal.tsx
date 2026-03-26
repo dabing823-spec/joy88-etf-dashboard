@@ -1,22 +1,9 @@
 import { useData } from '../contexts/DataContext'
-
-const VOL_TIER_COLORS: Record<string, string> = {
-  '低波': '#00c48c',
-  '中低波': '#4f8ef7',
-  '中波': '#ffa502',
-  '中高波': '#ff6b35',
-  '高波': '#ff4757',
-}
-
-const IMPACT_COLORS: Record<string, string> = {
-  '高': '#ff4757',
-  '中': '#ffa502',
-  '低': '#4f8ef7',
-}
+import { VOL_TIER_COLORS, IMPACT_COLORS, palette } from '../lib/constants'
 
 function VolBar({ label, value, max }: { label: string; value: number; max: number }) {
   const pct = Math.min((value / max) * 100, 100)
-  const color = value > 40 ? '#ff4757' : value > 25 ? '#ffa502' : '#00c48c'
+  const color = value > 40 ? palette.red : value > 25 ? palette.orange : palette.green
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs">
@@ -33,7 +20,7 @@ function VolBar({ label, value, max }: { label: string; value: number; max: numb
 function StatCell({ label, value, unit, color }: { label: string; value: string | number; unit?: string; color?: string }) {
   return (
     <div className="text-center p-3">
-      <div className="text-[10px] text-text-muted mb-1">{label}</div>
+      <div className="text-2xs text-text-muted mb-1">{label}</div>
       <div className="text-lg font-bold font-mono" style={{ color: color || 'var(--color-text-primary)' }}>
         {value}{unit && <span className="text-xs text-text-muted ml-0.5">{unit}</span>}
       </div>
@@ -65,7 +52,7 @@ export function P12TsmcVolSignal() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <h1 className="text-xl font-bold text-text-primary">
+      <h1 className="text-2xl font-bold font-display text-text-primary">
         {stock.名稱} ({stock.代號}) 波動率信號
         <span className="text-xs text-text-muted font-normal ml-2">{d.更新時間}</span>
       </h1>
@@ -73,14 +60,14 @@ export function P12TsmcVolSignal() {
       {/* Row 1: Hero KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
-          <div className="text-[10px] text-text-muted mb-1">收盤價</div>
+          <div className="text-2xs text-text-muted mb-1">收盤價</div>
           <div className="text-2xl font-bold font-mono text-text-primary">{stock.收盤價.toLocaleString()}</div>
           <div className={`text-sm font-mono mt-1 ${stock['日報酬(%)'] >= 0 ? 'text-up' : 'text-down'}`}>
             {stock['日報酬(%)'] >= 0 ? '+' : ''}{stock['日報酬(%)'].toFixed(2)}%
           </div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
-          <div className="text-[10px] text-text-muted mb-1">連續漲跌</div>
+          <div className="text-2xs text-text-muted mb-1">連續漲跌</div>
           <div className={`text-2xl font-bold font-mono ${stock.連續漲跌 >= 0 ? 'text-up' : 'text-down'}`}>
             {stock.連續漲跌 > 0 ? '+' : ''}{stock.連續漲跌} 天
           </div>
@@ -89,12 +76,12 @@ export function P12TsmcVolSignal() {
           </div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
-          <div className="text-[10px] text-text-muted mb-1">波動率環境</div>
+          <div className="text-2xs text-text-muted mb-1">波動率環境</div>
           <div className="text-xl font-bold" style={{ color: tierColor }}>{env.分檔}</div>
           <div className="text-xs mt-1" style={{ color: tierColor }}>{env.趨勢}</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
-          <div className="text-[10px] text-text-muted mb-1">SC 履約價</div>
+          <div className="text-2xs text-text-muted mb-1">SC 履約價</div>
           <div className="text-2xl font-bold font-mono text-accent">{sc.SC履約價}</div>
           <div className="text-xs text-text-muted mt-1">{sc.激進度}</div>
         </div>
@@ -194,13 +181,13 @@ export function P12TsmcVolSignal() {
                   <div key={i} className="flex items-center justify-between p-2 bg-bg rounded-xl">
                     <div>
                       <span className="text-xs font-medium text-text-primary">{ev.事件}</span>
-                      <span className="text-[10px] text-text-muted ml-2">{ev.日期}</span>
+                      <span className="text-2xs text-text-muted ml-2">{ev.日期}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold font-mono" style={{ color: IMPACT_COLORS[ev.影響程度] || '#9ca0b4' }}>
                         {ev.倒數天數}天
                       </span>
-                      <span className="text-[10px] text-text-muted">{ev.SC建議}</span>
+                      <span className="text-2xs text-text-muted">{ev.SC建議}</span>
                     </div>
                   </div>
                 ))}
@@ -221,18 +208,18 @@ export function P12TsmcVolSignal() {
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-accent">{s.策略}</span>
-                      <span className="px-1.5 py-0.5 text-[10px] rounded bg-accent/10 text-accent border border-accent/20">
+                      <span className="px-1.5 py-0.5 text-2xs rounded bg-accent/10 text-accent border border-accent/20">
                         {s.方向}
                       </span>
                       {s.倉位 && (
-                        <span className="px-1.5 py-0.5 text-[10px] rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                        <span className="px-1.5 py-0.5 text-2xs rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
                           {s.倉位}
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-text-muted">{s.說明}</p>
                     {s.建議履約價 && <p className="text-xs text-text-primary">{s.建議履約價}</p>}
-                    {s.風控 && <p className="text-[10px] text-yellow-400">{s.風控}</p>}
+                    {s.風控 && <p className="text-2xs text-yellow-400">{s.風控}</p>}
                   </div>
                 ) : s.附加提示 ? (
                   <div className="space-y-1">

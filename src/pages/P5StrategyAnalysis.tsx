@@ -90,7 +90,7 @@ export function P5StrategyAnalysis() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-text-primary">策略分析 & 回測</h1>
+      <h1 className="text-2xl font-bold font-display text-text-primary">策略分析 & 回測</h1>
 
       <IntroBox>
         綜合評分操作建議與信號回測績效。操作建議基於權重、動能、共識等多因子評分；回測驗證過去信號的實際報酬表現。
@@ -159,7 +159,7 @@ export function P5StrategyAnalysis() {
       )}
 
       {/* Section 3: 跟單回測分析 (static data) */}
-      <h2 className="text-xl font-bold text-text-primary mt-2">跟單回測分析</h2>
+      <h2 className="text-2xl font-bold font-display text-text-primary mt-2">跟單回測分析</h2>
 
       <IntroBox variant="red">
         00981A 持股異動信號回測（2025/10/17 ~ 2025/12/26）。分析新增/加碼持股後 3、5、10 日的短線績效與勝率，找出最佳跟單策略與現金水位濾網效果。

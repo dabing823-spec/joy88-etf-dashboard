@@ -31,16 +31,18 @@ ChartJS.register(
   annotationPlugin,
 )
 
+import { palette } from './constants'
+
 export const chartColors = {
-  accent: '#e09f3e',
-  green: '#22c55e',
-  red: '#e54545',
-  orange: '#f59e0b',
-  purple: '#a855f7',
-  cyan: '#22d3ee',
-  textMuted: '#7d829a',
-  grid: 'rgba(30, 34, 53, 0.5)',
-  text: '#e8eaef',
+  accent: palette.accent,
+  green: palette.down,
+  red: palette.up,
+  orange: palette.warning,
+  purple: palette.purple,
+  cyan: palette.cyan,
+  textMuted: palette.textMuted,
+  grid: palette.grid,
+  text: palette.text,
 }
 
 ChartJS.defaults.font.family = "'JetBrains Mono', 'SF Mono', monospace"

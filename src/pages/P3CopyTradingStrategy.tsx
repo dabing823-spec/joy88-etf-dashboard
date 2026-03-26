@@ -3,6 +3,7 @@ import { Doughnut, Bar } from 'react-chartjs-2'
 import { useData } from '../contexts/DataContext'
 import { InsightCard, Badge, TableContainer, DataTable, FilterButtons } from '../components/shared'
 import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
+import { SIGNAL_COLORS } from '../lib/constants'
 import '../lib/chartDefaults'
 import type { LaomoSignal, DailyChange } from '../types'
 
@@ -75,7 +76,7 @@ export function P3CopyTradingStrategy() {
   const doughnutData = useMemo(() => {
     const types: Record<string, number> = {}
     rawSignals.forEach(s => { types[s.type] = (types[s.type] || 0) + 1 })
-    const colorMap: Record<string, string> = { '新增': chartColors.red, '加碼': chartColors.accent, '減碼': chartColors.orange, '退出': chartColors.green }
+    const colorMap = SIGNAL_COLORS
     return {
       labels: Object.keys(types),
       datasets: [{ data: Object.values(types), backgroundColor: Object.keys(types).map(t => colorMap[t] || chartColors.accent), borderWidth: 0, hoverOffset: 8 }],
@@ -94,7 +95,7 @@ export function P3CopyTradingStrategy() {
     })
     const months = Object.keys(monthTypes).sort()
     const allTypes = [...new Set(rawSignals.map(s => s.type))]
-    const colorMap: Record<string, string> = { '新增': chartColors.red, '加碼': chartColors.accent, '減碼': chartColors.orange, '退出': chartColors.green }
+    const colorMap = SIGNAL_COLORS
     return {
       labels: months,
       datasets: allTypes.map(type => ({
@@ -146,7 +147,7 @@ export function P3CopyTradingStrategy() {
             {isExpanded && (
               <div className="mt-1.5 space-y-0.5 text-left">
                 {[...history].reverse().map((h, i) => (
-                  <div key={i} className="flex items-center gap-2 text-[10px]">
+                  <div key={i} className="flex items-center gap-2 text-2xs">
                     <span className="text-text-muted font-mono">{h.date}</span>
                     <span className={`font-semibold tabular-nums ${h.weight_chg > 0 ? 'text-up' : 'text-text-muted'}`}>
                       {h.weight_chg > 0 ? '+' : ''}{h.weight_chg.toFixed(2)}%
@@ -172,7 +173,7 @@ export function P3CopyTradingStrategy() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-text-primary">老墨跟單策略</h1>
+      <h1 className="text-2xl font-bold font-display text-text-primary">老墨跟單策略</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InsightCard title="策略邏輯" borderColor="border-l-accent">

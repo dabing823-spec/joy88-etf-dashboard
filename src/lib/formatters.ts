@@ -15,15 +15,19 @@ export function formatDate(dateStr: string): string {
   return dateStr
 }
 
-export function formatFullDate(dateStr: string): string {
-  if (!dateStr) return '-'
-  return dateStr
+export function formatUpdateTime(isoString: string): string {
+  const d = new Date(isoString)
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const min = String(d.getMinutes()).padStart(2, '0')
+  return `${mm}/${dd} ${hh}:${min}`
 }
 
 export function chgColor(value: number): string {
-  if (value > 0) return 'text-red-400'
-  if (value < 0) return 'text-green-400'
-  return 'text-gray-400'
+  if (value > 0) return 'text-up'
+  if (value < 0) return 'text-down'
+  return 'text-text-muted'
 }
 
 export function chgArrow(value: number): string {
@@ -34,18 +38,18 @@ export function chgArrow(value: number): string {
 
 export function riskLevelColor(level: string): string {
   switch (level) {
-    case 'red': return 'text-red-400'
-    case 'yellow': return 'text-yellow-400'
-    case 'green': return 'text-green-400'
-    default: return 'text-gray-400'
+    case 'red': return 'text-danger'
+    case 'yellow': return 'text-warning'
+    case 'green': return 'text-down'
+    default: return 'text-text-muted'
   }
 }
 
 export function riskLevelBg(level: string): string {
   switch (level) {
-    case 'red': return 'bg-red-500/20 border-red-500/30'
-    case 'yellow': return 'bg-yellow-500/20 border-yellow-500/30'
-    case 'green': return 'bg-green-500/20 border-green-500/30'
-    default: return 'bg-gray-500/20 border-gray-500/30'
+    case 'red': return 'bg-danger/20 border-danger/30'
+    case 'yellow': return 'bg-warning/20 border-warning/30'
+    case 'green': return 'bg-down/20 border-down/30'
+    default: return 'bg-text-muted/20 border-text-muted/30'
   }
 }

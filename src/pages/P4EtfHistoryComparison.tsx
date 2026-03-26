@@ -3,17 +3,9 @@ import { Line, Bar, Chart } from 'react-chartjs-2'
 import { useData } from '../contexts/DataContext'
 import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable } from '../components/shared'
 import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
-import { ETF_LIST, ETF_SHORT_NAMES } from '../lib/constants'
+import { ETF_LIST, ETF_SHORT_NAMES, ETF_COLORS } from '../lib/constants'
 import '../lib/chartDefaults'
 import type { EtfPageData, DateRecord } from '../types'
-
-const ETF_COLORS: Record<string, string> = {
-  '00981A': '#4f8ef7',
-  '00980A': '#ffa502',
-  '00982A': '#a855f7',
-  '00991A': '#00c48c',
-  '00993A': '#22d3ee',
-}
 
 function getLatestRecord(etfData: EtfPageData): DateRecord | null {
   const records = etfData.date_records
@@ -297,7 +289,7 @@ export function P4EtfHistoryComparison() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-text-primary">ETF 歷史回溯與對比</h1>
+      <h1 className="text-2xl font-bold font-display text-text-primary">ETF 歷史回溯與對比</h1>
 
       <IntroBox variant="accent">
         選擇 ETF 查看歷史持股、現金水位變化，並使用對比工具分析任意兩個日期間的持股變動。

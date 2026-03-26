@@ -3,17 +3,8 @@ import { Line } from 'react-chartjs-2'
 import { useData } from '../contexts/DataContext'
 import { IntroBox } from '../components/shared'
 import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
+import { RISK_LEVEL_COLORS as RISK_COLORS, LEVEL_MAP } from '../lib/constants'
 import '../lib/chartDefaults'
-
-const RISK_COLORS: Record<string, string> = { red: '#ff4757', yellow: '#ffa502', green: '#00c48c' }
-const LEVEL_MAP: Record<string, { label: string; color: string }> = {
-  red: { label: '🔴 高度警戒', color: '#ff4757' },
-  high: { label: '🔴 高度警戒', color: '#ff4757' },
-  yellow: { label: '🟡 中度警戒', color: '#ffa502' },
-  medium: { label: '🟡 中度警戒', color: '#ffa502' },
-  green: { label: '🟢 正常', color: '#00c48c' },
-  low: { label: '🟢 正常', color: '#00c48c' },
-}
 
 interface SignalItem {
   name: string
@@ -71,8 +62,8 @@ function SignalCard({ signal, history, onClick }: { signal: SignalItem; history?
         <span className="w-3 h-3 rounded-full shrink-0 shadow-[0_0_6px]" style={{ backgroundColor: color, color }} />
       </div>
       <div className="text-2xl font-bold tabular-nums mb-1" style={{ color }}>{signal.value?.toFixed(2) ?? '-'}</div>
-      <div className="text-[10px] text-text-muted mb-1">{signal.desc}</div>
-      <div className="text-[10px] font-medium mb-2" style={{ color: signal.phase === 'accelerating' ? '#ff4757' : signal.phase === 'decelerating' ? '#00c48c' : '#9ca0b4' }}>
+      <div className="text-2xs text-text-muted mb-1">{signal.desc}</div>
+      <div className="text-2xs font-medium mb-2" style={{ color: signal.phase === 'accelerating' ? '#ff4757' : signal.phase === 'decelerating' ? '#00c48c' : '#9ca0b4' }}>
         {signal.phase_label}
       </div>
       {/* Sparkline */}
@@ -122,21 +113,21 @@ function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; h
         {/* KPI Grid */}
         <div className="grid grid-cols-4 gap-3 mb-4">
           <div className="bg-bg rounded-xl p-3 text-center">
-            <div className="text-[10px] text-text-muted mb-1">當前值</div>
+            <div className="text-2xs text-text-muted mb-1">當前值</div>
             <div className="text-lg font-bold tabular-nums" style={{ color }}>{signal.value != null ? signal.value.toFixed(2) : '-'}</div>
           </div>
           <div className="bg-bg rounded-xl p-3 text-center">
-            <div className="text-[10px] text-text-muted mb-1">20日斜率</div>
+            <div className="text-2xs text-text-muted mb-1">20日斜率</div>
             <div className="text-lg font-bold tabular-nums" style={{ color }}>{signal.slope_20d != null ? `${signal.slope_20d >= 0 ? '+' : ''}${signal.slope_20d.toFixed(4)}` : '-'}</div>
           </div>
           <div className="bg-bg rounded-xl p-3 text-center">
-            <div className="text-[10px] text-text-muted mb-1">加速度</div>
+            <div className="text-2xs text-text-muted mb-1">加速度</div>
             <div className={`text-lg font-bold tabular-nums ${signal.accel > 0 ? 'text-up' : signal.accel < 0 ? 'text-down' : 'text-text-muted'}`}>
               {signal.accel != null ? `${signal.accel >= 0 ? '+' : ''}${signal.accel.toFixed(4)}` : '-'}
             </div>
           </div>
           <div className="bg-bg rounded-xl p-3 text-center">
-            <div className="text-[10px] text-text-muted mb-1">極端度</div>
+            <div className="text-2xs text-text-muted mb-1">極端度</div>
             <div className="text-lg font-bold tabular-nums">{signal.extremity_pct != null ? `${signal.extremity_pct.toFixed(0)}%` : '-'}</div>
           </div>
         </div>
@@ -204,7 +195,7 @@ export function P8RiskSignals() {
   if (!riskSignals) {
     return (
       <div className="space-y-4">
-        <h1 className="text-xl font-bold text-text-primary">宏觀風險訊號儀表板</h1>
+        <h1 className="text-2xl font-bold font-display text-text-primary">宏觀風險訊號儀表板</h1>
         <div className="bg-card border border-border rounded-xl p-8 text-center text-text-muted">暫無風險訊號資料</div>
       </div>
     )
@@ -214,7 +205,7 @@ export function P8RiskSignals() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-text-primary">宏觀風險訊號儀表板</h1>
+      <h1 className="text-2xl font-bold font-display text-text-primary">宏觀風險訊號儀表板</h1>
 
       <IntroBox>
         基於選擇權隱含特徵研究與流動性風險實驗，追蹤 8 個宏觀風險指標的 20 日趨勢斜率。<br />
@@ -228,11 +219,11 @@ export function P8RiskSignals() {
           <div className="grid grid-cols-3 gap-2 mt-2">
             {Object.entries(agentStatus).map(([key, agent]) => (
               <div key={key} className="bg-card border border-border rounded-xl p-3">
-                <div className="text-[10px] text-text-muted uppercase">{key}</div>
+                <div className="text-2xs text-text-muted uppercase">{key}</div>
                 <div className={`text-sm font-semibold ${agent.status === 'success' ? 'text-down' : 'text-warning'}`}>
                   {agent.status}
                 </div>
-                <div className="text-[10px] text-text-muted">{agent.updated_at}</div>
+                <div className="text-2xs text-text-muted">{agent.updated_at}</div>
               </div>
             ))}
           </div>

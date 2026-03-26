@@ -33,7 +33,7 @@ const P10NewsDeconstruction = lazyRetry(() => import('./pages/P10NewsDeconstruct
 function ComingSoon({ title, desc }: { title: string; desc: string }) {
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-text-primary">{title}</h1>
+      <h1 className="text-2xl font-bold font-display text-text-primary">{title}</h1>
       <div className="bg-card border border-dashed border-border rounded-xl p-12 text-center">
         <div className="text-2xl font-bold text-text-muted mb-2">後續更新</div>
         <div className="text-sm text-text-muted">{desc}</div>

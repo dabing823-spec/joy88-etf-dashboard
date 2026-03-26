@@ -13,7 +13,7 @@ export function P9AiQA() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-text-primary">AI 問答</h1>
+      <h1 className="text-2xl font-bold font-display text-text-primary">AI 問答</h1>
 
       {/* Hero */}
       <div className="text-center py-8">
@@ -43,7 +43,7 @@ export function P9AiQA() {
             <div className="text-2xl mb-2">{item.emoji}</div>
             <h3 className="text-sm font-bold text-accent mb-2 group-hover:text-white transition-colors">{item.title}</h3>
             <p className="text-xs text-text-muted leading-relaxed">{item.question}</p>
-            <div className="text-[10px] text-text-muted mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="text-2xs text-text-muted mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
               點擊複製問題
             </div>
           </button>

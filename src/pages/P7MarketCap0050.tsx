@@ -80,7 +80,7 @@ export function P7MarketCap0050() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-text-primary">0050 納入/剔除 & 市值權重 Top 150</h1>
+      <h1 className="text-2xl font-bold font-display text-text-primary">0050 納入/剔除 & 市值權重 Top 150</h1>
 
       <IntroBox variant="accent">
         <strong className="text-accent text-base">0050 吃豆腐戰法 (SOP)</strong><br />
