@@ -1,0 +1,55 @@
+{
+  "advisories": [
+    {
+      "date": "2026-03-26",
+      "generated_at": "2026-03-26T07:56:11.935146+08:00",
+      "market_phase": "盤後",
+      "overall_signal": "觀望",
+      "data_completeness": 0.33,
+      "action_items": [
+        {
+          "priority": 1,
+          "action": "（乾跑模式，無 API 呼叫）",
+          "reasoning": "dry-run",
+          "framework": "系統"
+        }
+      ],
+      "market_summary": "乾跑模式，無實際分析。",
+      "risk_assessment": "乾跑模式。",
+      "telegram_short": "🟡 觀望 — 乾跑模式",
+      "data_sources": {
+        "dashboard": {
+          "date": "2026-03-25",
+          "fresh": false
+        },
+        "strategy": {
+          "date": "2026-03-25",
+          "fresh": false
+        },
+        "news_analysis": {
+          "date": "2026-03-25 22:41",
+          "fresh": true
+        },
+        "ai_research": {
+          "date": "2026-03-25 10:44",
+          "fresh": true
+        },
+        "tsmc_vol_signal": {
+          "date": null,
+          "fresh": false
+        },
+        "indices_history": {
+          "date": null,
+          "fresh": false
+        }
+      },
+      "data_gaps": [
+        "dashboard",
+        "strategy",
+        "tsmc_vol_signal",
+        "indices_history"
+      ],
+      "outcome": null
+    }
+  ]
+}
