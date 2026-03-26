@@ -7,7 +7,7 @@ interface KpiCardProps {
 
 export function KpiCard({ label, value, subtext, valueColor }: KpiCardProps) {
   return (
-    <div className="bg-card border border-border rounded-xl p-5 flex flex-col hover:bg-card-hover hover:border-accent transition-all">
+    <div className="bg-card border border-border rounded-xl p-5 flex flex-col hover:bg-card-hover hover:border-accent transition-all card-lift">
       <div className="text-sm text-text-muted uppercase tracking-wider mb-2">{label}</div>
       <div className={`text-2xl font-bold mb-1 ${valueColor || 'text-accent'}`}>{value}</div>
       {subtext && <div className="text-xs text-text-muted">{subtext}</div>}

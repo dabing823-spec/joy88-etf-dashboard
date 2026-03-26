@@ -51,12 +51,19 @@ function ScoreRing({ score, maxScore, level }: { score: number; maxScore: number
   )
 }
 
+const GLOW_CLASS: Record<string, string> = {
+  red: 'border-l-[3px] border-l-danger animate-[pulse-glow-danger_1.2s_ease-in-out_infinite]',
+  yellow: 'border-l-[3px] border-l-warning animate-[pulse-glow-warning_3s_ease-in-out_infinite]',
+  green: 'border-l-[3px] border-l-accent',
+}
+
 function SignalCard({ signal, history, onClick }: { signal: SignalItem; history?: HistoryPoint[]; onClick: () => void }) {
   const color = RISK_COLORS[signal.signal] || RISK_COLORS.green
   const sparkData = (history || []).slice(-20).map(h => h.close)
+  const glow = GLOW_CLASS[signal.signal] || GLOW_CLASS.green
 
   return (
-    <button onClick={onClick} className="w-full text-left bg-card border border-border rounded-xl p-4 hover:bg-card-hover hover:border-accent/30 transition-all">
+    <button onClick={onClick} className={`w-full text-left bg-card border border-border rounded-xl p-4 hover:bg-card-hover hover:border-accent/30 transition-all ${glow}`}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-sm font-semibold text-text-primary">{signal.name}</span>
         <span className="w-3 h-3 rounded-full shrink-0 shadow-[0_0_6px]" style={{ backgroundColor: color, color }} />

@@ -1,6 +1,6 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Link, Outlet } from 'react-router-dom'
 import { useData } from '../../contexts/DataContext'
-import { BASE_URL } from '../../lib/constants'
+import { BASE_URL, RISK_LEVEL_COLORS } from '../../lib/constants'
 import { formatUpdateTime } from '../../lib/formatters'
 
 const NAV_ITEMS = [
@@ -54,7 +54,7 @@ function SystemHealth({ items }: { items: StatusItem[] }) {
 }
 
 export function Layout() {
-  const { isLoading, error, dashboard, updateStatus, macroStatus, newsAnalysis, tsmcVolSignal } = useData()
+  const { isLoading, error, dashboard, strategy, updateStatus, macroStatus, newsAnalysis, tsmcVolSignal } = useData()
 
   return (
     <div className="min-h-screen bg-bg">
@@ -85,7 +85,22 @@ export function Layout() {
               )}
             </div>
           </div>
-          <nav className="flex gap-0.5 overflow-x-auto pb-1.5 -mx-1 px-1 scrollbar-hide" role="navigation" aria-label="Main navigation">
+          <nav className="flex gap-0.5 overflow-x-auto pb-1.5 -mx-1 px-1 scrollbar-hide items-center" role="navigation" aria-label="Main navigation">
+            {strategy?.risk_signals && (() => {
+              const rs = strategy.risk_signals
+              const color = RISK_LEVEL_COLORS[rs.level] || RISK_LEVEL_COLORS.green
+              const glowCls = rs.level === 'red' || rs.level === 'high'
+                ? 'animate-[pulse-glow-danger_1.2s_ease-in-out_infinite]'
+                : rs.level === 'yellow' || rs.level === 'medium'
+                  ? 'animate-[pulse-glow-warning_3s_ease-in-out_infinite]'
+                  : ''
+              return (
+                <Link to="/risk" className={`flex items-center gap-1.5 px-2.5 py-1.5 mr-1 rounded-lg bg-card border border-border hover:bg-card-hover transition-colors shrink-0 ${glowCls}`}>
+                  <span className="text-sm font-bold font-mono tabular-nums" style={{ color }}>{rs.score}</span>
+                  <span className="text-2xs text-text-muted">/{rs.max_score}</span>
+                </Link>
+              )
+            })()}
             {NAV_ITEMS.map(({ to, label }) => (
               <NavLink
                 key={to}

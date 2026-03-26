@@ -105,8 +105,18 @@ function RiskBanner({ score, maxScore, level, nRed, nYellow, nGreen, updatedAt, 
   const color = mapped.color
   const label = mapped.label
 
+  const glowMap: Record<string, string> = {
+    red: 'border-l-[3px] border-l-danger animate-[pulse-glow-danger_1.2s_ease-in-out_infinite]',
+    high: 'border-l-[3px] border-l-danger animate-[pulse-glow-danger_1.2s_ease-in-out_infinite]',
+    yellow: 'border-l-[3px] border-l-warning animate-[pulse-glow-warning_3s_ease-in-out_infinite]',
+    medium: 'border-l-[3px] border-l-warning animate-[pulse-glow-warning_3s_ease-in-out_infinite]',
+    green: 'border-l-[3px] border-l-accent',
+    low: 'border-l-[3px] border-l-accent',
+  }
+  const glow = glowMap[level] || glowMap.green
+
   return (
-    <Link to="/risk" className="block bg-card border border-border rounded-xl overflow-hidden mb-3 hover:bg-card-hover transition-colors">
+    <Link to="/risk" className={`block bg-card border border-border rounded-xl overflow-hidden mb-3 hover:bg-card-hover transition-colors ${glow}`}>
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-3">
           <div className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold border-[3px] shrink-0"
