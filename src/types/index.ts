@@ -3,3 +3,4 @@ export type { StrategyData, ManagerStyle, ConsensusTrend, VelocityItem, TimingSc
 export type { EtfPagesData, EtfPageData, DateRecord } from './etfPages'
 export type { NewsAnalysisData, NewsAnalysisItem, AiResearchData, AiResearchAnalysis } from './news'
 export type { TsmcVolSignalData } from './tsmc'
+export type { AdvisorData, Advisory, ActionItem, DataSourceInfo } from './advisor'

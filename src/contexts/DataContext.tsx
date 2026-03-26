@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-import type { DashboardData, UpdateStatus, StrategyData, EtfPagesData, NewsAnalysisData, AiResearchData, TsmcVolSignalData } from '../types'
+import type { DashboardData, UpdateStatus, StrategyData, EtfPagesData, NewsAnalysisData, AiResearchData, TsmcVolSignalData, AdvisorData } from '../types'
 import { BASE_URL } from '../lib/constants'
 
 interface MacroStatus {
@@ -16,6 +16,7 @@ interface DataState {
   newsAnalysis: NewsAnalysisData | null
   aiResearch: AiResearchData | null
   tsmcVolSignal: TsmcVolSignalData | null
+  advisor: AdvisorData | null
   isLoading: boolean
   error: string | null
 }
@@ -29,6 +30,7 @@ const DataContext = createContext<DataState>({
   newsAnalysis: null,
   aiResearch: null,
   tsmcVolSignal: null,
+  advisor: null,
   isLoading: true,
   error: null,
 })
@@ -50,6 +52,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     newsAnalysis: null,
     aiResearch: null,
     tsmcVolSignal: null,
+    advisor: null,
     isLoading: true,
     error: null,
   })
@@ -64,13 +67,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
         setState((prev) => ({ ...prev, dashboard, etfPages, isLoading: false }))
 
-        const [strategy, aiResearch, newsAnalysis, updateStatus, macroStatus, tsmcVolSignal] = await Promise.allSettled([
+        const [strategy, aiResearch, newsAnalysis, updateStatus, macroStatus, tsmcVolSignal, advisor] = await Promise.allSettled([
           fetchJson<StrategyData>('strategy.json'),
           fetchJson<AiResearchData>('ai_research.json'),
           fetchJson<NewsAnalysisData>('news_analysis.json'),
           fetchJson<UpdateStatus>('update_status.json'),
           fetchJson<MacroStatus>('macro_status.json'),
           fetchJson<TsmcVolSignalData>('tsmc_vol_signal.json'),
+          fetchJson<AdvisorData>('advisor.json'),
         ])
 
         setState((prev) => ({
@@ -81,6 +85,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           updateStatus: updateStatus.status === 'fulfilled' ? updateStatus.value : null,
           macroStatus: macroStatus.status === 'fulfilled' ? macroStatus.value : null,
           tsmcVolSignal: tsmcVolSignal.status === 'fulfilled' ? tsmcVolSignal.value : null,
+          advisor: advisor.status === 'fulfilled' ? advisor.value : null,
         }))
       } catch (err) {
         setState((prev) => ({

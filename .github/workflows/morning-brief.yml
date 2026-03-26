@@ -37,6 +37,16 @@ jobs:
           cd scripts/agents
           python market_brief_agent.py --force
 
+      - name: AI Advisor (pre-market)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          cd scripts/agents
+          python ai_advisor_agent.py --phase pre-market
+        continue-on-error: true
+
       - name: Validate output
         run: |
           if [ -f "data/news_analysis.json" ]; then
@@ -54,7 +64,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/news_analysis.json
+          git add data/news_analysis.json data/advisor.json
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else

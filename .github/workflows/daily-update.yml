@@ -77,6 +77,16 @@ jobs:
           print(f'Social card: {result[\"status\"]} -> {result.get(\"output\", \"N/A\")}')
           "
 
+      - name: AI Advisor (post-market)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          cd scripts/agents
+          python ai_advisor_agent.py --phase post-market
+        continue-on-error: true
+
       - name: Validate output
         run: |
           echo "=== Checking output files ==="
