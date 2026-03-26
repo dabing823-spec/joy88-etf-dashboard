@@ -272,91 +272,63 @@ export function P2StrategicDashboard() {
         riskScore={strategy?.risk_signals ? `${strategy.risk_signals.score}/${strategy.risk_signals.max_score}` : undefined}
       />
 
-      {/* ── Taiwan Indices (compact + K-line) ── */}
-      <div className="grid grid-cols-2 gap-2">
-        {([
-          { label: 'TAIEX', key: 'taiex' as const, val: taiex, chg: taiexChg, pct: taiexChgPct, ma: taiexMa, digits: 0 },
-          { label: 'TPEX', key: 'tpex' as const, val: tpex, chg: tpexChg, pct: tpexChgPct, ma: tpexMa, digits: 2 },
-        ]).map(idx => {
-          const kData = (indicesHistory?.[idx.key] ?? []).slice(-15).filter(
-            (d): d is KBar => d.open != null && d.high != null && d.low != null && d.close != null
-          )
-          // Fallback: use cashSeries close as pseudo-K if no OHLC
-          const fallbackK: KBar[] = kData.length < 3
-            ? cashSeries.slice(-15).filter(d => d[idx.key] != null).map(d => {
-                const c = d[idx.key] as number
-                return { date: d.date, open: c, high: c, low: c, close: c }
-              })
-            : kData
-          const color = (idx.chg ?? 0) > 0 ? 'text-up' : (idx.chg ?? 0) < 0 ? 'text-down' : 'text-text-muted'
-          return (
-            <div key={idx.key} className="bg-card border border-border rounded-lg p-3 hover:bg-card-hover transition-all">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-[10px] text-text-muted uppercase tracking-wider">{idx.label}</div>
-                  <div className={`text-lg font-bold tabular-nums ${color}`}>
-                    {idx.val != null ? idx.val.toLocaleString('en-US', { maximumFractionDigits: idx.digits }) : '-'}
+      {/* ── Market Overview (TAIEX, TPEX, VIX, F&G — one row) ── */}
+      {(() => {
+        const cards = [
+          { label: 'TAIEX', hk: 'taiex', val: taiex, chgPct: taiexChgPct, digits: 0, tag: taiexMa.label, tagColor: taiexMa.color,
+            valColor: (taiexChgPct ?? 0) > 0 ? 'text-up' : (taiexChgPct ?? 0) < 0 ? 'text-down' : 'text-text-muted' },
+          { label: 'TPEX', hk: 'tpex', val: tpex, chgPct: tpexChgPct, digits: 2, tag: tpexMa.label, tagColor: tpexMa.color,
+            valColor: (tpexChgPct ?? 0) > 0 ? 'text-up' : (tpexChgPct ?? 0) < 0 ? 'text-down' : 'text-text-muted' },
+          { label: 'VIX', hk: 'vix', val: mi?.vix, chgPct: mi?.vix_chg_pct, digits: 2, tag: undefined, tagColor: undefined,
+            valColor: (mi?.vix ?? 0) > 25 ? 'text-up' : (mi?.vix ?? 0) > 20 ? 'text-warning' : 'text-down' },
+          { label: 'Fear & Greed', hk: 'fear_greed', val: mi?.fear_greed, chgPct: mi?.fear_greed_chg, digits: 0, tag: fgLabel,
+            tagColor: (mi?.fear_greed ?? 50) < 25 ? '#e54545' : (mi?.fear_greed ?? 50) < 45 ? '#f59e0b' : '#22c55e',
+            valColor: (mi?.fear_greed ?? 50) < 25 ? 'text-up' : (mi?.fear_greed ?? 50) < 45 ? 'text-warning' : 'text-down' },
+        ]
+        return (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {cards.map(c => {
+              const histRaw = (indicesHistory?.[c.hk] ?? []).slice(-15)
+              const kOhlc: KBar[] = histRaw
+                .filter((d: any) => d.open != null && d.high != null && d.low != null && d.close != null)
+                .map((d: any) => ({ date: d.date, open: d.open, high: d.high, low: d.low, close: d.close }))
+              const kClose: KBar[] = histRaw
+                .filter((d: any) => d.close != null)
+                .map((d: any) => ({ date: d.date, open: d.close, high: d.close, low: d.close, close: d.close }))
+              // Extra fallback for TAIEX/TPEX from cashSeries
+              const csFallback: KBar[] = (c.hk === 'taiex' || c.hk === 'tpex')
+                ? cashSeries.slice(-15).filter(d => d[c.hk as 'taiex' | 'tpex'] != null).map(d => {
+                    const v = d[c.hk as 'taiex' | 'tpex'] as number
+                    return { date: d.date, open: v, high: v, low: v, close: v }
+                  })
+                : []
+              const kData = kOhlc.length >= 3 ? kOhlc : kClose.length >= 3 ? kClose : csFallback
+              const suffix = c.hk === 'fear_greed' ? '' : '%'
+              return (
+                <div key={c.hk} className="bg-card border border-border rounded-lg p-2.5 hover:bg-card-hover transition-all">
+                  <div className="flex items-center justify-between gap-1">
+                    <div className="min-w-0">
+                      <div className="text-[9px] text-text-muted uppercase tracking-wider">{c.label}</div>
+                      <div className={`text-base font-bold tabular-nums leading-tight ${c.valColor}`}>
+                        {c.val != null ? Number(c.val).toLocaleString('en-US', { maximumFractionDigits: c.digits }) : '-'}
+                      </div>
+                      {c.chgPct != null && (
+                        <div className="text-[10px] tabular-nums"><Chg val={c.chgPct} suffix={suffix} /></div>
+                      )}
+                    </div>
+                    <MiniKline data={kData} width={72} height={30} />
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <Chg val={idx.chg} /> <span className="text-text-muted">|</span> <Chg val={idx.pct} suffix="%" />
-                  </div>
+                  {c.tag && c.tagColor && (
+                    <div className="mt-1 px-1.5 py-0.5 rounded text-[8px] font-semibold inline-block" style={{ backgroundColor: `${c.tagColor}15`, color: c.tagColor }}>
+                      {c.tag}
+                    </div>
+                  )}
                 </div>
-                <MiniKline data={fallbackK} width={120} height={40} />
-              </div>
-              {idx.ma.label && (
-                <div className="mt-1.5 px-1.5 py-0.5 rounded text-[9px] font-semibold inline-block" style={{ backgroundColor: `${idx.ma.color}15`, color: idx.ma.color }}>
-                  {idx.ma.label}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      {/* ── Sentiment Row (VIX + F&G with 3-day history) ── */}
-      {mi && (
-        <div className={`grid ${mi.vix_tw != null ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'} gap-3`}>
-          {mi.vix_tw != null && (
-            <div className="bg-card border border-border rounded-xl p-4 text-center hover:bg-card-hover transition-colors">
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">VIX 台灣</div>
-              <div className={`text-xl font-bold tabular-nums ${vixLevel(mi.vix_tw)}`}>{mi.vix_tw.toFixed(2)}</div>
-              <div className="text-[10px] text-text-muted mt-0.5">
-                {(mi.vix_tw_chg ?? 0) >= 0 ? '+' : ''}{mi.vix_tw_chg?.toFixed(2) ?? '-'}
-              </div>
-            </div>
-          )}
-          <div className="bg-card border border-border rounded-xl p-4 text-center hover:bg-card-hover transition-colors">
-            <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">VIX S&P500</div>
-            <div className={`text-xl font-bold tabular-nums ${vixLevel(mi.vix)}`}>{mi.vix?.toFixed(2) || '-'}</div>
-            <div className="text-[10px] text-text-muted mt-0.5">
-              {(mi.vix_chg ?? 0) >= 0 ? '+' : ''}{mi.vix_chg?.toFixed(2) ?? '-'}
-            </div>
-            {/* VIX 3-day mini */}
-            <div className="mt-2 flex justify-center gap-1 text-[9px] font-mono">
-              {mi.vix_prev != null && (
-                <span className="px-1 py-0.5 rounded bg-bg text-text-muted">前: {mi.vix_prev.toFixed(1)}</span>
-              )}
-              <span className={`px-1 py-0.5 rounded ${(mi.vix_chg_pct ?? 0) > 5 ? 'bg-up/10 text-up' : (mi.vix_chg_pct ?? 0) < -5 ? 'bg-down/10 text-down' : 'bg-bg text-text-muted'}`}>
-                {(mi.vix_chg_pct ?? 0) >= 0 ? '+' : ''}{mi.vix_chg_pct?.toFixed(1) ?? 0}%
-              </span>
-            </div>
+              )
+            })}
           </div>
-          <div className="bg-card border border-border rounded-xl p-4 text-center hover:bg-card-hover transition-colors">
-            <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">CNN 恐懼與貪婪</div>
-            <div className={`text-xl font-bold tabular-nums ${fgLevel(mi.fear_greed)}`}>{mi.fear_greed?.toString() || '-'}</div>
-            <div className="text-[10px] text-text-muted mt-0.5">{fgLabel}</div>
-            {/* F&G 3-day mini */}
-            <div className="mt-2 flex justify-center gap-1 text-[9px] font-mono">
-              {mi.fear_greed_prev != null && (
-                <span className="px-1 py-0.5 rounded bg-bg text-text-muted">前: {mi.fear_greed_prev}</span>
-              )}
-              <span className={`px-1 py-0.5 rounded ${(mi.fear_greed_chg ?? 0) > 0 ? 'bg-down/10 text-down' : 'bg-up/10 text-up'}`}>
-                {(mi.fear_greed_chg ?? 0) >= 0 ? '+' : ''}{mi.fear_greed_chg?.toFixed(1) ?? 0}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* ── Global Macro Dashboard ── */}
       {mi && (
