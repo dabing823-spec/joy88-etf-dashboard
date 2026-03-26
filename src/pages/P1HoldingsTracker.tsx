@@ -298,18 +298,18 @@ export function P1HoldingsTracker() {
 
       {/* ── KPIs ── */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <KpiCard label="📊 持股數" value={nHoldings} valueColor={nHoldings >= 40 ? 'text-down' : nHoldings >= 20 ? 'text-accent' : 'text-warning'} />
-        <KpiCard label="💰 現金水位" value={`${cashNow.toFixed(1)}%`} valueColor={cashNow >= 5 ? 'text-up' : cashNow >= 3 ? 'text-warning' : 'text-down'} subtext={`趨勢: ${trend}`} />
-        <KpiCard label="📈 期貨部位" value={cashMode?.has_futures ? '有' : '無'} subtext={cashMode?.futures_signal || '-'} />
-        <KpiCard label="💹 申購/贖回" value={formatUnits(unitsChange)} valueColor={unitsColor} subtext={latestUnits ? `NAV ${latestUnits.nav?.toFixed(2)}` : '-'} />
-        <KpiCard label="⚔️ 攻防模式" value={mode} subtext={modeDesc} />
+        <KpiCard label="持股數" value={nHoldings} valueColor={nHoldings >= 40 ? 'text-down' : nHoldings >= 20 ? 'text-accent' : 'text-warning'} />
+        <KpiCard label="現金水位" value={`${cashNow.toFixed(1)}%`} valueColor={cashNow >= 5 ? 'text-up' : cashNow >= 3 ? 'text-warning' : 'text-down'} subtext={`趨勢: ${trend}`} />
+        <KpiCard label="期貨部位" value={cashMode?.has_futures ? '有' : '無'} subtext={cashMode?.futures_signal || '-'} />
+        <KpiCard label="申購/贖回" value={formatUnits(unitsChange)} valueColor={unitsColor} subtext={latestUnits ? `NAV ${latestUnits.nav?.toFixed(2)}` : '-'} />
+        <KpiCard label="攻防模式" value={mode} subtext={modeDesc} />
       </div>
 
       {/* ── AI Research Panel ── */}
       {aiData && (
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-            <span className="text-sm font-semibold">🧠 AI 持股異動分析（沈萬鈞 x 巨人傑）</span>
+            <h2 className="text-sm font-semibold">AI 持股異動分析（沈萬鈞 x 巨人傑）</h2>
             <span className="text-xs text-text-muted">{aiData.date}</span>
           </div>
           <div className="px-5 py-2 border-b border-border text-xs text-text-muted">{aiData.changes_summary}</div>

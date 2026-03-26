@@ -65,10 +65,10 @@ export function P12TsmcVolSignal() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <h2 className="text-xl font-bold text-text-primary">
+      <h1 className="text-xl font-bold text-text-primary">
         {stock.名稱} ({stock.代號}) 波動率信號
         <span className="text-xs text-text-muted font-normal ml-2">{d.更新時間}</span>
-      </h2>
+      </h1>
 
       {/* Row 1: Hero KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

@@ -476,7 +476,7 @@ export function P2StrategicDashboard() {
       {/* ── Gauges ── */}
       <div className="grid grid-cols-2 gap-3">
         <GaugeCard title="🎯 持股集中度 Top 1" value={`${(dashboard?.conviction?.[0]?.avg_weight ?? 0).toFixed(1)}%`} mode={dashboard?.conviction?.[0]?.name || '-'} modeColor="#4f8ef7" />
-        <GaugeCard title="📊 持股數" value={`${cashMode?.n_holdings || 0}`} mode={cashMode?.mode_desc || '-'} modeColor={modeColor} />
+        <GaugeCard title="持股數" value={`${cashMode?.n_holdings || 0}`} mode={cashMode?.mode_desc || '-'} modeColor={modeColor} />
       </div>
 
       {/* ── Bottom: Consensus + Signal Summary ── */}
@@ -485,7 +485,7 @@ export function P2StrategicDashboard() {
           <DataTable columns={consensusColumns} data={top15} emptyText="暫無共識標的" />
         </TableContainer>
 
-        <TableContainer title="📌 今日 00981A 異動" maxHeight="320px" className="mb-0">
+        <TableContainer title="今日 00981A 異動" maxHeight="320px" className="mb-0">
           {!todayChanges || totalSignals === 0 ? (
             <div className="py-4 text-center text-text-muted text-xs">今日無異動</div>
           ) : (

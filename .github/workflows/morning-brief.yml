@@ -2,8 +2,12 @@ name: Morning Brief
 
 on:
   schedule:
-    # 台灣時間 06:00 (UTC 22:00 前一天) — 每天執行
+    # 台灣時間 06:00 (UTC 22:00 前一天) — 盤前
     - cron: '0 22 * * *'
+    # 台灣時間 12:00 (UTC 04:00) — 午間更新 (週一~五)
+    - cron: '0 4 * * 1-5'
+    # 台灣時間 15:00 (UTC 07:00) — 盤後更新 (週一~五)
+    - cron: '0 7 * * 1-5'
   workflow_dispatch:
 
 permissions:

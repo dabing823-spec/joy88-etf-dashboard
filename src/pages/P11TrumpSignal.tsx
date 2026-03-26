@@ -144,7 +144,7 @@ export function P11TrumpSignal() {
   if (!ts || !ts.date) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-text-primary">🇺🇸 Trump Signal — 川普密碼</h2>
+        <h1 className="text-xl font-bold text-text-primary">Trump Signal — 川普密碼</h1>
         <div className="bg-card border border-border rounded-xl p-8 text-center text-text-muted">暫無資料</div>
       </div>
     )
@@ -155,7 +155,7 @@ export function P11TrumpSignal() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-text-primary">🇺🇸 Trump Signal — 川普密碼</h2>
+      <h1 className="text-xl font-bold text-text-primary">Trump Signal — 川普密碼</h1>
 
       <IntroBox>
         基於{' '}

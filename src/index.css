@@ -48,6 +48,17 @@ body {
   box-sizing: border-box;
 }
 
+/* Global focus-visible for all interactive elements */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent);
+  border-radius: 6px;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -73,7 +84,22 @@ body {
   50% { box-shadow: 0 0 24px 2px var(--color-danger); }
 }
 
+/* Entrance animation */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tabular nums globally for all monospace/data text */
+.tabular-nums, [class*="font-mono"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle card hover lift */
+.card-lift {
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+.card-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }

@@ -12,10 +12,7 @@ Depends on: Phase 1 stable for 2+ weeks.
 pytest infrastructure now exists, backfilling existing agents is cheap (CC ~30min).
 Depends on: advisor feature complete.
 
-## Design
+## Completed
 
-**Priority:** P3
 **Codebase-wide focus-visible styles**
-Only `hover:bg-card-hover` exists, no keyboard focus indicators on most elements.
-AdvisorCard has them locally, but all interactive elements need `focus-visible:ring-2 focus-visible:ring-accent`.
-Depends on: AdvisorCard complete (CC ~15min).
+Completed: v1.0 (2026-03-26). Global CSS rule for a, button, summary, [role=button], [tabindex].

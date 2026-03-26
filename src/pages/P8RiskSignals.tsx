@@ -166,7 +166,7 @@ function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; h
         {/* History Table */}
         {history.length > 0 && (
           <div>
-            <div className="text-xs font-semibold text-text-primary mb-2">📊 歷史數據</div>
+            <div className="text-xs font-semibold text-text-primary mb-2">歷史數據</div>
             <div className="max-h-40 overflow-y-auto">
               <table className="w-full text-xs border-collapse">
                 <thead>
