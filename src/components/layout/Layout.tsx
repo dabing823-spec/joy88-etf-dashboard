@@ -75,7 +75,7 @@ export function Layout() {
                 className="h-7 rounded"
               />
               <div className="flex items-baseline gap-1.5">
-                <span className="text-sm font-bold text-accent tracking-tight">JOY88</span>
+                <span className="text-sm font-bold text-accent tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>JOY88</span>
                 <span className="text-[10px] text-text-muted font-medium tracking-wider uppercase hidden sm:inline">ETF Dashboard</span>
               </div>
             </div>
@@ -100,7 +100,7 @@ export function Layout() {
                 className={({ isActive }) =>
                   `px-3 py-2.5 min-h-[44px] min-w-[44px] justify-center flex items-center rounded-md text-xs font-medium whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
                     isActive
-                      ? 'bg-accent text-white'
+                      ? 'bg-accent text-[#0b0d14] font-semibold'
                       : 'text-text-muted hover:text-text-primary hover:bg-card-hover'
                   }`
                 }

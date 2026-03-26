@@ -32,19 +32,21 @@ ChartJS.register(
 )
 
 export const chartColors = {
-  accent: '#4f8ef7',
-  green: '#00c48c',
-  red: '#ff4757',
-  orange: '#ffa502',
+  accent: '#e09f3e',
+  green: '#22c55e',
+  red: '#e54545',
+  orange: '#f59e0b',
   purple: '#a855f7',
   cyan: '#22d3ee',
-  textMuted: '#8b8fa3',
-  grid: 'rgba(42, 46, 61, 0.5)',
-  text: '#e4e6eb',
+  textMuted: '#7d829a',
+  grid: 'rgba(30, 34, 53, 0.5)',
+  text: '#e8eaef',
 }
 
+ChartJS.defaults.font.family = "'JetBrains Mono', 'SF Mono', monospace"
+
 export const defaultScaleOptions = {
-  ticks: { color: chartColors.textMuted },
+  ticks: { color: chartColors.textMuted, font: { family: "'JetBrains Mono', monospace" } },
   grid: { color: chartColors.grid },
 }
 
