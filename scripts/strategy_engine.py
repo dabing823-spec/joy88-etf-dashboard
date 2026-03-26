@@ -1234,11 +1234,12 @@ def fetch_indices_history():
         'Accept': 'application/json',
     }
 
-    # Load existing history
+    # Load existing history (must be dict, not legacy flat array)
     history = {}
     if INDICES_HISTORY_PATH.exists():
         try:
-            history = load_json(INDICES_HISTORY_PATH)
+            loaded = load_json(INDICES_HISTORY_PATH)
+            history = loaded if isinstance(loaded, dict) else {}
             print(f"  [K] Loaded existing history: {len(history)} symbols")
         except Exception:
             pass

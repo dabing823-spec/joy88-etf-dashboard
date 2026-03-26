@@ -152,16 +152,26 @@ def update_strategy_json(indices):
 
 
 def save_history(indices):
-    """Append to indices_history.json for trend tracking."""
-    history = []
+    """Append to indices_history.json for trend tracking.
+
+    indices_history.json uses dict format: {taiex: [...], vix: [...], _snapshots: [...]}
+    The per-symbol arrays (taiex, vix, etc.) are managed by macro_data_agent with OHLC data.
+    This function only appends real-time snapshots to the '_snapshots' key.
+    """
+    data = {}
     if INDICES_HISTORY_PATH.exists():
         try:
             with open(INDICES_HISTORY_PATH, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                history = data if isinstance(data, list) else []
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    data = loaded
+                elif isinstance(loaded, list):
+                    # Migrate legacy flat array format to dict
+                    data = {'_snapshots': loaded}
         except Exception:
             pass
 
+    snapshots = data.get('_snapshots', [])
     entry = {
         'timestamp': indices.get('updated_at', ''),
         'vix': indices.get('vix'),
@@ -171,12 +181,11 @@ def save_history(indices):
         'us10y': indices.get('us10y'),
         'fear_greed': indices.get('fear_greed'),
     }
-    history.append(entry)
+    snapshots.append(entry)
+    data['_snapshots'] = snapshots[-200:]
 
-    # Keep last 200 entries
-    history = history[-200:]
     with open(INDICES_HISTORY_PATH, 'w', encoding='utf-8') as f:
-        json.dump(history, f, ensure_ascii=False)
+        json.dump(data, f, ensure_ascii=False)
 
 
 def calc_vix_dynamics():
