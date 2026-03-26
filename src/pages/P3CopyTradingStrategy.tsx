@@ -135,13 +135,27 @@ export function P3CopyTradingStrategy() {
         if (!isAdd || count === 0) return <span className="text-text-muted">-</span>
         const isExpanded = expandedCode === `${s.code}-${s.date}`
         return (
-          <button
-            onClick={(e) => { e.stopPropagation(); setExpandedCode(isExpanded ? null : `${s.code}-${s.date}`) }}
-            className="text-accent font-semibold hover:underline tabular-nums"
-            title="點擊查看歷史加碼紀錄"
-          >
-            {count}次
-          </button>
+          <div>
+            <button
+              onClick={(e) => { e.stopPropagation(); setExpandedCode(isExpanded ? null : `${s.code}-${s.date}`) }}
+              className="text-accent font-semibold hover:underline tabular-nums"
+              title="點擊查看歷史加碼紀錄"
+            >
+              {count}次 {isExpanded ? '▾' : '▸'}
+            </button>
+            {isExpanded && (
+              <div className="mt-1.5 space-y-0.5 text-left">
+                {[...history].reverse().map((h, i) => (
+                  <div key={i} className="flex items-center gap-2 text-[10px]">
+                    <span className="text-text-muted font-mono">{h.date}</span>
+                    <span className={`font-semibold tabular-nums ${h.weight_chg > 0 ? 'text-up' : 'text-text-muted'}`}>
+                      {h.weight_chg > 0 ? '+' : ''}{h.weight_chg.toFixed(2)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )
       },
       sortValue: (s: LaomoSignal) => addCountMap[s.code]?.length ?? 0,
@@ -216,34 +230,6 @@ export function P3CopyTradingStrategy() {
       <TableContainer title="跟單信號紀錄" maxHeight="500px">
         <DataTable columns={signalColumns} data={filtered} emptyText="無符合條件的信號" />
       </TableContainer>
-
-      {/* Expanded add history */}
-      {expandedCode && (() => {
-        const code = expandedCode.split('-')[0]
-        const history = addCountMap[code]
-        if (!history?.length) return null
-        const name = rawSignals.find(s => s.code === code)?.name ?? code
-        return (
-          <div className="bg-card border border-accent/30 rounded-xl p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-text-primary">
-                {name}（{code}）歷史加碼紀錄 — 共 {history.length} 次
-              </h2>
-              <button onClick={() => setExpandedCode(null)} className="text-text-muted hover:text-text-primary text-lg">&times;</button>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
-              {[...history].reverse().map((h, i) => (
-                <div key={i} className="bg-bg rounded-lg px-3 py-2 text-center">
-                  <div className="text-xs text-text-muted">{h.date}</div>
-                  <div className={`text-sm font-semibold tabular-nums ${h.weight_chg > 0 ? 'text-up' : 'text-text-muted'}`}>
-                    {h.weight_chg > 0 ? '+' : ''}{h.weight_chg.toFixed(2)}%
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      })()}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <TableContainer title="信號類型分佈">
