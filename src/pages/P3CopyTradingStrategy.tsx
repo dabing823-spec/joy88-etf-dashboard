@@ -4,7 +4,23 @@ import { useData } from '../contexts/DataContext'
 import { InsightCard, Badge, TableContainer, DataTable, FilterButtons } from '../components/shared'
 import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
 import '../lib/chartDefaults'
-import type { LaomoSignal } from '../types'
+import type { LaomoSignal, DailyChange } from '../types'
+
+interface AddHistory {
+  date: string
+  weight_chg: number
+}
+
+function buildAddCountMap(dailyChanges: DailyChange[]): Record<string, AddHistory[]> {
+  const map: Record<string, AddHistory[]> = {}
+  for (const day of dailyChanges) {
+    for (const s of day.added || []) {
+      if (!map[s.code]) map[s.code] = []
+      map[s.code].push({ date: day.date, weight_chg: s.weight_chg ?? 0 })
+    }
+  }
+  return map
+}
 
 type FilterType = 'all' | 'new' | 'added' | 'high'
 
@@ -39,12 +55,18 @@ function filterByType(signals: LaomoSignal[], filter: FilterType): LaomoSignal[]
 export function P3CopyTradingStrategy() {
   const { dashboard } = useData()
   const [filter, setFilter] = useState<FilterType>('all')
+  const [expandedCode, setExpandedCode] = useState<string | null>(null)
 
   const rawSignals = useMemo(() => {
     const raw = dashboard?.laomo_signals
     if (!raw) return []
     const arr = Array.isArray(raw) ? raw : (raw as Record<string, unknown>).signals as LaomoSignal[] || []
     return [...arr].sort((a, b) => b.date.localeCompare(a.date))
+  }, [dashboard])
+
+  const addCountMap = useMemo(() => {
+    const changes = dashboard?.daily_changes?.['00981A'] || []
+    return buildAddCountMap(changes as DailyChange[])
   }, [dashboard])
 
   const filtered = useMemo(() => filterByType(rawSignals, filter), [rawSignals, filter])
@@ -103,6 +125,26 @@ export function P3CopyTradingStrategy() {
         return <span className={color}>{chg > 0 ? '+' : ''}{chg.toFixed(2)}%</span>
       },
       sortValue: (s: LaomoSignal) => s.weight_chg || 0,
+    },
+    {
+      key: 'add_count', label: '加碼次數', align: 'center' as const,
+      render: (s: LaomoSignal) => {
+        const isAdd = s.type === '加碼' || s.type === 'added'
+        const history = addCountMap[s.code]
+        const count = history?.length ?? 0
+        if (!isAdd || count === 0) return <span className="text-text-muted">-</span>
+        const isExpanded = expandedCode === `${s.code}-${s.date}`
+        return (
+          <button
+            onClick={(e) => { e.stopPropagation(); setExpandedCode(isExpanded ? null : `${s.code}-${s.date}`) }}
+            className="text-accent font-semibold hover:underline tabular-nums"
+            title="點擊查看歷史加碼紀錄"
+          >
+            {count}次
+          </button>
+        )
+      },
+      sortValue: (s: LaomoSignal) => addCountMap[s.code]?.length ?? 0,
     },
     {
       key: 'confidence', label: '信心度', align: 'right' as const,
@@ -174,6 +216,34 @@ export function P3CopyTradingStrategy() {
       <TableContainer title="跟單信號紀錄" maxHeight="500px">
         <DataTable columns={signalColumns} data={filtered} emptyText="無符合條件的信號" />
       </TableContainer>
+
+      {/* Expanded add history */}
+      {expandedCode && (() => {
+        const code = expandedCode.split('-')[0]
+        const history = addCountMap[code]
+        if (!history?.length) return null
+        const name = rawSignals.find(s => s.code === code)?.name ?? code
+        return (
+          <div className="bg-card border border-accent/30 rounded-xl p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-text-primary">
+                {name}（{code}）歷史加碼紀錄 — 共 {history.length} 次
+              </h2>
+              <button onClick={() => setExpandedCode(null)} className="text-text-muted hover:text-text-primary text-lg">&times;</button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
+              {[...history].reverse().map((h, i) => (
+                <div key={i} className="bg-bg rounded-lg px-3 py-2 text-center">
+                  <div className="text-xs text-text-muted">{h.date}</div>
+                  <div className={`text-sm font-semibold tabular-nums ${h.weight_chg > 0 ? 'text-up' : 'text-text-muted'}`}>
+                    {h.weight_chg > 0 ? '+' : ''}{h.weight_chg.toFixed(2)}%
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <TableContainer title="信號類型分佈">
