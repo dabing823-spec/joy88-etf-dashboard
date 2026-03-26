@@ -30,8 +30,8 @@ const P7MarketCap0050 = lazyRetry(() => import('./pages/P7MarketCap0050'), 'P7Ma
 const P8RiskSignals = lazyRetry(() => import('./pages/P8RiskSignals'), 'P8RiskSignals')
 const P9AiQA = lazyRetry(() => import('./pages/P9AiQA'), 'P9AiQA')
 const P10NewsDeconstruction = lazyRetry(() => import('./pages/P10NewsDeconstruction'), 'P10NewsDeconstruction')
-const P11TrumpSignal = lazyRetry(() => import('./pages/P11TrumpSignal'), 'P11TrumpSignal')
-const P12TsmcVolSignal = lazyRetry(() => import('./pages/P12TsmcVolSignal'), 'P12TsmcVolSignal')
+// P11 Trump Signal — disabled, deferred to future update
+// P12 TSMC Vol Signal — migrated to tsmc-atr-v2, deferred
 
 const pageFallback = (
   <div className="flex items-center justify-center h-64">
@@ -63,8 +63,6 @@ const router = createHashRouter([
       { path: '0050', element: <Page><P7MarketCap0050 /></Page> },
       { path: 'ai-qa', element: <Page><P9AiQA /></Page> },
       { path: 'news', element: <Page><P10NewsDeconstruction /></Page> },
-      { path: 'trump', element: <Page><P11TrumpSignal /></Page> },
-      { path: 'tsmc-vol', element: <Page><P12TsmcVolSignal /></Page> },
       { path: '*', element: <Navigate to="/dashboard" replace /> },
     ],
   },

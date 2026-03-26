@@ -12,8 +12,6 @@ const NAV_ITEMS = [
   { to: '/0050', label: '0050' },
   { to: '/ai-qa', label: 'AI' },
   { to: '/news', label: '新聞' },
-  { to: '/trump', label: 'US Trump' },
-  { to: '/tsmc-vol', label: 'TSMC Vol' },
 ]
 
 function formatUpdateTime(isoString: string): string {
