@@ -161,6 +161,61 @@ def fetch_indices_history():
     except Exception as e:
         log(f"  fear_greed failed: {e}")
 
+    # ── TPEX fallback: official TPEX API (Yahoo ^TWO often returns 0 data) ──
+    tpex_entries = history.get('tpex', [])
+    tpex_count = len(tpex_entries)
+    tpex_flat = sum(1 for e in tpex_entries if isinstance(e, dict)
+                    and e.get('open') == e.get('high') == e.get('low') == e.get('close'))
+    if tpex_count < 20 or tpex_flat > tpex_count * 0.5:
+        log(f"  tpex only {tpex_count} days from Yahoo, trying TPEX official API...")
+        try:
+            now = datetime.now()
+            existing_tpex = {r['date']: {k: r[k] for k in ('close', 'open', 'high', 'low') if k in r}
+                             for r in history.get('tpex', []) if isinstance(r, dict)}
+            # Collect close-only data from TPEX official API
+            tpex_closes = {}
+            for months_ago in range(4):
+                y = now.year
+                m = now.month - months_ago
+                if m <= 0:
+                    m += 12
+                    y -= 1
+                roc_y = y - 1911
+                url = (f'https://www.tpex.org.tw/web/stock/aftertrading/'
+                       f'daily_trading_index/st41_result.php?l=zh-tw&d={roc_y}/{m:02d}&o=json')
+                r = _req.get(url, headers=headers, timeout=10)
+                data = r.json()
+                tables = data.get('tables', [])
+                if tables:
+                    for row in tables[0].get('data', []):
+                        parts = row[0].split('/')
+                        if len(parts) == 3:
+                            dt = f"{int(parts[0]) + 1911}-{parts[1]}-{parts[2]}"
+                            try:
+                                tpex_closes[dt] = float(str(row[4]).replace(',', ''))
+                            except (ValueError, IndexError):
+                                pass
+                time.sleep(0.3)
+            # Synthesize OHLC from consecutive closes (open=prev close)
+            sorted_close_dates = sorted(tpex_closes.keys())
+            for i, dt in enumerate(sorted_close_dates):
+                # Skip if existing data has genuine OHLC (not flat)
+                ex = existing_tpex.get(dt)
+                if ex and not (ex.get('open') == ex.get('high') == ex.get('low') == ex.get('close')):
+                    continue
+                close = tpex_closes[dt]
+                prev_close = tpex_closes[sorted_close_dates[i - 1]] if i > 0 else close
+                open_p = prev_close
+                high = max(open_p, close) * 1.002
+                low = min(open_p, close) * 0.998
+                existing_tpex[dt] = {'close': round(close, 2), 'open': round(open_p, 2),
+                                     'high': round(high, 2), 'low': round(low, 2)}
+            sorted_dates = sorted(existing_tpex.keys())[-90:]
+            history['tpex'] = [{'date': d, **existing_tpex[d]} for d in sorted_dates]
+            log(f"  tpex (TPEX API fallback): {len(history['tpex'])} days")
+        except Exception as e:
+            log(f"  tpex TPEX API fallback failed: {e}")
+
     _save_json(INDICES_HISTORY_PATH, history)
     return history
 

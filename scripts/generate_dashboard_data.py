@@ -96,18 +96,38 @@ def fetch_market_indices(start_year=2025, start_month=10):
             m = 1
             y += 1
 
-    # ── Yahoo Finance fallback (for GitHub Actions / overseas IP) ──
+    # ── Fallback 1: indices_history.json (populated by macro_data_agent) ──
+    indices_hist_path = Path(__file__).resolve().parent.parent / "data" / "indices_history.json"
+    if indices_hist_path.exists():
+        try:
+            import json as _json
+            with open(indices_hist_path, 'r', encoding='utf-8') as f:
+                ih = _json.load(f)
+            for label, key, target in [("TAIEX", "taiex", taiex), ("TPEX", "tpex", tpex)]:
+                filled = 0
+                for rec in ih.get(key, []):
+                    dt = rec.get('date')
+                    if dt and dt not in target and rec.get('close') is not None:
+                        target[dt] = round(rec['close'], 2)
+                        filled += 1
+                if filled:
+                    print(f"  📦 indices_history.json 補充 {label}: +{filled} 天")
+        except Exception as e:
+            print(f"  ⚠️ indices_history.json 讀取失敗: {e}")
+
+    # ── Fallback 2: Yahoo Finance (for GitHub Actions / overseas IP) ──
     if len(taiex) == 0 or len(tpex) == 0:
-        print("  ⚠️ TWSE/TPEX 官網資料不足，嘗試 Yahoo Finance fallback...")
-        import urllib.request, ssl, json as _json
+        print("  ⚠️ TWSE/TPEX 資料不足，嘗試 Yahoo Finance fallback...")
+        import urllib.request, ssl
+        import json as _json
         ctx = ssl.create_default_context()
         yh_headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
         symbols = []
         if len(taiex) == 0:
-            symbols.append(("^TWII", "TAIEX"))
+            symbols.append(("^TWII", "TAIEX", taiex))
         if len(tpex) == 0:
-            symbols.append(("^TWO", "TPEX"))
-        for symbol, label in symbols:
+            symbols.append(("^TWO", "TPEX", tpex))
+        for symbol, label, target in symbols:
             try:
                 url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=6mo&interval=1d"
                 req = urllib.request.Request(url, headers=yh_headers)
@@ -121,10 +141,7 @@ def fetch_market_indices(start_year=2025, start_month=10):
                         continue
                     from datetime import timezone
                     dt = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
-                    if label == "TAIEX":
-                        taiex[dt] = round(c, 2)
-                    else:
-                        tpex[dt] = round(c, 2)
+                    target.setdefault(dt, round(c, 2))
                 print(f"  ✅ Yahoo {label}: {len(timestamps)} 天")
             except Exception as e:
                 print(f"  ❌ Yahoo {label} fallback 失敗: {e}")
