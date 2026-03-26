@@ -2,6 +2,69 @@
   "advisories": [
     {
       "date": "2026-03-26",
+      "generated_at": "2026-03-26T10:02:45.721032+08:00",
+      "market_phase": "盤前",
+      "overall_signal": "防守",
+      "data_completeness": 0.33,
+      "action_items": [
+        {
+          "priority": 1,
+          "action": "開盤前設定所有持倉移動停損於成本價+5%，VIX仍在25以上維持黃燈狀態",
+          "reasoning": "VIX 25.33維持高檔且連5日上升，觸發黃燈條件需主動降低40%曝險",
+          "framework": "風控"
+        },
+        {
+          "priority": 2,
+          "action": "檢視並執行台積電相關部位減碼，00981A已減持台積電0.27%權重",
+          "reasoning": "法人開始減碼台積電且期貨保證金僅0.51%顯示避險需求增加",
+          "framework": "部位檢核"
+        },
+        {
+          "priority": 3,
+          "action": "暫停新建倉位，現金水位5.81%維持防守模式，等待VIX回落確認",
+          "reasoning": "現金模式已轉為防守，風險評分3.8/10偏低但VIX持續高檔需謹慎",
+          "framework": "決策鐵律"
+        }
+      ],
+      "market_summary": "美股收盤後VIX維持25.33高檔，連續5日上升觸發黃燈警示。00981A大幅調整持倉，減碼台積電並加碼電子零組件股，顯示法人對權值股轉趨保守。期貨保證金僅0.51%暗示經理人正進行避險操作。黃金大漲3.08%反映避險需求，美元指數微升但油價下跌1.31%。市場處於高波動環境，需優先執行風控。",
+      "risk_assessment": "VIX黃燈狀態持續，必須執行40%減倉計畫。雖然風險評分3.8/10偏低，但這可能是滯後指標，VIX的領先警示更值得重視。法人減碼台積電並提高現金水位至5.81%，配合期貨低保證金顯示避險動作明確。台積電波動率RV_20d達39.79%處於90百分位高檔，不宜在此時建新倉。關鍵風險：1)VIX若突破30將轉紅燈，2)台積電若跌破1800元可能引發指數補跌，3)現金水位雖提升但仍偏低。建議維持防守姿",
+      "telegram_short": "",
+      "data_sources": {
+        "dashboard": {
+          "date": "2026-03-25",
+          "fresh": false
+        },
+        "strategy": {
+          "date": "2026-03-25",
+          "fresh": false
+        },
+        "news_analysis": {
+          "date": "2026-03-26 02:02",
+          "fresh": true
+        },
+        "ai_research": {
+          "date": "2026-03-26 01:14",
+          "fresh": true
+        },
+        "tsmc_vol_signal": {
+          "date": null,
+          "fresh": false
+        },
+        "indices_history": {
+          "date": null,
+          "fresh": false
+        }
+      },
+      "data_gaps": [
+        "dashboard",
+        "strategy",
+        "tsmc_vol_signal",
+        "indices_history"
+      ],
+      "outcome": null
+    },
+    {
+      "date": "2026-03-26",
       "generated_at": "2026-03-26T09:14:57.934002+08:00",
       "market_phase": "盤後",
       "overall_signal": "防守",
