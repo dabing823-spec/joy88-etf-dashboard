@@ -2,6 +2,69 @@
   "advisories": [
     {
       "date": "2026-03-26",
+      "generated_at": "2026-03-26T09:14:57.934002+08:00",
+      "market_phase": "盤後",
+      "overall_signal": "防守",
+      "data_completeness": 0.33,
+      "action_items": [
+        {
+          "priority": 1,
+          "action": "明天開盤後檢查 VIX 是否跌破 25，若是則考慮將防守倉位調回中性",
+          "reasoning": "VIX 維持在 25.33 高位，但已連續 5 日上升，可能接近轉折點",
+          "framework": "風控"
+        },
+        {
+          "priority": 2,
+          "action": "檢視台積電部位，經理人減碼 0.27% 可能暗示短線謹慎",
+          "reasoning": "00981A 減持台積電同時加碼多檔 PCB 和散熱股，顯示資金轉向特定題材",
+          "framework": "三層次分析"
+        },
+        {
+          "priority": 3,
+          "action": "若持有期貨部位，確認保證金充足度並設定停損點",
+          "reasoning": "期貨保證金僅 0.51%，顯示經理人可能有方向性操作或避險部位",
+          "framework": "部位檢核"
+        }
+      ],
+      "market_summary": "市場處於高波動環境（VIX 25.33），00981A 現金水位 5.81% 顯示防守態勢。經理人減碼台積電（-0.27%）同時大幅加碼 PCB/散熱族群，新增萬潤（0.38%），顯示資金輪動至 AI 基礎建設題材。期貨保證金 0.51% 暗示可能有避險操作。",
+      "risk_assessment": "風險評分 3.8/10 屬低風險，但 VIX 連續 5 日上升至 25.33 需警戒。現金水位從 3.58% 升至 5.81%，顯示經理人主動降低曝險。台積電波動率 RV_20d 達 39.79%（90 百分位），處於高波動環境。建議維持防守態勢，等待 VIX 回落信號。若 VIX 跌破 25 且指數站穩 5MA，可考慮將部分現金轉為積極部位。注意 FOMC 和台指結算（3/18）可能帶來的波動。",
+      "telegram_short": "",
+      "data_sources": {
+        "dashboard": {
+          "date": "2026-03-25",
+          "fresh": false
+        },
+        "strategy": {
+          "date": "2026-03-25",
+          "fresh": false
+        },
+        "news_analysis": {
+          "date": "2026-03-25 23:32",
+          "fresh": true
+        },
+        "ai_research": {
+          "date": "2026-03-26 01:14",
+          "fresh": true
+        },
+        "tsmc_vol_signal": {
+          "date": null,
+          "fresh": false
+        },
+        "indices_history": {
+          "date": null,
+          "fresh": false
+        }
+      },
+      "data_gaps": [
+        "dashboard",
+        "strategy",
+        "tsmc_vol_signal",
+        "indices_history"
+      ],
+      "outcome": null
+    },
+    {
+      "date": "2026-03-26",
       "generated_at": "2026-03-26T07:56:11.935146+08:00",
       "market_phase": "盤後",
       "overall_signal": "觀望",
