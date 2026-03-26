@@ -30,8 +30,17 @@ const P7MarketCap0050 = lazyRetry(() => import('./pages/P7MarketCap0050'), 'P7Ma
 const P8RiskSignals = lazyRetry(() => import('./pages/P8RiskSignals'), 'P8RiskSignals')
 const P9AiQA = lazyRetry(() => import('./pages/P9AiQA'), 'P9AiQA')
 const P10NewsDeconstruction = lazyRetry(() => import('./pages/P10NewsDeconstruction'), 'P10NewsDeconstruction')
-// P11 Trump Signal — disabled, deferred to future update
-// P12 TSMC Vol Signal — migrated to tsmc-atr-v2, deferred
+function ComingSoon({ title, desc }: { title: string; desc: string }) {
+  return (
+    <div className="space-y-4">
+      <h1 className="text-xl font-bold text-text-primary">{title}</h1>
+      <div className="bg-card border border-dashed border-border rounded-xl p-12 text-center">
+        <div className="text-2xl font-bold text-text-muted mb-2">後續更新</div>
+        <div className="text-sm text-text-muted">{desc}</div>
+      </div>
+    </div>
+  )
+}
 
 const pageFallback = (
   <div className="flex items-center justify-center h-64">
@@ -63,6 +72,8 @@ const router = createHashRouter([
       { path: '0050', element: <Page><P7MarketCap0050 /></Page> },
       { path: 'ai-qa', element: <Page><P9AiQA /></Page> },
       { path: 'news', element: <Page><P10NewsDeconstruction /></Page> },
+      { path: 'trump', element: <ComingSoon title="Trump Signal — 川普密碼" desc="策略整合中，預計近期重新上線" /> },
+      { path: 'tsmc-vol', element: <ComingSoon title="TSMC Vol Signal" desc="波動率計算已移植至 tsmc-atr-v2，待 API 整合後重新上線" /> },
       { path: '*', element: <Navigate to="/dashboard" replace /> },
     ],
   },
