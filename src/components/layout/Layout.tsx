@@ -9,9 +9,9 @@ const NAV_ITEMS = [
   { to: '/copy-trading', label: '跟單策略' },
   { to: '/strategy', label: '策略回測' },
   { to: '/history', label: '歷史回溯' },
+  { to: '/news', label: '新聞' },
   { to: '/0050', label: '0050' },
   { to: '/ai-qa', label: 'AI' },
-  { to: '/news', label: '新聞' },
   { to: '/trump', label: 'US Trump' },
   { to: '/tsmc-vol', label: 'TSMC Vol' },
 ]
