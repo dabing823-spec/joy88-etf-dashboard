@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useData } from '../contexts/DataContext'
-import { Badge, TableContainer, DataTable } from '../components/shared'
+import { Badge, TableContainer, DataTable, AdvisorCard } from '../components/shared'
 import type { MarketIndices, ConsensusItem, CashSeriesItem } from '../types'
 
 /* ── helpers ─────────────────────────────────────────── */
@@ -129,7 +129,7 @@ function GaugeCard({ title, value, mode, modeColor }: { title: string; value: st
 /* ── Main Component ──────────────────────────────────── */
 
 export function P2StrategicDashboard() {
-  const { dashboard, strategy } = useData()
+  const { dashboard, strategy, advisor } = useData()
   const mi: MarketIndices | undefined = strategy?.market_indices
   const riskSignals = strategy?.risk_signals
   const cashMode = dashboard?.cash_mode
@@ -233,6 +233,13 @@ export function P2StrategicDashboard() {
   return (
     <div className="space-y-4">
       <h1 className="sr-only">JOY88 ETF 戰略儀表板</h1>
+
+      {/* ── AI Advisor ── */}
+      <AdvisorCard
+        advisory={advisor?.advisories?.[0] ?? null}
+        riskScore={strategy?.risk_signals ? `${strategy.risk_signals.score}/${strategy.risk_signals.max_score}` : undefined}
+      />
+
       {/* ── Taiwan Indices Hero ── */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-all">
