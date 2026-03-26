@@ -36,7 +36,7 @@ export function P5StrategyAnalysis() {
       key: 'recommendation', label: '建議',
       render: (r: Recommendation) => {
         const b = actionBadge(r.score ?? 0)
-        return <span className={`px-2 py-0.5 rounded text-xs font-bold ${b.color}`}>{r.recommendation || b.text}</span>
+        return <span className={`px-2 py-0.5 rounded text-xs font-bold ${b.color}`}>{b.text}</span>
       },
     },
   ]
