@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Line, Bar, Chart } from 'react-chartjs-2'
 import { useData } from '../contexts/DataContext'
-import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable } from '../components/shared'
+import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable, OverlapHeatmap } from '../components/shared'
 import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
 import { ETF_LIST, ETF_SHORT_NAMES, ETF_COLORS } from '../lib/constants'
 import '../lib/chartDefaults'
@@ -20,7 +20,7 @@ function getRecordByDate(etfData: EtfPageData, date: string): DateRecord | null 
 }
 
 export function P4EtfHistoryComparison() {
-  const { etfPages } = useData()
+  const { etfPages, strategy } = useData()
   const [currentETF, setCurrentETF] = useState<string>('00981A')
   const [compareDate1, setCompareDate1] = useState('')
   const [compareDate2, setCompareDate2] = useState('')
@@ -294,6 +294,15 @@ export function P4EtfHistoryComparison() {
       <IntroBox variant="accent">
         選擇 ETF 查看歷史持股、現金水位變化，並使用對比工具分析任意兩個日期間的持股變動。
       </IntroBox>
+
+      {/* Holdings Overlap Heatmap */}
+      {strategy?.holdings_overlap && (
+        <div className="bg-card border border-border rounded-xl p-5">
+          <h2 className="text-lg font-semibold font-display text-text-primary mb-3">持股重疊矩陣</h2>
+          <p className="text-xs text-text-muted mb-4">點擊格子查看兩檔 ETF 的共同持股明細</p>
+          <OverlapHeatmap data={strategy.holdings_overlap} />
+        </div>
+      )}
 
       {/* ETF Tabs */}
       <div className="flex gap-2 flex-wrap">

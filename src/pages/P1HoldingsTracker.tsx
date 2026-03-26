@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { Line } from 'react-chartjs-2'
 import { Chart } from 'react-chartjs-2'
 import { useData } from '../contexts/DataContext'
-import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable } from '../components/shared'
+import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable, HoldingsTimeline } from '../components/shared'
 import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
 import { STOCK_COLORS } from '../lib/constants'
 import '../lib/chartDefaults'
@@ -426,6 +426,15 @@ export function P1HoldingsTracker() {
           <DataTable columns={convictionColumns} data={conviction.slice(0, 20)} emptyText="暫無資料" />
         </TableContainer>
       </div>
+
+      {/* Holdings Change Timeline */}
+      {dashboard?.daily_changes?.['00981A'] && (
+        <div className="bg-card border border-border rounded-xl p-5">
+          <h2 className="text-lg font-semibold font-display text-text-primary mb-1">持股異動時間軸</h2>
+          <p className="text-xs text-text-muted mb-4">00981A 經理人每日加減碼記錄，可搜尋特定股票</p>
+          <HoldingsTimeline changes={dashboard.daily_changes['00981A']} />
+        </div>
+      )}
     </div>
   )
 }

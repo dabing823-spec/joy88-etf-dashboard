@@ -51,10 +51,17 @@ export interface IndustryExposure {
   change: number
 }
 
+export interface SharedStock {
+  code: string
+  name: string
+  weight_i?: number
+  weight_j?: number
+}
+
 export interface HoldingsOverlap {
   matrix: number[][]
   etf_ids: string[]
-  shared_details: Record<string, Array<{ code: string; name: string }>>
+  shared_details: Record<string, SharedStock[]>
 }
 
 export interface MarketIndices {
