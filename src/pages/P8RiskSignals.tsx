@@ -68,9 +68,9 @@ function SignalCard({ signal, history, onClick }: { signal: SignalItem; history?
         <span className="text-sm font-semibold text-text-primary">{signal.name}</span>
         <span className="w-3 h-3 rounded-full shrink-0 shadow-[0_0_6px]" style={{ backgroundColor: color, color }} />
       </div>
-      <div className="text-2xl font-bold tabular-nums mb-1" style={{ color }}>{signal.value?.toFixed(2) ?? '-'}</div>
+      <div className="text-2xl font-bold tabular-nums mb-1 text-accent">{signal.value?.toFixed(2) ?? '-'}</div>
       <div className="text-2xs text-text-muted mb-1">{signal.desc}</div>
-      <div className="text-2xs font-medium mb-2" style={{ color: signal.phase === 'accelerating' ? '#ff4757' : signal.phase === 'decelerating' ? '#00c48c' : '#9ca0b4' }}>
+      <div className="text-2xs font-medium mb-2" style={{ color: signal.phase === 'accelerating' ? '#f59e0b' : signal.phase === 'decelerating' ? '#6b9fff' : '#9ca0b4' }}>
         {signal.phase_label}
       </div>
       {/* Sparkline */}
