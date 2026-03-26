@@ -4,7 +4,7 @@ import { useData } from '../contexts/DataContext'
 import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable, InsightCard } from '../components/shared'
 import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
 import '../lib/chartDefaults'
-import type { Recommendation } from '../types'
+import type { Recommendation, ScenarioPerformance } from '../types'
 
 function actionBadge(score: number): { text: string; color: string } {
   if (score >= 8) return { text: '強力買進', color: 'bg-up text-white' }
@@ -16,8 +16,68 @@ export function P5StrategyAnalysis() {
   const { strategy } = useData()
   const recommendations = strategy?.recommendations || []
   const backtest = strategy?.signal_backtest
+  const scenarioPerf: ScenarioPerformance | undefined = strategy?.scenario_performance as ScenarioPerformance | undefined
 
   const top10 = recommendations.slice(0, 10)
+
+  // Scenario bar chart
+  const scenarioBarData = useMemo(() => {
+    if (!scenarioPerf?.by_scenario) return null
+    type ScenarioEntry = { count: number; label: string; avg_return_5d: number | null; avg_return_10d: number | null; avg_return_20d: number | null; win_rate_5d: number | null; win_rate_10d: number | null; win_rate_20d: number | null }
+    const entries = (Object.entries(scenarioPerf.by_scenario) as [string, ScenarioEntry][])
+      .filter(([, v]) => v.count >= 2)
+      .sort(([a], [b]) => a.localeCompare(b))
+    if (!entries.length) return null
+    const SCENARIO_COLORS: Record<string, string> = { A: '#00c48c', B: '#9ca0b4', C: '#ff4757', D: '#00c48c', E: '#9ca0b4', F: '#ffa502', G: '#4f8ef7', H: '#9ca0b4', I: '#ffa502' }
+    return {
+      labels: entries.map(([code, v]) => `${code}.${v.label}`),
+      datasets: [{
+        label: '20d 平均報酬 (%)',
+        data: entries.map(([, v]) => v.avg_return_20d ?? 0),
+        backgroundColor: entries.map(([code]) => `${SCENARIO_COLORS[code] || '#9ca0b4'}60`),
+        borderColor: entries.map(([code]) => SCENARIO_COLORS[code] || '#9ca0b4'),
+        borderWidth: 1.5,
+      }],
+    }
+  }, [scenarioPerf])
+
+  // Delay decay bar chart
+  const delayBarData = useMemo(() => {
+    if (!backtest?.delay_decay) return null
+    const keys = ['0d', '1d', '2d', '3d']
+    const vals = keys.map(k => backtest.delay_decay?.[k]?.avg_return_10d ?? 0)
+    const wrs = keys.map(k => backtest.delay_decay?.[k]?.win_rate_10d ?? 0)
+    return {
+      labels: keys.map(k => `Day+${k.replace('d', '')}`),
+      datasets: [{
+        label: '10d 平均報酬 (%)',
+        data: vals,
+        backgroundColor: ['rgba(79,142,247,0.5)', 'rgba(79,142,247,0.35)', 'rgba(79,142,247,0.22)', 'rgba(79,142,247,0.12)'],
+        borderColor: ['#4f8ef7', '#4f8ef7', '#4f8ef7', '#4f8ef7'],
+        borderWidth: 1.5,
+      }],
+      _winRates: wrs,
+    }
+  }, [backtest])
+
+  // Alpha bar chart
+  const alphaBarData = useMemo(() => {
+    if (!backtest?.alpha_summary?.by_type) return null
+    const types = Object.entries(backtest.alpha_summary.by_type)
+    if (!types.length) return null
+    return {
+      labels: types.map(([t]) => t),
+      datasets: [
+        {
+          label: 'Alpha (超額報酬%)',
+          data: types.map(([, v]) => v.avg_alpha_10d),
+          backgroundColor: types.map(([, v]) => v.avg_alpha_10d >= 0 ? 'rgba(0,196,140,0.5)' : 'rgba(255,71,87,0.5)'),
+          borderColor: types.map(([, v]) => v.avg_alpha_10d >= 0 ? '#00c48c' : '#ff4757'),
+          borderWidth: 1.5,
+        },
+      ],
+    }
+  }, [backtest])
 
   const recColumns = [
     { key: 'rank', label: '排名', render: (_: Recommendation, i: number) => i + 1 },
@@ -158,7 +218,121 @@ export function P5StrategyAnalysis() {
         </TableContainer>
       )}
 
-      {/* Section 3: 跟單回測分析 (static data) */}
+      {/* Section 3: Scenario Win Rate */}
+      {scenarioPerf?.by_scenario && (
+        <TableContainer title="🎲 情境勝率追蹤">
+          <p className="text-xs text-text-muted mb-3">
+            回溯 {scenarioPerf.daily_scenarios?.length ?? 0} 天，每天根據現金百分位 + 經理人主動操作方向判定情境（A~I），追蹤情境出現後 TAIEX 報酬。
+            當前情境：<span className="text-accent font-bold">{scenarioPerf.current}.{scenarioPerf.by_scenario[scenarioPerf.current]?.label}</span>
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="h-64">
+              {scenarioBarData && <Bar data={scenarioBarData} options={{
+                responsive: true, maintainAspectRatio: false,
+                indexAxis: 'y' as const,
+                plugins: { ...defaultPluginOptions, tooltip: { callbacks: {
+                  afterLabel: (ctx: { dataIndex: number }) => {
+                    const code = Object.keys(scenarioPerf.by_scenario).sort()[ctx.dataIndex]
+                    const s = scenarioPerf.by_scenario[code]
+                    return s ? `勝率 ${s.win_rate_20d}% | ${s.count} 天` : ''
+                  }
+                }}},
+                scales: { x: { ...defaultScaleOptions, ticks: { ...defaultScaleOptions.ticks, callback: (v: string | number) => `${v}%` } }, y: defaultScaleOptions },
+              }} />}
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="py-1.5 px-2 text-left text-text-muted">情境</th>
+                    <th className="py-1.5 px-2 text-right text-text-muted">天數</th>
+                    <th className="py-1.5 px-2 text-right text-text-muted">5d</th>
+                    <th className="py-1.5 px-2 text-right text-text-muted">10d</th>
+                    <th className="py-1.5 px-2 text-right text-text-muted">20d</th>
+                    <th className="py-1.5 px-2 text-right text-text-muted">20d WR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(Object.entries(scenarioPerf.by_scenario) as [string, { count: number; label: string; avg_return_5d: number | null; avg_return_10d: number | null; avg_return_20d: number | null; win_rate_20d: number | null }][]).sort(([a], [b]) => a.localeCompare(b)).map(([code, s]) => (
+                    <tr key={code} className={`border-b border-border/30 ${code === scenarioPerf.current ? 'bg-accent/10' : ''}`}>
+                      <td className="py-1.5 px-2 font-medium">{code}.{s.label}</td>
+                      <td className="py-1.5 px-2 text-right text-text-muted">{s.count}</td>
+                      <td className={`py-1.5 px-2 text-right ${(s.avg_return_5d ?? 0) > 0 ? 'text-up' : 'text-down'}`}>{s.avg_return_5d != null ? `${s.avg_return_5d > 0 ? '+' : ''}${s.avg_return_5d}%` : '-'}</td>
+                      <td className={`py-1.5 px-2 text-right ${(s.avg_return_10d ?? 0) > 0 ? 'text-up' : 'text-down'}`}>{s.avg_return_10d != null ? `${s.avg_return_10d > 0 ? '+' : ''}${s.avg_return_10d}%` : '-'}</td>
+                      <td className={`py-1.5 px-2 text-right font-bold ${(s.avg_return_20d ?? 0) > 0 ? 'text-up' : 'text-down'}`}>{s.avg_return_20d != null ? `${s.avg_return_20d > 0 ? '+' : ''}${s.avg_return_20d}%` : '-'}</td>
+                      <td className={`py-1.5 px-2 text-right ${(s.win_rate_20d ?? 0) >= 60 ? 'text-up' : 'text-text-muted'}`}>{s.win_rate_20d != null ? `${s.win_rate_20d}%` : '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </TableContainer>
+      )}
+
+      {/* Section 4: Delay Decay + Alpha */}
+      {backtest?.delay_decay && backtest?.alpha_summary && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TableContainer title="⏱️ 訊號延遲衰減">
+            <p className="text-xs text-text-muted mb-3">
+              看到經理人訊號後，延遲 1~3 天進場還能賺多少？數據越高代表訊號持久性越強。
+            </p>
+            <KpiGrid>
+              {['0d', '1d', '2d', '3d'].map(k => {
+                const d = backtest.delay_decay?.[k]
+                return (
+                  <KpiCard
+                    key={k}
+                    label={k === '0d' ? '當天進場' : `延遲 ${k.replace('d', '')} 天`}
+                    value={d ? `${d.avg_return_10d >= 0 ? '+' : ''}${d.avg_return_10d.toFixed(2)}%` : '-'}
+                    valueColor={k === '0d' ? 'text-accent' : 'text-text-muted'}
+                    subtext={d ? `勝率 ${d.win_rate_10d.toFixed(1)}% · n=${d.n}` : '-'}
+                  />
+                )
+              })}
+            </KpiGrid>
+            <div className="h-48 mt-2">
+              {delayBarData && <Bar data={delayBarData} options={{
+                responsive: true, maintainAspectRatio: false,
+                plugins: { ...defaultPluginOptions, tooltip: { callbacks: {
+                  afterLabel: (ctx: { dataIndex: number }) => {
+                    const wr = (delayBarData as { _winRates: number[] })._winRates?.[ctx.dataIndex]
+                    return wr != null ? `勝率 ${wr.toFixed(1)}%` : ''
+                  }
+                }}},
+                scales: { y: { ...defaultScaleOptions, ticks: { ...defaultScaleOptions.ticks, callback: (v: string | number) => `${v}%` } }, x: defaultScaleOptions },
+              }} />}
+            </div>
+          </TableContainer>
+
+          <TableContainer title="📊 Alpha vs Beta">
+            <p className="text-xs text-text-muted mb-3">
+              經理人選股的超額報酬（扣除同期大盤漲跌後的淨收益）。Alpha &gt; 0 代表跑贏大盤。
+            </p>
+            <KpiGrid>
+              <KpiCard label="10d Alpha" value={`${(backtest.alpha_summary.avg_alpha_10d ?? 0) >= 0 ? '+' : ''}${(backtest.alpha_summary.avg_alpha_10d ?? 0).toFixed(2)}%`} valueColor={(backtest.alpha_summary.avg_alpha_10d ?? 0) > 0 ? 'text-up' : 'text-down'} subtext={`Beat market ${(backtest.alpha_summary.pct_beat_market_10d ?? 0).toFixed(1)}%`} />
+              <KpiCard label="20d Alpha" value={`${(backtest.alpha_summary.avg_alpha_20d ?? 0) >= 0 ? '+' : ''}${(backtest.alpha_summary.avg_alpha_20d ?? 0).toFixed(2)}%`} valueColor={(backtest.alpha_summary.avg_alpha_20d ?? 0) > 0 ? 'text-up' : 'text-down'} subtext={`Beat market ${(backtest.alpha_summary.pct_beat_market_20d ?? 0).toFixed(1)}%`} />
+            </KpiGrid>
+            <div className="h-48 mt-2">
+              {alphaBarData && <Bar data={alphaBarData} options={{
+                responsive: true, maintainAspectRatio: false,
+                plugins: defaultPluginOptions,
+                scales: { y: { ...defaultScaleOptions, ticks: { ...defaultScaleOptions.ticks, callback: (v: string | number) => `${v}%` } }, x: defaultScaleOptions },
+              }} />}
+            </div>
+            <div className="mt-2 space-y-1">
+              {Object.entries(backtest.alpha_summary.by_type).map(([type, v]) => (
+                <div key={type} className="flex items-center justify-between text-xs py-1 border-b border-border/30">
+                  <span className="font-medium">{type}</span>
+                  <span>Alpha <span className={v.avg_alpha_10d >= 0 ? 'text-up' : 'text-down'}>{v.avg_alpha_10d >= 0 ? '+' : ''}{v.avg_alpha_10d.toFixed(2)}%</span> · Beat {v.pct_beat_10d.toFixed(0)}% · n={v.n}</span>
+                </div>
+              ))}
+            </div>
+          </TableContainer>
+        </div>
+      )}
+
+      {/* Section 5: 跟單回測分析 (static data) */}
       <h2 className="text-2xl font-bold font-display text-text-primary mt-2">跟單回測分析</h2>
 
       <IntroBox variant="red">

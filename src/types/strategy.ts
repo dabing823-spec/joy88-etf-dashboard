@@ -182,7 +182,29 @@ export interface SignalBacktest {
     return_10d: number
     return_20d: number
     return_60d?: number
+    alpha_10d?: number | null
+    alpha_20d?: number | null
+    market_return_10d?: number | null
+    market_return_20d?: number | null
   }>
+  delay_decay?: Record<string, { avg_return_10d: number; win_rate_10d: number; n: number }>
+  alpha_summary?: {
+    avg_alpha_10d: number
+    avg_alpha_20d: number
+    pct_beat_market_10d: number
+    pct_beat_market_20d: number
+    by_type: Record<string, { avg_alpha_10d: number; pct_beat_10d: number; n: number }>
+  }
+}
+
+export interface ScenarioPerformance {
+  by_scenario: Record<string, {
+    count: number; label: string
+    avg_return_5d: number | null; avg_return_10d: number | null; avg_return_20d: number | null
+    win_rate_5d: number | null; win_rate_10d: number | null; win_rate_20d: number | null
+  }>
+  daily_scenarios: Array<{ date: string; code: string; return_5d: number | null; return_10d: number | null; return_20d: number | null }>
+  current: string
 }
 
 export interface TrumpSignalConfidence {
@@ -253,5 +275,6 @@ export interface StrategyData {
   market_weight_top150: { stocks: MarketWeightStock[] }
   agent_status: AgentStatus
   signal_backtest: SignalBacktest
+  scenario_performance?: ScenarioPerformance
   trump_signals: TrumpSignals
 }

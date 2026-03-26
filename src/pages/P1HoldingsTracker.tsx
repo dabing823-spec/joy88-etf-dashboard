@@ -20,6 +20,9 @@ interface CashModeSeriesItem {
   nav: number
   cash_5ma?: number | null
   cash_20ma?: number | null
+  units_change_pct?: number
+  active_cash_delta?: number
+  aum?: number | null
 }
 
 interface StockSeriesRaw {
@@ -69,12 +72,16 @@ export function P1HoldingsTracker() {
   // KPIs
   const nHoldings = cashMode?.n_holdings || 0
   const cashNow = cashMode?.cash_now || 0
+  const cashPctile = cashMode?.cash_percentile ?? 50
   const mode = cashMode?.mode || '-'
   const modeDesc = cashMode?.mode_desc || '-'
   const trend = cashMode?.trend || '-'
+  const flowMode = cashMode?.flow_adjusted_mode || ''
+  const fundHealth = cashMode?.fund_health
   const latestUnits = cashModeSeries.length > 0 ? cashModeSeries[cashModeSeries.length - 1] : null
   const unitsChange = latestUnits?.units_change || 0
   const unitsColor = unitsChange > 0 ? 'text-up' : unitsChange < 0 ? 'text-down' : 'text-text-muted'
+  const cashPctColor = cashPctile >= 70 ? 'text-up' : cashPctile <= 30 ? 'text-down' : 'text-text-primary'
 
   // ── Chart: 現金水位 + 5MA + 20MA + TAIEX + TPEX + 申贖量 ──
   const cashChartData = useMemo(() => {
@@ -136,6 +143,16 @@ export function P1HoldingsTracker() {
           fill: true, yAxisID: 'y2',
           order: 6,
         },
+        {
+          type: 'bar' as const,
+          label: '主動現金變化',
+          data: slicedUnits.map(d => d.active_cash_delta ?? 0),
+          backgroundColor: slicedUnits.map(d => (d.active_cash_delta ?? 0) >= 0 ? 'rgba(255,165,2,0.25)' : 'rgba(79,142,247,0.25)'),
+          borderColor: slicedUnits.map(d => (d.active_cash_delta ?? 0) >= 0 ? 'rgba(255,165,2,0.6)' : 'rgba(79,142,247,0.6)'),
+          borderWidth: 1,
+          yAxisID: 'y',
+          order: 9,
+        },
       ],
     }
   }, [cashSeries, cashModeSeries, cashRange])
@@ -167,6 +184,7 @@ export function P1HoldingsTracker() {
             const label = ctx.dataset.label || ''
             const v = ctx.parsed.y
             if (v == null) return ''
+            if (label.includes('主動現金')) return ` ${label}: ${v >= 0 ? '+' : ''}${v.toFixed(2)}%`
             if (label.includes('現金') || label.includes('MA')) return ` ${label}: ${v.toFixed(2)}%`
             if (label.includes('加權')) return ` ${label}: ${v.toLocaleString()}`
             if (label.includes('櫃買')) return ` ${label}: ${v.toFixed(2)}`
@@ -292,12 +310,13 @@ export function P1HoldingsTracker() {
       </IntroBox>
 
       {/* ── KPIs ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
         <KpiCard label="持股數" value={nHoldings} valueColor={nHoldings >= 40 ? 'text-down' : nHoldings >= 20 ? 'text-accent' : 'text-warning'} />
-        <KpiCard label="現金水位" value={`${cashNow.toFixed(1)}%`} valueColor={cashNow >= 5 ? 'text-up' : cashNow >= 3 ? 'text-warning' : 'text-down'} subtext={`趨勢: ${trend}`} />
-        <KpiCard label="期貨部位" value={cashMode?.has_futures ? '有' : '無'} subtext={cashMode?.futures_signal || '-'} />
+        <KpiCard label="現金水位" value={`${cashNow.toFixed(1)}%`} valueColor={cashPctColor} subtext={`P${cashPctile.toFixed(0)} · ${trend}`} />
+        <KpiCard label="攻防模式" value={cashMode?.scenario ? `${cashMode.scenario.code}. ${cashMode.scenario.label}` : mode} subtext={cashMode?.scenario?.action || `${flowMode ? flowMode + ' · ' : ''}${trend}`} />
         <KpiCard label="申購/贖回" value={formatUnits(unitsChange)} valueColor={unitsColor} subtext={latestUnits ? `NAV ${latestUnits.nav?.toFixed(2)}` : '-'} />
-        <KpiCard label="攻防模式" value={mode} subtext={modeDesc} />
+        <KpiCard label="基金規模" value={fundHealth?.aum ? `${(fundHealth.aum / 1e8).toFixed(0)} 億` : '-'} valueColor={(fundHealth?.aum_growth_20d ?? 0) > 0 ? 'text-up' : (fundHealth?.aum_growth_20d ?? 0) < 0 ? 'text-down' : 'text-text-muted'} subtext={`${fundHealth?.aum_growth_20d != null ? `20d ${fundHealth.aum_growth_20d > 0 ? '+' : ''}${fundHealth.aum_growth_20d.toFixed(1)}%` : '-'}${fundHealth?.large_flow_label ? ` · ${fundHealth.large_flow_label}` : ''}`} />
+        <KpiCard label="資金流向" value={`${fundHealth?.flow_streak ?? 0 > 0 ? '連續申購' : (fundHealth?.flow_streak ?? 0) < 0 ? '連續贖回' : '持平'} ${Math.abs(fundHealth?.flow_streak ?? 0)}d`} valueColor={(fundHealth?.flow_streak ?? 0) > 0 ? 'text-up' : (fundHealth?.flow_streak ?? 0) < 0 ? 'text-down' : 'text-text-muted'} subtext={cashMode?.has_futures ? `期貨: 有` : '期貨: 無'} />
       </div>
 
       {/* ── AI Research Panel ── */}

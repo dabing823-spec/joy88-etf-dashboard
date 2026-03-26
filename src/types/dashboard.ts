@@ -9,6 +9,23 @@ export interface CashMode {
   futures_signal: string
   n_holdings: number
   cash_series: number[]
+  cash_percentile?: number
+  percentile_label?: string
+  flow_adjusted_mode?: string
+  avg_active_delta?: number
+  scenario?: {
+    code: string
+    label: string
+    reason: string
+    action: string
+  }
+  fund_health?: {
+    aum: number | null
+    aum_growth_20d: number | null
+    flow_streak: number
+    large_flow: boolean
+    large_flow_label: string
+  }
 }
 
 export interface Holding {
@@ -74,6 +91,10 @@ export interface CashSeriesItem {
   taiex?: number
   tpex?: number
   etf_id?: string
+  units?: number
+  units_change?: number
+  nav?: number
+  aum?: number | null
 }
 
 export interface StockSeriesItem {

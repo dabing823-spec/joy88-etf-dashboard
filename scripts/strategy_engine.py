@@ -240,12 +240,19 @@ def fetch_stock_price_range(stock_code, start_date, end_date, price_cache):
 
 
 def calc_signal_backtest(dashboard):
-    """A. 信號回測績效"""
+    """A. 信號回測績效 (with delay decay + alpha)"""
     print("  [A] Signal Backtest (信號回測績效)...")
     signals = dashboard.get('laomo_signals', [])
     if not signals:
         print("      No signals found, skipping.")
         return {'summary': {}, 'by_type': {}, 'signals': []}
+
+    # TAIEX lookup for alpha calculation
+    taiex_map = {}
+    for cs in dashboard.get('cash_series', []):
+        if cs.get('taiex') is not None:
+            taiex_map[cs['date']] = cs['taiex']
+    taiex_dates = sorted(taiex_map.keys())
 
     # Load price cache
     price_cache = {}
@@ -312,17 +319,46 @@ def calc_signal_backtest(dashboard):
         if not entry_price or entry_price <= 0:
             continue
 
-        def get_return_nd(n):
-            target_idx = idx + n
-            if target_idx < len(sorted_dates):
-                p = prices.get(sorted_dates[target_idx])
-                if p and p > 0:
-                    return round((p - entry_price) / entry_price * 100, 2)
+        def get_return_nd(n, offset=0):
+            entry_idx = idx + offset
+            target_idx = entry_idx + n
+            if entry_idx >= len(sorted_dates) or target_idx >= len(sorted_dates):
+                return None
+            ep = prices.get(sorted_dates[entry_idx])
+            tp = prices.get(sorted_dates[target_idx])
+            if ep and ep > 0 and tp and tp > 0:
+                return round((tp - ep) / ep * 100, 2)
             return None
 
         r10 = get_return_nd(10)
         r20 = get_return_nd(20)
         r60 = get_return_nd(60)
+
+        # Delay decay: returns if entering at Day+1, +2, +3
+        delay_returns = {}
+        for delay in [1, 2, 3]:
+            delay_returns[f'return_10d_d{delay}'] = get_return_nd(10, offset=delay)
+
+        # Alpha: stock return minus TAIEX return over same period
+        taiex_0 = taiex_map.get(sig_date)
+        alpha_10d = None
+        alpha_20d = None
+        mkt_10d = None
+        mkt_20d = None
+        if taiex_0 and taiex_0 > 0 and sig_date in taiex_dates:
+            t_idx = taiex_dates.index(sig_date)
+            if t_idx + 10 < len(taiex_dates):
+                t10 = taiex_map.get(taiex_dates[t_idx + 10])
+                if t10:
+                    mkt_10d = round((t10 - taiex_0) / taiex_0 * 100, 2)
+                    if r10 is not None:
+                        alpha_10d = round(r10 - mkt_10d, 2)
+            if t_idx + 20 < len(taiex_dates):
+                t20 = taiex_map.get(taiex_dates[t_idx + 20])
+                if t20:
+                    mkt_20d = round((t20 - taiex_0) / taiex_0 * 100, 2)
+                    if r20 is not None:
+                        alpha_20d = round(r20 - mkt_20d, 2)
 
         result_signals.append({
             'date': sig_date,
@@ -334,6 +370,11 @@ def calc_signal_backtest(dashboard):
             'return_10d': r10,
             'return_20d': r20,
             'return_60d': r60,
+            'alpha_10d': alpha_10d,
+            'alpha_20d': alpha_20d,
+            'market_return_10d': mkt_10d,
+            'market_return_20d': mkt_20d,
+            **delay_returns,
         })
 
     # Summary statistics
@@ -363,13 +404,143 @@ def calc_signal_backtest(dashboard):
             'avg_return_20d': round(sum(t20) / max(len(t20), 1), 2),
         }
 
+    # Delay decay
+    delay_decay = {}
+    for delay in [0, 1, 2, 3]:
+        key = f'return_10d_d{delay}' if delay > 0 else 'return_10d'
+        vals = [s[key] for s in result_signals if s.get(key) is not None]
+        delay_decay[f'{delay}d'] = {
+            'avg_return_10d': round(sum(vals) / max(len(vals), 1), 2),
+            'win_rate_10d': round(sum(1 for v in vals if v > 0) / max(len(vals), 1) * 100, 1),
+            'n': len(vals),
+        }
+
+    # Alpha summary
+    a10 = [s['alpha_10d'] for s in result_signals if s.get('alpha_10d') is not None]
+    a20 = [s['alpha_20d'] for s in result_signals if s.get('alpha_20d') is not None]
+    alpha_by_type = {}
+    for sig_type in set(s['type'] for s in result_signals):
+        typed_a10 = [s['alpha_10d'] for s in result_signals if s['type'] == sig_type and s.get('alpha_10d') is not None]
+        alpha_by_type[sig_type] = {
+            'avg_alpha_10d': round(sum(typed_a10) / max(len(typed_a10), 1), 2),
+            'pct_beat_10d': round(sum(1 for v in typed_a10 if v > 0) / max(len(typed_a10), 1) * 100, 1),
+            'n': len(typed_a10),
+        }
+
+    alpha_summary = {
+        'avg_alpha_10d': round(sum(a10) / max(len(a10), 1), 2),
+        'avg_alpha_20d': round(sum(a20) / max(len(a20), 1), 2),
+        'pct_beat_market_10d': round(sum(1 for v in a10 if v > 0) / max(len(a10), 1) * 100, 1),
+        'pct_beat_market_20d': round(sum(1 for v in a20 if v > 0) / max(len(a20), 1) * 100, 1),
+        'by_type': alpha_by_type,
+    }
+
     print(f"      Summary: {summary['evaluated_signals']} evaluated, "
           f"10d WR={summary['win_rate_10d']}%, 20d WR={summary['win_rate_20d']}%")
+    print(f"      Alpha 10d: {alpha_summary['avg_alpha_10d']}%, beat market: {alpha_summary['pct_beat_market_10d']}%")
+    print(f"      Delay decay: D0={delay_decay['0d']['avg_return_10d']}% → D3={delay_decay['3d']['avg_return_10d']}%")
 
     return {
         'summary': summary,
         'by_type': by_type,
         'signals': result_signals,
+        'delay_decay': delay_decay,
+        'alpha_summary': alpha_summary,
+    }
+
+
+def calc_scenario_performance(dashboard):
+    """A2. 情境勝率追蹤 — 每天回溯計算 SOP 情境碼 + TAIEX forward return"""
+    print("  [A2] Scenario Performance (情境勝率追蹤)...")
+    import numpy as np
+
+    cash_mode = dashboard.get('cash_mode', {})
+    cs = cash_mode.get('cash_series', [])
+    if len(cs) < 20:
+        print("      Insufficient data, skipping.")
+        return {}
+
+    # TAIEX lookup from main cash_series
+    taiex_map = {}
+    for e in dashboard.get('cash_series', []):
+        if e.get('taiex') is not None:
+            taiex_map[e['date']] = e['taiex']
+    taiex_dates = sorted(taiex_map.keys())
+
+    SOP_MAP = {
+        ('high', 'buy'):     ('A', '假防守'),
+        ('high', 'neutral'): ('B', '被動升高'),
+        ('high', 'sell'):    ('C', '真防守'),
+        ('normal', 'buy'):   ('D', '積極部署'),
+        ('normal', 'neutral'):('E', '正常'),
+        ('normal', 'sell'):  ('F', '開始收手'),
+        ('low', 'buy'):      ('G', '全力進攻'),
+        ('low', 'neutral'):  ('H', '被動降低'),
+        ('low', 'sell'):     ('I', '矛盾訊號'),
+    }
+
+    daily_scenarios = []
+    for i in range(5, len(cs)):  # need at least 5 days for active_delta avg
+        item = cs[i]
+        dt = item['date']
+
+        # Expanding window percentile
+        vals = [cs[j]['cash_pct'] for j in range(i + 1)]
+        pctile = sum(1 for v in vals if v <= item['cash_pct']) / len(vals) * 100
+
+        # 5-day avg active cash delta
+        recent_ad = [cs[j].get('active_cash_delta', 0) for j in range(max(0, i - 4), i + 1)]
+        avg_ad = float(np.mean(recent_ad))
+
+        cash_level = 'high' if pctile >= 70 else 'low' if pctile < 30 else 'normal'
+        flow_dir = 'buy' if avg_ad < -0.3 else 'sell' if avg_ad > 0.3 else 'neutral'
+        code, label = SOP_MAP.get((cash_level, flow_dir), ('?', '未知'))
+
+        # Forward TAIEX returns
+        fwd = {}
+        if dt in taiex_dates:
+            t_idx = taiex_dates.index(dt)
+            t0 = taiex_map[dt]
+            for horizon, key in [(5, '5d'), (10, '10d'), (20, '20d')]:
+                if t_idx + horizon < len(taiex_dates):
+                    th = taiex_map.get(taiex_dates[t_idx + horizon])
+                    if th and t0 > 0:
+                        fwd[key] = round((th - t0) / t0 * 100, 2)
+
+        daily_scenarios.append({
+            'date': dt, 'code': code,
+            'return_5d': fwd.get('5d'), 'return_10d': fwd.get('10d'), 'return_20d': fwd.get('20d'),
+        })
+
+    # Aggregate by scenario
+    by_scenario = {}
+    for code_label in SOP_MAP.values():
+        code, label = code_label
+        entries = [d for d in daily_scenarios if d['code'] == code]
+        if not entries:
+            continue
+        r5 = [e['return_5d'] for e in entries if e.get('return_5d') is not None]
+        r10 = [e['return_10d'] for e in entries if e.get('return_10d') is not None]
+        r20 = [e['return_20d'] for e in entries if e.get('return_20d') is not None]
+        by_scenario[code] = {
+            'count': len(entries), 'label': label,
+            'avg_return_5d': round(sum(r5) / max(len(r5), 1), 2) if r5 else None,
+            'avg_return_10d': round(sum(r10) / max(len(r10), 1), 2) if r10 else None,
+            'avg_return_20d': round(sum(r20) / max(len(r20), 1), 2) if r20 else None,
+            'win_rate_5d': round(sum(1 for v in r5 if v > 0) / max(len(r5), 1) * 100, 1) if r5 else None,
+            'win_rate_10d': round(sum(1 for v in r10 if v > 0) / max(len(r10), 1) * 100, 1) if r10 else None,
+            'win_rate_20d': round(sum(1 for v in r20 if v > 0) / max(len(r20), 1) * 100, 1) if r20 else None,
+        }
+
+    current = daily_scenarios[-1]['code'] if daily_scenarios else '?'
+    print(f"      {len(daily_scenarios)} days analyzed, {len(by_scenario)} scenarios found, current: {current}")
+    for code, data in sorted(by_scenario.items()):
+        print(f"        {code} ({data['label']}): {data['count']}d, 20d avg={data['avg_return_20d']}%, WR={data['win_rate_20d']}%")
+
+    return {
+        'by_scenario': by_scenario,
+        'daily_scenarios': daily_scenarios,
+        'current': current,
     }
 
 
@@ -624,14 +795,24 @@ def calc_recommendations(dashboard, velocity_data):
     conviction_map = {s['code']: s for s in conviction}
     velocity_map = {v['code']: v for v in velocity_data}
 
-    # Determine cash mode factor
-    mode_str = cash_mode.get('mode', '')
-    if '積極進攻' in mode_str or '進攻' in mode_str:
-        cash_factor = 1
-    elif '防守' in mode_str:
+    # Determine cash mode factor (percentile-based)
+    cash_percentile = cash_mode.get('cash_percentile', 50)
+    if cash_percentile >= 90:
+        cash_factor = -2
+    elif cash_percentile >= 70:
         cash_factor = -1
+    elif cash_percentile <= 10:
+        cash_factor = 2
+    elif cash_percentile <= 30:
+        cash_factor = 1
     else:
         cash_factor = 0
+    # Adjust if flow-adjusted mode disagrees with raw percentile
+    flow_mode = cash_mode.get('flow_adjusted_mode', '')
+    if '加倉' in flow_mode and cash_factor < 1:
+        cash_factor += 1
+    elif '減倉' in flow_mode and cash_factor > -1:
+        cash_factor -= 1
 
     # Get all candidate stocks (from consensus + top20 + conviction)
     all_codes = set()
@@ -1864,6 +2045,13 @@ def main():
     except Exception as e:
         print(f"  [A] ERROR: {e}")
         strategy['signal_backtest'] = {'summary': {}, 'by_type': {}, 'signals': []}
+
+    # ── A2. Scenario Performance ──
+    try:
+        strategy['scenario_performance'] = calc_scenario_performance(dashboard)
+    except Exception as e:
+        print(f"  [A2] ERROR: {e}")
+        strategy['scenario_performance'] = {}
 
     # ── T. Trump Signal ──
     print("\n  [T] Trump Signal Agent")

@@ -208,6 +208,60 @@ export function P4EtfHistoryComparison() {
     },
   }), [])
 
+  // ── Chart 4: 基金規模 + 申贖量 ──
+  const fundFlowData = useMemo(() => {
+    if (!etfData?.cash_series || etfData.cash_series.length < 2) return null
+    const series = etfData.cash_series.slice(-60).filter(d => d.units && d.units > 0)
+    if (series.length < 2) return null
+    return {
+      labels: series.map(d => d.date),
+      datasets: [
+        {
+          type: 'bar' as const, label: '申購/贖回',
+          data: series.map(d => d.units_change || 0),
+          backgroundColor: series.map(d => (d.units_change || 0) >= 0 ? 'rgba(255,71,87,0.25)' : 'rgba(0,196,140,0.25)'),
+          borderColor: series.map(d => (d.units_change || 0) >= 0 ? 'rgba(255,71,87,0.6)' : 'rgba(0,196,140,0.6)'),
+          borderWidth: 1, yAxisID: 'y1', order: 2,
+        },
+        {
+          type: 'line' as const, label: '基金規模 (億)',
+          data: series.map(d => d.aum ? d.aum / 1e8 : null),
+          borderColor: '#a855f7', backgroundColor: 'rgba(168,85,247,0.06)',
+          borderWidth: 2, tension: 0.35, pointRadius: 0, fill: true, yAxisID: 'y', order: 1,
+        },
+      ],
+    }
+  }, [etfData])
+
+  const fundFlowOptions = useMemo(() => ({
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index' as const, intersect: false },
+    plugins: {
+      ...defaultPluginOptions,
+      tooltip: {
+        mode: 'index' as const, intersect: false,
+        backgroundColor: 'rgba(15,17,28,0.95)', borderColor: 'rgba(79,142,247,0.3)', borderWidth: 1,
+        titleColor: '#e4e6eb', bodyColor: '#9ca0b4', padding: 10, cornerRadius: 8,
+        bodyFont: { family: 'monospace', size: 11 },
+        callbacks: {
+          label: (ctx: { dataset: { label: string }; parsed: { y: number } }) => {
+            const v = ctx.parsed.y
+            if (v == null) return ''
+            if (ctx.dataset.label.includes('規模')) return ` ${ctx.dataset.label}: ${v.toFixed(1)} 億`
+            const abs = Math.abs(v)
+            const fmt = abs >= 1e8 ? `${(v / 1e8).toFixed(1)} 億` : abs >= 1e4 ? `${(v / 1e4).toFixed(0)} 萬` : v.toLocaleString()
+            return ` ${ctx.dataset.label}: ${v >= 0 ? '+' : ''}${fmt}`
+          },
+        },
+      },
+    },
+    scales: {
+      y: { type: 'linear' as const, position: 'left' as const, ticks: { color: '#8b8fa3', callback: (v: number) => `${v}億` }, grid: { color: 'rgba(42,46,61,0.5)' }, title: { display: true, text: '基金規模', color: '#a855f7', font: { size: 11 } } },
+      y1: { type: 'linear' as const, position: 'right' as const, ticks: { color: '#8b8fa3', callback: (v: number) => { const a = Math.abs(v); return a >= 1e8 ? `${(v/1e8).toFixed(0)}億` : a >= 1e4 ? `${(v/1e4).toFixed(0)}萬` : `${v}` } }, grid: { display: false }, title: { display: true, text: '申購/贖回量', color: '#ff4757', font: { size: 11 } } },
+      x: { ticks: { color: '#8b8fa3', maxRotation: 0, autoSkipPadding: 15 }, grid: { display: false } },
+    },
+  }), [])
+
   // Holdings table
   const holdingColumns = [
     { key: 'code', label: '代碼' },
@@ -441,6 +495,15 @@ export function P4EtfHistoryComparison() {
           </div>
         </TableContainer>
       </div>
+
+      {/* Chart 4: 基金規模 + 申贖量 */}
+      {fundFlowData && (
+        <TableContainer title={`${ETF_SHORT_NAMES[currentETF]} 基金規模 vs 申購贖回`}>
+          <div className="h-64">
+            <Chart type="bar" data={fundFlowData as never} options={fundFlowOptions as never} />
+          </div>
+        </TableContainer>
+      )}
 
       {/* Holdings Table */}
       <TableContainer title="完整持股明細">

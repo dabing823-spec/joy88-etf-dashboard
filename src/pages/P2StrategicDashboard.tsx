@@ -214,12 +214,13 @@ export function P2StrategicDashboard() {
   const taiexRecent = getRecentDeltas('taiex')
   const tpexRecent = getRecentDeltas('tpex')
 
-  // 攻防模式顏色映射
-  const modeText = cashMode?.mode || ''
-  const modeColor = modeText.includes('進攻') || modeText.includes('積極') ? '#ff4757'
-    : modeText.includes('防守') || modeText.includes('保守') ? '#ffa502'
-    : modeText.includes('恐慌') || modeText.includes('觀望') ? '#00c48c'
-    : '#4f8ef7'
+  // 攻防模式顏色映射 (percentile-based)
+  const cashPctile = cashMode?.cash_percentile ?? 50
+  const modeColor = cashPctile >= 90 ? '#ff4757'
+    : cashPctile >= 70 ? '#ffa502'
+    : cashPctile <= 10 ? '#4f8ef7'
+    : cashPctile <= 30 ? '#00c48c'
+    : '#9ca0b4'
 
   // Laomo signals map for hold suggestion
   const laomoSignals = dashboard?.laomo_signals || []
@@ -383,22 +384,22 @@ export function P2StrategicDashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
           <div className="text-2xs text-text-muted uppercase tracking-wider mb-1">💰 現金水位</div>
-          <div className={`text-2xl font-bold ${cashNow >= 5 ? 'text-up' : cashNow >= 3 ? 'text-warning' : 'text-down'}`}>
+          <div className={`text-2xl font-bold ${cashPctile >= 70 ? 'text-up' : cashPctile <= 30 ? 'text-down' : 'text-text-primary'}`}>
             {cashNow.toFixed(1)}%
           </div>
-          <div className="text-2xs text-text-muted mt-0.5">{cashMode?.mode_desc || '-'}</div>
+          <div className="text-2xs text-text-muted mt-0.5">P{cashPctile.toFixed(0)} · {cashMode?.mode_desc || '-'}</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
           <div className="text-2xs text-text-muted uppercase tracking-wider mb-1">⚔️ 攻防模式</div>
           <div className="text-2xl font-bold" style={{ color: modeColor }}>{cashMode?.mode?.replace(/🔵|🟢|🟡|🔴/g, '').trim() || '-'}</div>
-          <div className="text-2xs mt-0.5" style={{ color: modeColor }}>{cashTrend}</div>
+          <div className="text-2xs mt-0.5" style={{ color: modeColor }}>{cashTrend}{cashMode?.flow_adjusted_mode ? ` · ${cashMode.flow_adjusted_mode}` : ''}</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
           <div className="text-2xs text-text-muted uppercase tracking-wider mb-1">🎯 跟單狀態</div>
-          <div className={`text-2xl font-bold ${cashNow > 4 ? 'text-up' : 'text-text-muted'}`}>
-            {cashNow > 4 ? '加分中' : '一般'}
+          <div className={`text-2xl font-bold ${cashPctile >= 70 ? 'text-up' : 'text-text-muted'}`}>
+            {cashPctile >= 70 ? '加分中' : '一般'}
           </div>
-          <div className="text-2xs text-text-muted mt-0.5">{cashNow > 4 ? '現金>4%, 勝率提升' : '一般狀態'}</div>
+          <div className="text-2xs text-text-muted mt-0.5">{cashPctile >= 70 ? `現金 P${cashPctile.toFixed(0)}, 高於常態` : '一般狀態'}</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 hover:bg-card-hover transition-colors">
           <div className="text-2xs text-text-muted uppercase tracking-wider mb-1">今日異動</div>
@@ -406,6 +407,30 @@ export function P2StrategicDashboard() {
           <div className="text-2xs text-text-muted mt-0.5">🆕{nNew} ▲{nAdded} ▼{nReduced} ✕{nExited}</div>
         </div>
       </div>
+
+      {/* ── Scenario SOP ── */}
+      {cashMode?.scenario && (() => {
+        const s = cashMode.scenario
+        const colorMap: Record<string, string> = {
+          A: '#00c48c', B: '#9ca0b4', C: '#ff4757', D: '#00c48c',
+          E: '#9ca0b4', F: '#ffa502', G: '#4f8ef7', H: '#9ca0b4', I: '#ffa502',
+        }
+        const color = colorMap[s.code] || '#9ca0b4'
+        return (
+          <div className="bg-card border rounded-xl p-4 flex items-start gap-4" style={{ borderColor: `${color}30` }}>
+            <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold" style={{ backgroundColor: `${color}18`, color }}>
+              {s.code}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm" style={{ color }}>{s.label}</span>
+                <span className="text-2xs px-1.5 py-0.5 rounded" style={{ backgroundColor: `${color}15`, color }}>{s.action}</span>
+              </div>
+              <div className="text-2xs text-text-muted mt-1 leading-relaxed">{s.reason}</div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ── Today Action List ── */}
       <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ borderColor: totalSignals > 0 ? 'rgba(255,71,87,0.2)' : undefined }}>

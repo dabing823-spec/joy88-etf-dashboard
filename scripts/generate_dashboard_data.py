@@ -487,19 +487,32 @@ def calc_cash_mode(records_981a, dates):
     cash_5ma = round(np.mean(cash_vals[-5:]), 2) if len(cash_vals) >= 5 else None
     cash_20ma = round(np.mean(cash_vals[-20:]), 2) if len(cash_vals) >= 20 else None
 
-    # Determine mode
-    if cash_now >= 7:
-        mode = "🔴 高度防守"
-        mode_desc = "現金水位高，經理人明確看空或避險"
-    elif cash_now >= 5:
-        mode = "🟡 防守"
-        mode_desc = "現金偏高，保守觀望"
-    elif cash_now >= 3:
-        mode = "🟢 中性偏攻"
-        mode_desc = "正常配置，略偏積極"
+    # Percentile-based mode (replaces fixed thresholds)
+    cash_arr = np.array(cash_vals)
+    cash_percentile = round(float(np.sum(cash_arr <= cash_now) / len(cash_arr) * 100), 1)
+
+    if cash_percentile >= 90:
+        mode = "🔴 極端高現金"
+        mode_desc = f"現金 P{cash_percentile:.0f}，歷史極高水位"
+    elif cash_percentile >= 70:
+        mode = "🟡 偏高"
+        mode_desc = f"現金 P{cash_percentile:.0f}，高於歷史常態"
+    elif cash_percentile >= 30:
+        mode = "🟢 正常"
+        mode_desc = f"現金 P{cash_percentile:.0f}，歷史正常區間"
+    elif cash_percentile >= 10:
+        mode = "🔵 偏低"
+        mode_desc = f"現金 P{cash_percentile:.0f}，低於歷史常態"
     else:
-        mode = "🔵 積極進攻"
-        mode_desc = "現金偏低，經理人積極做多"
+        mode = "🔵 極端低現金"
+        mode_desc = f"現金 P{cash_percentile:.0f}，歷史極低水位"
+
+    percentile_label = (
+        "極端高" if cash_percentile >= 90 else
+        "偏高" if cash_percentile >= 70 else
+        "正常" if cash_percentile >= 30 else
+        "偏低" if cash_percentile >= 10 else "極端低"
+    )
 
     # Trend
     if len(cash_vals) >= 2:
@@ -523,12 +536,24 @@ def calc_cash_mode(records_981a, dates):
         units = r.get('units_outstanding', 0) or 0
         nav = r.get('nav', 0) or 0
 
-        # Units change vs previous day
+        # Units change vs previous day + active/passive cash separation
         if i > 0:
             prev_units = records_981a[dates[i-1]].get('units_outstanding', 0) or 0
             units_change = units - prev_units
+            prev_cash_pct = records_981a[dates[i-1]].get('cash_pct', 0) or 0
+            if prev_units > 0:
+                units_change_pct = round((units - prev_units) / prev_units * 100, 4)
+                cash_change = cp - prev_cash_pct
+                active_cash_delta = round(cash_change - units_change_pct, 4)
+            else:
+                units_change_pct = 0
+                active_cash_delta = 0
         else:
             units_change = 0
+            units_change_pct = 0
+            active_cash_delta = 0
+
+        aum = round(units * nav) if units and nav else None
 
         c5 = round(np.mean([records_981a[dates[j]].get('cash_pct', 0) or 0 for j in range(max(0, i-4), i+1)]), 2) if i >= 4 else None
         c20 = round(np.mean([records_981a[dates[j]].get('cash_pct', 0) or 0 for j in range(max(0, i-19), i+1)]), 2) if i >= 19 else None
@@ -538,16 +563,102 @@ def calc_cash_mode(records_981a, dates):
             'futures_pct': round(fp, 2), 'n_holdings': nh,
             'cash_5ma': c5, 'cash_20ma': c20,
             'units': units, 'units_change': units_change, 'nav': nav,
+            'units_change_pct': units_change_pct, 'active_cash_delta': active_cash_delta,
+            'aum': aum,
         })
 
     has_futures = futures_pct > 0
     futures_signal = f"⚠️ 期貨保證金 {futures_pct}%，經理人可能進行避險或方向性操作" if has_futures else ""
 
+    # Flow-adjusted mode (active vs passive cash)
+    recent_active = [item['active_cash_delta'] for item in cash_series[-5:]]
+    avg_active_delta = round(float(np.mean(recent_active)), 4) if recent_active else 0
+    if avg_active_delta > 0.3:
+        flow_adjusted_mode = "主動減倉"
+    elif avg_active_delta < -0.3:
+        flow_adjusted_mode = "主動加倉"
+    else:
+        flow_adjusted_mode = "中性（變化來自申贖）"
+
+    # Fund health indicators
+    aum_now = cash_series[-1].get('aum') or 0
+    aum_20d_ago = cash_series[-20].get('aum') or 0 if len(cash_series) >= 20 else 0
+    aum_growth_20d = round((aum_now - aum_20d_ago) / aum_20d_ago * 100, 2) if aum_20d_ago > 0 else None
+
+    # Inflow/outflow streak
+    flow_streak = 0
+    if len(cash_series) >= 2:
+        direction = 1 if cash_series[-1].get('units_change', 0) >= 0 else -1
+        for item in reversed(cash_series):
+            uc = item.get('units_change', 0)
+            if (uc >= 0 and direction == 1) or (uc < 0 and direction == -1):
+                flow_streak += 1
+            else:
+                break
+        flow_streak = flow_streak * direction
+
+    # Large flow detection (>2 std dev)
+    uc_vals = [item.get('units_change', 0) for item in cash_series]
+    large_flow = False
+    large_flow_label = ""
+    if len(uc_vals) >= 10:
+        uc_std = float(np.std(uc_vals))
+        uc_mean = float(np.mean(uc_vals))
+        latest_uc = uc_vals[-1]
+        if uc_std > 0 and abs(latest_uc - uc_mean) > 2 * uc_std:
+            large_flow = True
+            large_flow_label = f"異常大量{'申購' if latest_uc > 0 else '贖回'}"
+
+    # ── SOP Scenario Matrix ──
+    # Cash level: high (P70+), normal (P30-70), low (<P30)
+    # Flow: active_buy (avg < -0.3), neutral, active_sell (avg > 0.3)
+    # Holdings trend: recent 10d change
+    h_recent = [item['n_holdings'] for item in cash_series[-10:]] if len(cash_series) >= 10 else []
+    holdings_rising = (h_recent[-1] - h_recent[0] >= 2) if len(h_recent) >= 2 else False
+    holdings_falling = (h_recent[0] - h_recent[-1] >= 2) if len(h_recent) >= 2 else False
+
+    cash_level = 'high' if cash_percentile >= 70 else 'low' if cash_percentile < 30 else 'normal'
+    flow_dir = 'buy' if avg_active_delta < -0.3 else 'sell' if avg_active_delta > 0.3 else 'neutral'
+
+    SOP_MAP = {
+        ('high', 'buy'):     ('A', '假防守',   '現金偏高但經理人主動加倉，高現金來自申購湧入', '跟進做多'),
+        ('high', 'neutral'): ('B', '被動升高', '現金因申贖被動升高，經理人尚未行動',         '觀望 1-2 天'),
+        ('high', 'sell'):    ('C', '真防守',   '經理人主動提高現金，明確防守訊號',           '跟著減倉'),
+        ('normal', 'buy'):   ('D', '積極部署', '現金正常且持續買入，健康做多',               '正常跟單'),
+        ('normal', 'neutral'):('E', '正常',    '無明顯方向訊號',                            '維持原倉'),
+        ('normal', 'sell'):  ('F', '開始收手', '現金尚可但經理人開始減倉',                   '暫停新倉，提高警覺'),
+        ('low', 'buy'):      ('G', '全力進攻', '幾乎滿倉仍在加碼，最強做多訊號',           '跟單，但注意無子彈'),
+        ('low', 'neutral'):  ('H', '被動降低', '現金因申贖被動降低',                        '觀望'),
+        ('low', 'sell'):     ('I', '矛盾訊號', '低現金卻在賣股，可能換股操作',             '不動，先觀察'),
+    }
+    scenario_key = (cash_level, flow_dir)
+    code, label, reason, action = SOP_MAP.get(scenario_key, ('?', '未知', '', '觀望'))
+
+    # Append extra context
+    if code == 'A' and holdings_rising:
+        reason += '，且持股數增加中 — 信心更高'
+    elif code == 'C' and holdings_falling:
+        reason += '，且持股數減少中 — 確認出清'
+    elif code == 'G':
+        action += f'（現金僅 {cash_now:.1f}%）'
+
+    scenario = {
+        'code': code, 'label': label, 'reason': reason, 'action': action,
+    }
+
     return {
         'mode': mode, 'mode_desc': mode_desc, 'trend': trend,
         'cash_now': round(cash_now, 2), 'cash_5ma': cash_5ma, 'cash_20ma': cash_20ma,
         'has_futures': has_futures, 'futures_signal': futures_signal,
-        'n_holdings': n_holdings, 'cash_series': cash_series
+        'n_holdings': n_holdings, 'cash_series': cash_series,
+        'cash_percentile': cash_percentile, 'percentile_label': percentile_label,
+        'flow_adjusted_mode': flow_adjusted_mode, 'avg_active_delta': avg_active_delta,
+        'scenario': scenario,
+        'fund_health': {
+            'aum': aum_now, 'aum_growth_20d': aum_growth_20d,
+            'flow_streak': flow_streak,
+            'large_flow': large_flow, 'large_flow_label': large_flow_label,
+        },
     }
 
 
@@ -889,12 +1000,18 @@ def generate():
         date_records = []
         cash_series_etf = []
 
+        prev_units_etf = 0
         for dt in etf_dates:
             rec = records[dt]
             holdings = sorted(rec.get('holdings', []), key=lambda h: h['weight'], reverse=True)
             stock_wt = sum(h['weight'] for h in holdings)
             cash_pct = rec.get('cash_pct') or round(max(0, 100 - stock_wt), 2)
             taiex = TAIEX.get(dt)
+            units = rec.get('units_outstanding', 0) or 0
+            nav_val = rec.get('nav', 0) or 0
+            units_chg = units - prev_units_etf if prev_units_etf > 0 else 0
+            aum_val = round(units * nav_val) if units and nav_val else None
+            prev_units_etf = units
 
             date_records.append({
                 'date': dt,
@@ -904,7 +1021,10 @@ def generate():
                 'stock_weight': round(stock_wt, 2),
                 'taiex': taiex
             })
-            cash_series_etf.append({'date': dt, 'cash_pct': round(cash_pct, 2), 'taiex': taiex, 'tpex': TPEX.get(dt)})
+            cash_series_etf.append({
+                'date': dt, 'cash_pct': round(cash_pct, 2), 'taiex': taiex, 'tpex': TPEX.get(dt),
+                'units': units, 'units_change': units_chg, 'nav': nav_val, 'aum': aum_val,
+            })
 
         etf_pages[etf_id] = {
             'dates': etf_dates, 'n_dates': len(etf_dates),
