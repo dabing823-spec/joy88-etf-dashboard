@@ -18,22 +18,22 @@ interface DetailPanelProps {
 
 function DetailPanel({ etfA, etfB, stocks, onClose }: DetailPanelProps) {
   return (
-    <div className="mt-3 bg-card border border-border rounded-xl p-4 animate-[fadeUp_0.2s_ease_both]">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-semibold text-text-primary">
-          {ETF_SHORT_NAMES[etfA] || etfA} & {ETF_SHORT_NAMES[etfB] || etfB} — 共同持股 {stocks.length} 檔
+    <div className="flex-1 bg-bg/50 border border-border rounded-xl p-3 animate-[fadeUp_0.15s_ease_both] min-w-0">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-text-primary truncate">
+          {ETF_SHORT_NAMES[etfA] || etfA} & {ETF_SHORT_NAMES[etfB] || etfB} ({stocks.length})
         </span>
-        <button onClick={onClose} className="text-text-muted hover:text-text-primary text-xs">
-          收起
+        <button onClick={onClose} className="text-text-tertiary hover:text-text-primary text-2xs ml-2 shrink-0">
+          x
         </button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-60 overflow-y-auto">
+      <div className="space-y-0.5 max-h-52 overflow-y-auto">
         {stocks.map(s => (
-          <div key={s.code} className="flex items-center justify-between px-3 py-1.5 rounded bg-bg text-xs">
-            <span className="text-text-primary font-mono">{s.code}</span>
-            <span className="text-text-muted">{s.name}</span>
+          <div key={s.code} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-card text-2xs">
+            <span className="text-text-primary font-mono w-10 shrink-0">{s.code}</span>
+            <span className="text-text-muted truncate flex-1">{s.name}</span>
             {s.weight_i != null && s.weight_j != null && (
-              <span className="text-text-muted tabular-nums">
+              <span className="text-text-tertiary tabular-nums shrink-0">
                 {s.weight_i.toFixed(1)}% / {s.weight_j.toFixed(1)}%
               </span>
             )}
@@ -66,14 +66,15 @@ export function OverlapHeatmap({ data }: { data: HoldingsOverlap }) {
     : null
 
   return (
-    <div>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+    <div className="flex flex-col sm:flex-row gap-4">
+      {/* Compact heatmap */}
+      <div className="shrink-0">
+        <table className="border-collapse">
           <thead>
             <tr>
-              <th className="p-2 text-2xs text-text-muted" />
+              <th className="p-1 text-2xs text-text-muted" />
               {labels.map((l, j) => (
-                <th key={j} className="p-2 text-2xs text-text-muted font-medium text-center whitespace-nowrap">
+                <th key={j} className="p-1 text-2xs text-text-muted font-medium text-center whitespace-nowrap">
                   {l}
                 </th>
               ))}
@@ -82,29 +83,27 @@ export function OverlapHeatmap({ data }: { data: HoldingsOverlap }) {
           <tbody>
             {matrix.map((row, i) => (
               <tr key={i}>
-                <td className="p-2 text-2xs text-text-muted font-medium whitespace-nowrap text-right pr-3">
+                <td className="p-1 text-2xs text-text-muted font-medium whitespace-nowrap text-right pr-2">
                   {labels[i]}
                 </td>
                 {row.map((count, j) => {
                   const isDiag = i === j
                   const isSelected = selected?.i === i && selected?.j === j
                   return (
-                    <td key={j} className="p-1">
+                    <td key={j} className="p-0.5">
                       <button
                         onClick={() => !isDiag && setSelected(isSelected ? null : { i, j })}
                         disabled={isDiag}
-                        className={`w-full aspect-square rounded-lg flex items-center justify-center text-xs font-bold font-mono tabular-nums transition-all ${
+                        className={`w-9 h-9 rounded flex items-center justify-center text-2xs font-bold font-mono tabular-nums transition-all ${
                           isDiag
-                            ? 'bg-card border border-border text-text-muted cursor-default'
+                            ? 'bg-card border border-border text-text-tertiary cursor-default'
                             : isSelected
-                              ? 'ring-2 ring-accent scale-105'
-                              : 'hover:scale-105 hover:ring-1 hover:ring-accent/50 cursor-pointer'
+                              ? 'ring-2 ring-accent'
+                              : 'hover:ring-1 hover:ring-accent/50 cursor-pointer'
                         }`}
                         style={{
                           backgroundColor: isDiag ? undefined : cellColor(count, maxCount),
                           color: isDiag ? undefined : count / maxCount > 0.5 ? palette.text : palette.textMuted,
-                          minWidth: '48px',
-                          minHeight: '48px',
                         }}
                       >
                         {count}
@@ -118,13 +117,18 @@ export function OverlapHeatmap({ data }: { data: HoldingsOverlap }) {
         </table>
       </div>
 
-      {selected && selectedDetail && (
+      {/* Detail panel (inline right on desktop, below on mobile) */}
+      {selected && selectedDetail ? (
         <DetailPanel
           etfA={etf_ids[selected.i]}
           etfB={etf_ids[selected.j]}
           stocks={selectedDetail}
           onClose={() => setSelected(null)}
         />
+      ) : (
+        <div className="flex-1 flex items-center justify-center text-xs text-text-tertiary py-6">
+          點擊格子查看共同持股
+        </div>
       )}
     </div>
   )
