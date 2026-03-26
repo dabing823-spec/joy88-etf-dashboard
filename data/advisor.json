@@ -2,6 +2,69 @@
   "advisories": [
     {
       "date": "2026-03-26",
+      "generated_at": "2026-03-26T15:58:48.418806+08:00",
+      "market_phase": "盤前",
+      "overall_signal": "防守",
+      "data_completeness": 0.33,
+      "action_items": [
+        {
+          "priority": 1,
+          "action": "開盤後立即降低 40% 曝險，依 VIX 黃燈規則執行",
+          "reasoning": "VIX 25.33 已突破 25，雖回落 6% 但仍在高檔，符合黃燈條件",
+          "framework": "風控"
+        },
+        {
+          "priority": 2,
+          "action": "設定台積電 1845 以下減碼警報，若失守準備調降持倉",
+          "reasoning": "台積電連跌 3 日且經理人減碼 0.27%，需防守關鍵支撐",
+          "framework": "部位檢核"
+        },
+        {
+          "priority": 3,
+          "action": "暫停新建倉位，現金水位 5.81% 維持防守姿態",
+          "reasoning": "風險評分雖低但 VIX 仍高，現金模式已轉防守，等待確認信號",
+          "framework": "決策鐵律"
+        }
+      ],
+      "market_summary": "美股 VIX 雖回落 6% 但仍在 25.33 高位，觸發黃燈警戒。台股經理人動作頻繁，減碼台積電並分散至中小型股，顯示避險意圖。期貨保證金僅 0.51% 暗示可能有避險部位。油價上漲 2.11% 但黃金下跌 2.22%，市場情緒矛盾。建議維持防守，等待 VIX 進一步回落。",
+      "risk_assessment": "主要風險：1) VIX 仍在 25 以上，隨時可能反彈；2) 台積電連跌且經理人減碼，權值股壓力大；3) 油價上漲可能推升通膨預期；4) 期貨保證金極低暗示經理人可能持有空單避險。次要風險：市場缺乏明確方向，盤整格局易誘多殺多。整體建議維持黃燈防守模式，主動降低曝險至正常水位的 60%，等待 VIX 跌破 20.5 或連續 2 日下降後再考慮加碼。現金水位 5.81% 提供緩衝，不急於進場。",
+      "telegram_short": "",
+      "data_sources": {
+        "dashboard": {
+          "date": "2026-03-25",
+          "fresh": false
+        },
+        "strategy": {
+          "date": "2026-03-25",
+          "fresh": false
+        },
+        "news_analysis": {
+          "date": "2026-03-26 07:58",
+          "fresh": true
+        },
+        "ai_research": {
+          "date": "2026-03-26 01:14",
+          "fresh": true
+        },
+        "tsmc_vol_signal": {
+          "date": null,
+          "fresh": false
+        },
+        "indices_history": {
+          "date": null,
+          "fresh": false
+        }
+      },
+      "data_gaps": [
+        "dashboard",
+        "strategy",
+        "tsmc_vol_signal",
+        "indices_history"
+      ],
+      "outcome": null
+    },
+    {
+      "date": "2026-03-26",
       "generated_at": "2026-03-26T10:02:45.721032+08:00",
       "market_phase": "盤前",
       "overall_signal": "防守",
