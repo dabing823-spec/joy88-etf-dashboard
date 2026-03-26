@@ -70,7 +70,7 @@ const router = createHashRouter([
       { path: 'strategy', element: <Page><P5StrategyAnalysis /></Page> },
       { path: 'history', element: <Page><P4EtfHistoryComparison /></Page> },
       { path: '0050', element: <Page><P7MarketCap0050 /></Page> },
-      { path: 'ai-qa', element: <Page><P9AiQA /></Page> },
+      { path: 'ai-qa', element: <ComingSoon title="AI 問答" desc="AI 問答功能整合中，預計近期重新上線" /> },
       { path: 'news', element: <Page><P10NewsDeconstruction /></Page> },
       { path: 'trump', element: <ComingSoon title="Trump Signal — 川普密碼" desc="策略整合中，預計近期重新上線" /> },
       { path: 'tsmc-vol', element: <ComingSoon title="TSMC Vol Signal" desc="波動率計算已移植至 tsmc-atr-v2，待 API 整合後重新上線" /> },
