@@ -40,14 +40,14 @@ export function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-14" style={{ background: 'linear-gradient(170deg, #0f1117 40%, #161b2e 70%, #0f1117 100%)' }}>
+      <section className="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-14" style={{ background: 'linear-gradient(170deg, var(--color-bg) 40%, var(--color-card-hover) 70%, var(--color-bg) 100%)' }}>
         <h1 className="text-4xl md:text-5xl font-extrabold mb-4 animate-[fadeUp_0.7s_ease_both]">
           <span className="text-accent">JOY88</span> 主動式 ETF 追蹤儀表板
         </h1>
         <p className="text-lg text-text-muted max-w-xl mb-8 animate-[fadeUp_0.7s_ease_0.15s_both]">
           掌握經理人持股異動，提前捕捉市場風險訊號
         </p>
-        <Link to="/dashboard" className="inline-block px-8 py-3 bg-accent text-white rounded-lg font-semibold hover:-translate-y-0.5 hover:shadow-[0_6px_24px_rgba(79,142,247,0.35)] transition-all animate-[fadeUp_0.7s_ease_0.3s_both]">
+        <Link to="/dashboard" className="inline-block px-8 py-3 bg-accent text-white rounded-lg font-semibold hover:-translate-y-0.5 hover:shadow-[0_6px_24px_rgba(224,159,62,0.35)] transition-all animate-[fadeUp_0.7s_ease_0.3s_both]">
           立即體驗
         </Link>
       </section>
