@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Line, Bar, Chart } from 'react-chartjs-2'
 import { useData } from '../contexts/DataContext'
 import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable, OverlapHeatmap } from '../components/shared'
-import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
-import { ETF_LIST, ETF_SHORT_NAMES, ETF_COLORS } from '../lib/constants'
+import { defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
+import { ETF_LIST, ETF_SHORT_NAMES, ETF_COLORS, palette } from '../lib/constants'
 import '../lib/chartDefaults'
 import type { EtfPageData, DateRecord } from '../types'
 
@@ -41,10 +41,10 @@ export function P4EtfHistoryComparison() {
   const dates = etfData?.dates || []
 
   // Initialize compare dates
-  useMemo(() => {
+  useEffect(() => {
     if (dates.length > 1) {
-      setCompareDate1(dates[dates.length - 2])
-      setCompareDate2(dates[dates.length - 1])
+      setCompareDate1(prev => prev || dates[dates.length - 2])
+      setCompareDate2(prev => prev || dates[dates.length - 1])
     }
   }, [dates])
 
@@ -90,7 +90,7 @@ export function P4EtfHistoryComparison() {
         {
           label: '加權指數',
           data: sliced.map(d => d.taiex ?? null),
-          borderColor: '#ff475780', backgroundColor: 'rgba(255,71,87,0.03)',
+          borderColor: `${palette.up}80`, backgroundColor: `${palette.up}08`,
           borderWidth: 1.5, tension: 0.35, pointRadius: 0, fill: true,
           yAxisID: 'y1', order: 8,
         },
@@ -120,8 +120,8 @@ export function P4EtfHistoryComparison() {
       },
     },
     scales: {
-      y: { type: 'linear' as const, position: 'left' as const, ticks: { color: '#8b8fa3', callback: (v: number) => `${v}%` }, grid: { color: 'rgba(42,46,61,0.5)' }, title: { display: true, text: '現金比例 (%)', color: '#4f8ef7', font: { size: 11 } } },
-      y1: { type: 'linear' as const, position: 'right' as const, ticks: { color: '#8b8fa3', callback: (v: number) => v.toLocaleString() }, grid: { display: false }, title: { display: true, text: '加權指數', color: '#ff4757', font: { size: 11 } } },
+      y: { type: 'linear' as const, position: 'left' as const, ticks: { color: '#8b8fa3', callback: (v: number) => `${v}%` }, grid: { color: 'rgba(42,46,61,0.5)' }, title: { display: true, text: '現金比例 (%)', color: palette.info, font: { size: 11 } } },
+      y1: { type: 'linear' as const, position: 'right' as const, ticks: { color: '#8b8fa3', callback: (v: number) => v.toLocaleString() }, grid: { display: false }, title: { display: true, text: '加權指數', color: palette.up, font: { size: 11 } } },
       x: { ticks: { color: '#8b8fa3', maxRotation: 0, autoSkipPadding: 20 }, grid: { display: false } },
     },
   }), [])
@@ -151,13 +151,13 @@ export function P4EtfHistoryComparison() {
           type: 'bar' as const, label: '持股增減',
           data: deltas,
           backgroundColor: deltas.map(d => d > 0 ? 'rgba(255,71,87,0.6)' : d < 0 ? 'rgba(0,196,140,0.6)' : 'rgba(139,143,163,0.3)'),
-          borderColor: deltas.map(d => d > 0 ? '#ff4757' : d < 0 ? '#00c48c' : '#8b8fa3'),
+          borderColor: deltas.map(d => d > 0 ? palette.up : d < 0 ? palette.down : '#8b8fa3'),
           borderWidth: 1, yAxisID: 'y1', order: 1,
         },
         {
           type: 'line' as const, label: '持股數',
           data: values,
-          borderColor: '#a855f7', backgroundColor: 'rgba(168,85,247,0.06)',
+          borderColor: palette.accent, backgroundColor: `${palette.accent}0f`,
           borderWidth: 2, tension: 0.35, pointRadius: 0, fill: true, yAxisID: 'y', order: 2,
         },
       ],
@@ -176,13 +176,13 @@ export function P4EtfHistoryComparison() {
           type: 'bar' as const, label: '現金增減',
           data: deltas,
           backgroundColor: deltas.map(d => d > 0 ? 'rgba(255,71,87,0.6)' : d < 0 ? 'rgba(0,196,140,0.6)' : 'rgba(139,143,163,0.3)'),
-          borderColor: deltas.map(d => d > 0 ? '#ff4757' : d < 0 ? '#00c48c' : '#8b8fa3'),
+          borderColor: deltas.map(d => d > 0 ? palette.up : d < 0 ? palette.down : '#8b8fa3'),
           borderWidth: 1, yAxisID: 'y1', order: 1,
         },
         {
           type: 'line' as const, label: '現金水位',
           data: series.map(d => d.cash_pct),
-          borderColor: '#4f8ef7', backgroundColor: 'rgba(79,142,247,0.06)',
+          borderColor: palette.info, backgroundColor: `${palette.info}0f`,
           borderWidth: 2, tension: 0.35, pointRadius: 0, fill: true, yAxisID: 'y', order: 2,
         },
       ],
@@ -226,7 +226,7 @@ export function P4EtfHistoryComparison() {
         {
           type: 'line' as const, label: '基金規模 (億)',
           data: series.map(d => d.aum ? d.aum / 1e8 : null),
-          borderColor: '#a855f7', backgroundColor: 'rgba(168,85,247,0.06)',
+          borderColor: palette.accent, backgroundColor: `${palette.accent}0f`,
           borderWidth: 2, tension: 0.35, pointRadius: 0, fill: true, yAxisID: 'y', order: 1,
         },
       ],
@@ -256,8 +256,8 @@ export function P4EtfHistoryComparison() {
       },
     },
     scales: {
-      y: { type: 'linear' as const, position: 'left' as const, ticks: { color: '#8b8fa3', callback: (v: number) => `${v}億` }, grid: { color: 'rgba(42,46,61,0.5)' }, title: { display: true, text: '基金規模', color: '#a855f7', font: { size: 11 } } },
-      y1: { type: 'linear' as const, position: 'right' as const, ticks: { color: '#8b8fa3', callback: (v: number) => { const a = Math.abs(v); return a >= 1e8 ? `${(v/1e8).toFixed(0)}億` : a >= 1e4 ? `${(v/1e4).toFixed(0)}萬` : `${v}` } }, grid: { display: false }, title: { display: true, text: '申購/贖回量', color: '#ff4757', font: { size: 11 } } },
+      y: { type: 'linear' as const, position: 'left' as const, ticks: { color: '#8b8fa3', callback: (v: number) => `${v}億` }, grid: { color: 'rgba(42,46,61,0.5)' }, title: { display: true, text: '基金規模', color: palette.accent, font: { size: 11 } } },
+      y1: { type: 'linear' as const, position: 'right' as const, ticks: { color: '#8b8fa3', callback: (v: number) => { const a = Math.abs(v); return a >= 1e8 ? `${(v/1e8).toFixed(0)}億` : a >= 1e4 ? `${(v/1e4).toFixed(0)}萬` : `${v}` } }, grid: { display: false }, title: { display: true, text: '申購/贖回量', color: palette.up, font: { size: 11 } } },
       x: { ticks: { color: '#8b8fa3', maxRotation: 0, autoSkipPadding: 15 }, grid: { display: false } },
     },
   }), [])

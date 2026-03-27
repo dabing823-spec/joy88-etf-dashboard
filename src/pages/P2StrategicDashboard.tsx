@@ -95,7 +95,7 @@ function MacroCell({ emoji, label, value, chgPct, hint }: { emoji: string; label
 
 /* ── Risk Banner (clickable → P8) ────────────────────── */
 
-import { LEVEL_MAP } from '../lib/constants'
+import { LEVEL_MAP, palette } from '../lib/constants'
 
 function RiskBanner({ score, maxScore, level, nRed, nYellow, nGreen, updatedAt, signals }: {
   score: number; maxScore: number; level: string; nRed: number; nYellow: number; nGreen: number; updatedAt: string
@@ -192,7 +192,7 @@ export function P2StrategicDashboard() {
     const label = current && ma60 && ma20
       ? current > ma20 ? '月線之上' : current > ma60 ? '月線之下 季線之上' : '季線之下'
       : undefined
-    const color = label === '月線之上' ? '#00c48c' : label === '季線之下' ? '#ff4757' : '#ffa502'
+    const color = label === '月線之上' ? palette.down : label === '季線之下' ? palette.up : palette.warning
     return { ma20, ma60, label, color }
   }
   const taiexValues = cashSeries.map(d => d.taiex).filter((v): v is number => v != null)
@@ -216,10 +216,10 @@ export function P2StrategicDashboard() {
 
   // 攻防模式顏色映射 (percentile-based)
   const cashPctile = cashMode?.cash_percentile ?? 50
-  const modeColor = cashPctile >= 90 ? '#ff4757'
-    : cashPctile >= 70 ? '#ffa502'
-    : cashPctile <= 10 ? '#4f8ef7'
-    : cashPctile <= 30 ? '#00c48c'
+  const modeColor = cashPctile >= 90 ? palette.up
+    : cashPctile >= 70 ? palette.warning
+    : cashPctile <= 10 ? palette.info
+    : cashPctile <= 30 ? palette.down
     : '#9ca0b4'
 
   // Laomo signals map for hold suggestion
@@ -264,7 +264,7 @@ export function P2StrategicDashboard() {
 
   const cashNow = cashMode?.cash_now ?? 0
   const cashTrend = cashMode?.trend || '-'
-  const cashTrendColor = cashTrend === '上升' ? '#ff4757' : cashTrend === '下降' ? '#00c48c' : '#9ca0b4'
+  const cashTrendColor = cashTrend === '上升' ? palette.up : cashTrend === '下降' ? palette.down : palette.textMuted
 
   return (
     <div className="space-y-4">
@@ -412,8 +412,8 @@ export function P2StrategicDashboard() {
       {cashMode?.scenario && (() => {
         const s = cashMode.scenario
         const colorMap: Record<string, string> = {
-          A: '#00c48c', B: '#9ca0b4', C: '#ff4757', D: '#00c48c',
-          E: '#9ca0b4', F: '#ffa502', G: '#4f8ef7', H: '#9ca0b4', I: '#ffa502',
+          A: palette.down, B: palette.textMuted, C: palette.up, D: palette.down,
+          E: palette.textMuted, F: palette.warning, G: palette.info, H: palette.textMuted, I: palette.warning,
         }
         const color = colorMap[s.code] || '#9ca0b4'
         return (
@@ -451,7 +451,7 @@ export function P2StrategicDashboard() {
                     <span className="text-accent font-mono">{s.code}</span>
                     <span className="font-medium">{s.name}</span>
                     <span className="text-text-muted tabular-nums">{s.weight?.toFixed(2)}%</span>
-                    {sig?.hold_suggestion && <span className="text-2xs text-yellow-400 ml-auto">{sig.hold_suggestion}</span>}
+                    {sig?.hold_suggestion && <span className="text-2xs text-warning ml-auto">{sig.hold_suggestion}</span>}
                     {sig?.confidence && <span className="text-2xs text-text-muted">{sig.confidence}</span>}
                   </div>
                 )
@@ -464,7 +464,7 @@ export function P2StrategicDashboard() {
                     <span className="text-accent font-mono">{s.code}</span>
                     <span className="font-medium">{s.name}</span>
                     <span className="text-up tabular-nums">+{s.weight_chg?.toFixed(2)}%</span>
-                    {sig?.hold_suggestion && <span className="text-2xs text-yellow-400 ml-auto">{sig.hold_suggestion}</span>}
+                    {sig?.hold_suggestion && <span className="text-2xs text-warning ml-auto">{sig.hold_suggestion}</span>}
                     {sig?.confidence && <span className="text-2xs text-text-muted">{sig.confidence}</span>}
                   </div>
                 )
@@ -477,7 +477,7 @@ export function P2StrategicDashboard() {
                     <span className="text-accent font-mono">{s.code}</span>
                     <span className="font-medium">{s.name}</span>
                     <span className="text-down tabular-nums">{s.weight_chg?.toFixed(2)}%</span>
-                    {sig?.hold_suggestion && <span className="text-2xs text-yellow-400 ml-auto">{sig.hold_suggestion}</span>}
+                    {sig?.hold_suggestion && <span className="text-2xs text-warning ml-auto">{sig.hold_suggestion}</span>}
                   </div>
                 )
               })}
@@ -495,7 +495,7 @@ export function P2StrategicDashboard() {
 
       {/* ── Gauges ── */}
       <div className="grid grid-cols-2 gap-3">
-        <GaugeCard title="🎯 持股集中度 Top 1" value={`${(dashboard?.conviction?.[0]?.avg_weight ?? 0).toFixed(1)}%`} mode={dashboard?.conviction?.[0]?.name || '-'} modeColor="#4f8ef7" />
+        <GaugeCard title="🎯 持股集中度 Top 1" value={`${(dashboard?.conviction?.[0]?.avg_weight ?? 0).toFixed(1)}%`} mode={dashboard?.conviction?.[0]?.name || '-'} modeColor={palette.info} />
         <GaugeCard title="持股數" value={`${cashMode?.n_holdings || 0}`} mode={cashMode?.mode_desc || '-'} modeColor={modeColor} />
       </div>
 

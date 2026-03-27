@@ -2,7 +2,8 @@ import { useMemo } from 'react'
 import { Bar } from 'react-chartjs-2'
 import { useData } from '../contexts/DataContext'
 import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable, InsightCard } from '../components/shared'
-import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
+import { defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
+import { palette } from '../lib/constants'
 import '../lib/chartDefaults'
 import type { Recommendation, ScenarioPerformance } from '../types'
 
@@ -28,7 +29,7 @@ export function P5StrategyAnalysis() {
       .filter(([, v]) => v.count >= 2)
       .sort(([a], [b]) => a.localeCompare(b))
     if (!entries.length) return null
-    const SCENARIO_COLORS: Record<string, string> = { A: '#00c48c', B: '#9ca0b4', C: '#ff4757', D: '#00c48c', E: '#9ca0b4', F: '#ffa502', G: '#4f8ef7', H: '#9ca0b4', I: '#ffa502' }
+    const SCENARIO_COLORS: Record<string, string> = { A: palette.down, B: palette.textMuted, C: palette.up, D: palette.down, E: palette.textMuted, F: palette.warning, G: palette.info, H: palette.textMuted, I: palette.warning }
     return {
       labels: entries.map(([code, v]) => `${code}.${v.label}`),
       datasets: [{
@@ -53,7 +54,7 @@ export function P5StrategyAnalysis() {
         label: '10d 平均報酬 (%)',
         data: vals,
         backgroundColor: ['rgba(79,142,247,0.5)', 'rgba(79,142,247,0.35)', 'rgba(79,142,247,0.22)', 'rgba(79,142,247,0.12)'],
-        borderColor: ['#4f8ef7', '#4f8ef7', '#4f8ef7', '#4f8ef7'],
+        borderColor: [palette.info, palette.info, palette.info, palette.info],
         borderWidth: 1.5,
       }],
       _winRates: wrs,
@@ -72,7 +73,7 @@ export function P5StrategyAnalysis() {
           label: 'Alpha (超額報酬%)',
           data: types.map(([, v]) => v.avg_alpha_10d),
           backgroundColor: types.map(([, v]) => v.avg_alpha_10d >= 0 ? 'rgba(0,196,140,0.5)' : 'rgba(255,71,87,0.5)'),
-          borderColor: types.map(([, v]) => v.avg_alpha_10d >= 0 ? '#00c48c' : '#ff4757'),
+          borderColor: types.map(([, v]) => v.avg_alpha_10d >= 0 ? palette.down : palette.up),
           borderWidth: 1.5,
         },
       ],
@@ -112,7 +113,7 @@ export function P5StrategyAnalysis() {
         data: types.map(t => backtest.by_type[t]?.win_rate_10d ?? 0),
         backgroundColor: types.map(t => {
           const wr = backtest.by_type[t]?.win_rate_10d ?? 0
-          return wr >= 65 ? chartColors.green : wr >= 55 ? chartColors.accent : chartColors.textMuted
+          return wr >= 65 ? palette.down : wr >= 55 ? palette.accent : palette.textMuted
         }),
         borderRadius: 4,
       }],

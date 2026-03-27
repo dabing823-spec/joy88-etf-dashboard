@@ -2,8 +2,8 @@ import { useState, useMemo } from 'react'
 import { Line } from 'react-chartjs-2'
 import { Chart } from 'react-chartjs-2'
 import { useData } from '../contexts/DataContext'
-import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable, HoldingsTimeline } from '../components/shared'
-import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
+import { KpiCard, IntroBox, Badge, TableContainer, DataTable, HoldingsTimeline } from '../components/shared'
+import { defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
 import { STOCK_COLORS, palette } from '../lib/constants'
 import '../lib/chartDefaults'
 import type { CashSeriesItem, Holding } from '../types'
@@ -205,7 +205,7 @@ export function P1HoldingsTracker() {
         type: 'linear' as const, position: 'right' as const,
         ticks: { ...axisTick, callback: (v: number) => v.toLocaleString() },
         grid: { display: false },
-        title: { display: true, text: '加權指數', color: '#00c48c', font: { size: 11 } },
+        title: { display: true, text: '加權指數', color: palette.down, font: { size: 11 } },
       },
       y2: {
         type: 'linear' as const, position: 'right' as const,
