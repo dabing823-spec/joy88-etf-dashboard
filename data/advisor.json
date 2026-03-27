@@ -2,6 +2,69 @@
   "advisories": [
     {
       "date": "2026-03-27",
+      "generated_at": "2026-03-27T10:15:07.925517+08:00",
+      "market_phase": "盤前",
+      "overall_signal": "防守",
+      "data_completeness": 0.33,
+      "action_items": [
+        {
+          "priority": 1,
+          "action": "開盤後立即降低槓桿至 1.5x 以下，優先減碼高價股世芯-KY、台達電",
+          "reasoning": "VIX 27.44 突破 25 且單日漲幅 8.33%，觸發黃燈警示，需主動降低 40% 曝險",
+          "framework": "風控"
+        },
+        {
+          "priority": 2,
+          "action": "設定 00981A 停損在昨日低點下方 2%，並啟動移動停損機制",
+          "reasoning": "經理人現金水位偏高且減碼高價股，顯示防守心態，散戶應同步保護既有部位",
+          "framework": "部位檢核"
+        },
+        {
+          "priority": 3,
+          "action": "暫停新增任何多頭部位，等待 VIX 回落至 20.5 以下且連續 2 日下降",
+          "reasoning": "風控系統黃燈狀態下凍結加碼，油價大漲 3.37% 增加通膨憂慮",
+          "framework": "風控"
+        }
+      ],
+      "market_summary": "美股昨夜 VIX 急升至 27.44（+8.33%），突破 25 關卡觸發風控黃燈。油價大漲 3.37% 至 93.36，黃金卻逆勢下跌 3.53%，顯示市場避險情緒混亂。00981A 經理人大幅減碼世芯等高價股，現金水位維持 5.34% 偏高，明顯採取防守策略。台股今日開盤預期承壓。",
+      "risk_assessment": "風控系統發出多重警訊：1) VIX 黃燈觸發，需降低 40% 曝險；2) 油價急漲可能引發通膨擔憂，Fed 降息預期降溫；3) 黃金下跌顯示流動性緊縮，資金撤出風險資產；4) 00981A 經理人提前調整部位，減碼高估值股票，暗示對短期市場看法謹慎。建議採取防守優先策略，保護既有獲利，暫停新增多頭部位，等待 VIX 確認回落後再考慮進場。今日重點觀察台股是否跌破月線支撐。",
+      "telegram_short": "",
+      "data_sources": {
+        "dashboard": {
+          "date": "2026-03-26",
+          "fresh": false
+        },
+        "strategy": {
+          "date": "2026-03-26",
+          "fresh": false
+        },
+        "news_analysis": {
+          "date": "2026-03-27 02:15",
+          "fresh": true
+        },
+        "ai_research": {
+          "date": "2026-03-26 12:50",
+          "fresh": true
+        },
+        "tsmc_vol_signal": {
+          "date": null,
+          "fresh": false
+        },
+        "indices_history": {
+          "date": null,
+          "fresh": false
+        }
+      },
+      "data_gaps": [
+        "dashboard",
+        "strategy",
+        "tsmc_vol_signal",
+        "indices_history"
+      ],
+      "outcome": null
+    },
+    {
+      "date": "2026-03-27",
       "generated_at": "2026-03-27T07:33:23.367307+08:00",
       "market_phase": "盤前",
       "overall_signal": "防守",
