@@ -1505,12 +1505,12 @@ def _slope_20d(values):
 
 
 def _acceleration(values):
-    """計算加速度（二階導數）：近 5 日斜率 vs 前 5 日斜率的變化
+    """計算加速度（二階導數）：近 10 日斜率 vs 前 10 日斜率的變化
     正值 = 惡化加速中，負值 = 趨緩/好轉中"""
-    if len(values) < 15:
+    if len(values) < 25:
         return 0.0, 'stable'
-    slope_recent = _slope(values, 5)    # 最近 5 天的速度
-    slope_prior = _slope(values[-10:-5], 5)  # 前 5 天的速度
+    slope_recent = _slope(values, 10)       # 最近 10 天的速度
+    slope_prior = _slope(values[-20:-10], 10)  # 前 10 天的速度
     accel = round(slope_recent - slope_prior, 4)
     if abs(accel) < abs(slope_recent) * 0.1:  # 變化不到 10%
         phase = 'stable'
@@ -1727,6 +1727,41 @@ def calc_risk_signals(history):
         'theory': '油價急漲推升通膨預期與企業成本壓力',
     }, oil_vals))
 
+    # ── Add threshold info to each signal for frontend proximity display ──
+    THRESHOLDS = {
+        'vix':        {'yellow': 0.1, 'red': 0.3, 'direction': 'up'},
+        'spy_jpy':    {'yellow': -0.003, 'red': -0.01, 'direction': 'down'},
+        'hyg_tlt':    {'yellow': -0.001, 'red': -0.003, 'direction': 'down'},
+        'dxy':        {'yellow': 0.1, 'red': 0.3, 'direction': 'up'},
+        'us10y':      {'yellow': 0.02, 'red': 0.05, 'direction': 'up'},
+        'fear_greed': {'yellow': 40, 'red': 25, 'direction': 'value_down'},
+        'gold':       {'yellow': 5, 'red': 15, 'direction': 'up'},
+        'oil':        {'yellow': 0.5, 'red': 2, 'direction': 'up'},
+    }
+    for s in signals:
+        th = THRESHOLDS.get(s['key'], {})
+        s['threshold_yellow'] = th.get('yellow')
+        s['threshold_red'] = th.get('red')
+        s['threshold_direction'] = th.get('direction', 'up')
+        # Proximity: how far slope is from next threshold (0-100%)
+        slope = s['slope_20d']
+        if s['signal'] == 'green' and th.get('yellow') is not None:
+            if th['direction'] == 'up':
+                s['proximity_pct'] = round(min(slope / th['yellow'] * 100, 100), 1) if th['yellow'] != 0 else 0
+            elif th['direction'] == 'down':
+                s['proximity_pct'] = round(min(slope / th['yellow'] * 100, 100), 1) if th['yellow'] != 0 else 0
+            else:
+                s['proximity_pct'] = None
+        elif s['signal'] == 'yellow' and th.get('red') is not None:
+            if th['direction'] == 'up':
+                s['proximity_pct'] = round(min(slope / th['red'] * 100, 100), 1) if th['red'] != 0 else 0
+            elif th['direction'] == 'down':
+                s['proximity_pct'] = round(min(slope / th['red'] * 100, 100), 1) if th['red'] != 0 else 0
+            else:
+                s['proximity_pct'] = None
+        else:
+            s['proximity_pct'] = 100  # already at max level
+
     # Total score: red=2, yellow=1, max=16 -> scale to 0-10
     raw_score = sum(2 if s['signal'] == 'red' else 1 if s['signal'] == 'yellow' else 0 for s in signals)
     score = round(raw_score / 16 * 10, 1)
@@ -1752,6 +1787,48 @@ def calc_risk_signals(history):
     spark_history['spy_jpy'] = spy_jpy[-30:] if spy_jpy else []
     spark_history['hyg_tlt'] = hyg_tlt[-30:] if hyg_tlt else []
 
+    # ── Score history: compute daily risk score for past 30 days ──
+    score_history = []
+    all_keys_data = {
+        'vix': vix_vals, 'spy_jpy': spy_jpy_vals, 'hyg_tlt': hyg_tlt_vals,
+        'dxy': dxy_vals, 'us10y': us10y_vals, 'gold': gold_vals, 'oil': oil_vals,
+    }
+    # Get date series from the longest available history
+    date_series = [r['date'] for r in history.get('vix', [])][-30:]
+    for di, dt in enumerate(date_series):
+        day_raw = 0
+        # For each signal, compute slope at that point in time
+        for key, th in THRESHOLDS.items():
+            if key == 'fear_greed':
+                continue  # skip, only has 1-2 pts
+            vals = all_keys_data.get(key, [])
+            # Find the index for this date
+            end_idx = len(vals) - (len(date_series) - di)
+            if end_idx < 20:
+                continue
+            window = vals[:end_idx + 1]
+            s = _slope_20d(window)
+            if th['direction'] == 'up':
+                if s > th['red']:
+                    day_raw += 2
+                elif s > th['yellow']:
+                    day_raw += 1
+            elif th['direction'] == 'down':
+                if s < th['red']:
+                    day_raw += 2
+                elif s < th['yellow']:
+                    day_raw += 1
+        # fear_greed: use absolute value if available
+        fg_data = history.get('fear_greed', [])
+        fg_match = next((f for f in fg_data if f['date'] == dt), None)
+        if fg_match and fg_match.get('close') is not None:
+            if fg_match['close'] < 25:
+                day_raw += 2
+            elif fg_match['close'] < 40:
+                day_raw += 1
+        day_score = round(day_raw / 16 * 10, 1)
+        score_history.append({'date': dt, 'score': day_score})
+
     return {
         'score': score,
         'max_score': 10,
@@ -1761,6 +1838,7 @@ def calc_risk_signals(history):
         'n_green': n_green,
         'signals': signals,
         'history': spark_history,
+        'score_history': score_history,
         'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
     }
 

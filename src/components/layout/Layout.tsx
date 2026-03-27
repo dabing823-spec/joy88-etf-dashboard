@@ -85,7 +85,7 @@ export function Layout() {
               )}
             </div>
           </div>
-          <nav className="flex gap-0.5 overflow-x-auto pb-1.5 -mx-1 px-1 scrollbar-hide items-center" role="navigation" aria-label="Main navigation">
+          <nav className="flex flex-wrap gap-0.5 pb-1.5 -mx-1 px-1 items-center" role="navigation" aria-label="Main navigation">
             {strategy?.risk_signals && (() => {
               const rs = strategy.risk_signals
               const color = RISK_LEVEL_COLORS[rs.level] || RISK_LEVEL_COLORS.green
@@ -106,7 +106,7 @@ export function Layout() {
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  `px-3 py-2.5 min-h-[44px] min-w-[44px] justify-center flex items-center rounded-md text-xs font-medium whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
+                  `px-2 py-1.5 sm:px-3 sm:py-2.5 min-h-[36px] sm:min-h-[44px] min-w-[36px] sm:min-w-[44px] justify-center flex items-center rounded-md text-2xs sm:text-xs font-medium whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
                     isActive
                       ? 'bg-accent text-[#0b0d14] font-semibold'
                       : 'text-text-muted hover:text-text-primary hover:bg-card-hover'

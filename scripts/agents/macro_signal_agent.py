@@ -35,11 +35,11 @@ def _slope(values, window=20):
 
 
 def _acceleration(values):
-    """加速度（二階導數）：近 5 日斜率 vs 前 5 日斜率"""
-    if len(values) < 15:
+    """加速度（二階導數）：近 10 日斜率 vs 前 10 日斜率"""
+    if len(values) < 25:
         return 0.0, 'stable'
-    slope_recent = _slope(values, 5)
-    slope_prior = _slope(values[-10:-5], 5)
+    slope_recent = _slope(values, 10)
+    slope_prior = _slope(values[-20:-10], 10)
     accel = round(slope_recent - slope_prior, 4)
     if abs(accel) < abs(slope_recent) * 0.1:
         phase = 'stable'
@@ -239,6 +239,35 @@ def calc_risk_signals(history, validator_warnings=None):
         'theory': '油價急漲推升通膨預期與企業成本壓力',
     }, oil_vals))
 
+    # ── Threshold info for proximity display ──
+    THRESHOLDS = {
+        'vix':        {'yellow': 0.1, 'red': 0.3, 'dir': 'up'},
+        'spy_jpy':    {'yellow': -0.003, 'red': -0.01, 'dir': 'down'},
+        'hyg_tlt':    {'yellow': -0.001, 'red': -0.003, 'dir': 'down'},
+        'dxy':        {'yellow': 0.1, 'red': 0.3, 'dir': 'up'},
+        'us10y':      {'yellow': 0.02, 'red': 0.05, 'dir': 'up'},
+        'fear_greed': {'yellow': 40, 'red': 25, 'dir': 'value_down'},
+        'gold':       {'yellow': 5, 'red': 15, 'dir': 'up'},
+        'oil':        {'yellow': 0.5, 'red': 2, 'dir': 'up'},
+    }
+    for s in signals:
+        th = THRESHOLDS.get(s['key'], {})
+        s['threshold_yellow'] = th.get('yellow')
+        s['threshold_red'] = th.get('red')
+        s['threshold_dir'] = th.get('dir', 'up')
+        slope = s['slope_20d']
+        if s['signal'] == 'green' and th.get('yellow') is not None:
+            denom = th['yellow']
+            s['proximity_pct'] = round(min(abs(slope / denom) * 100, 100), 1) if denom != 0 else 0
+            s['proximity_label'] = f'距黃燈 {100 - s["proximity_pct"]:.0f}%'
+        elif s['signal'] == 'yellow' and th.get('red') is not None:
+            denom = th['red']
+            s['proximity_pct'] = round(min(abs(slope / denom) * 100, 100), 1) if denom != 0 else 0
+            s['proximity_label'] = f'距紅燈 {100 - s["proximity_pct"]:.0f}%'
+        else:
+            s['proximity_pct'] = 100
+            s['proximity_label'] = '已觸發' if s['signal'] == 'red' else ''
+
     # Total score
     raw_score = sum(2 if s['signal'] == 'red' else 1 if s['signal'] == 'yellow' else 0 for s in signals)
     score = round(raw_score / 16 * 10, 1)
@@ -256,11 +285,42 @@ def calc_risk_signals(history, validator_warnings=None):
     spark_history['spy_jpy'] = spy_jpy[-30:] if spy_jpy else []
     spark_history['hyg_tlt'] = hyg_tlt[-30:] if hyg_tlt else []
 
+    # ── Score history: daily risk score for past 30 days ──
+    all_vals = {
+        'vix': vix_vals, 'spy_jpy': spy_jpy_vals, 'hyg_tlt': hyg_tlt_vals,
+        'dxy': dxy_vals, 'us10y': us10y_vals, 'gold': gold_vals, 'oil': oil_vals,
+    }
+    date_series = [r['date'] for r in history.get('vix', [])][-30:]
+    score_history = []
+    for di, dt in enumerate(date_series):
+        day_raw = 0
+        for key, th in THRESHOLDS.items():
+            if key == 'fear_greed':
+                continue
+            vals = all_vals.get(key, [])
+            end_idx = len(vals) - (len(date_series) - di)
+            if end_idx < 20:
+                continue
+            s = _slope(vals[:end_idx + 1], 20)
+            if th['dir'] == 'up':
+                if s > th['red']: day_raw += 2
+                elif s > th['yellow']: day_raw += 1
+            elif th['dir'] == 'down':
+                if s < th['red']: day_raw += 2
+                elif s < th['yellow']: day_raw += 1
+        fg_data = history.get('fear_greed', [])
+        fg_match = next((f for f in fg_data if f['date'] == dt), None)
+        if fg_match and fg_match.get('close') is not None:
+            if fg_match['close'] < 25: day_raw += 2
+            elif fg_match['close'] < 40: day_raw += 1
+        score_history.append({'date': dt, 'score': round(day_raw / 16 * 10, 1)})
+
     return {
         'score': score, 'max_score': 10, 'level': level,
         'n_red': n_red, 'n_yellow': n_yellow, 'n_green': n_green,
         'signals': signals,
         'history': spark_history,
+        'score_history': score_history,
         'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
     }
 
