@@ -1,6 +1,69 @@
 {
   "advisories": [
     {
+      "date": "2026-03-28",
+      "generated_at": "2026-03-28T06:37:34.226389+08:00",
+      "market_phase": "盤前",
+      "overall_signal": "防守",
+      "data_completeness": 0.33,
+      "action_items": [
+        {
+          "priority": 1,
+          "action": "開盤前設定所有部位停損單，VIX 31.05已超過25進入紅燈區",
+          "reasoning": "VIX單日漲13.16%且突破30，觸發風控系統紅燈警示",
+          "framework": "風控"
+        },
+        {
+          "priority": 2,
+          "action": "檢查並降低期貨部位槓桿至1倍以下，期貨保證金僅0.51%風險過高",
+          "reasoning": "VIX紅燈狀態下槓桿上限為停止操作，期貨保證金過低顯示槓桿可能過高",
+          "framework": "部位檢核"
+        },
+        {
+          "priority": 3,
+          "action": "準備台積電減碼名單但暫不執行，等待市場開盤確認方向",
+          "reasoning": "00981A減碼台積電且現金水位極低2.88%，VIX紅燈下應停止砍倉等待信號",
+          "framework": "風控"
+        }
+      ],
+      "market_summary": "美股昨晚劇烈波動，VIX暴漲13.16%突破31創近期新高，進入極度恐慌區。全球風險資產同步下跌，油價金價齊漲顯示避險需求強烈。台股今日開盤預期將面臨強大賣壓，但VIX紅燈狀態下不宜恐慌殺低，應等待止跌信號。",
+      "risk_assessment": "風險等級：極高。VIX突破30且單日漲幅超過10%，觸發風控系統紅燈警示，此時最大風險是恐慌性砍倉在最低點。期貨保證金僅0.51%顯示可能有高槓桿部位，必須立即檢視。00981A現金水位降至2.88%且減碼科技龍頭，顯示經理人可能已在高點獲利了結。建議維持防守態勢，不追空不抄底，等待VIX回落信號再行動。",
+      "telegram_short": "",
+      "data_sources": {
+        "dashboard": {
+          "date": "2026-03-27",
+          "fresh": false
+        },
+        "strategy": {
+          "date": "2026-03-27",
+          "fresh": false
+        },
+        "news_analysis": {
+          "date": "2026-03-27 22:37",
+          "fresh": true
+        },
+        "ai_research": {
+          "date": "2026-03-27 10:33",
+          "fresh": true
+        },
+        "tsmc_vol_signal": {
+          "date": null,
+          "fresh": false
+        },
+        "indices_history": {
+          "date": null,
+          "fresh": false
+        }
+      },
+      "data_gaps": [
+        "dashboard",
+        "strategy",
+        "tsmc_vol_signal",
+        "indices_history"
+      ],
+      "outcome": null
+    },
+    {
       "date": "2026-03-27",
       "generated_at": "2026-03-27T18:33:25.886130+08:00",
       "market_phase": "盤後",
