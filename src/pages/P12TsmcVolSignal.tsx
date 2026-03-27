@@ -46,8 +46,8 @@ export function P12TsmcVolSignal() {
   const sc = d.Sell_Call策略
   const events = d.事件倒數 || []
   const weeklyStrats = d.台指周選策略 || []
-  const tierColor = VOL_TIER_COLORS[env.分檔] || '#ffa502'
-  const returnColor = stock['日報酬(%)'] >= 0 ? '#ff4757' : '#00c48c'
+  const tierColor = VOL_TIER_COLORS[env.分檔] || palette.warning
+  const returnColor = stock['日報酬(%)'] >= 0 ? palette.up : palette.down
 
   return (
     <div className="space-y-4">
@@ -97,7 +97,7 @@ export function P12TsmcVolSignal() {
           <VolBar label="RV 60d" value={vol['RV_60d(%)']} max={80} />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 mt-4 border-t border-border pt-3">
-          <StatCell label="RV 20d 百分位" value={`${vol['RV_20d_Percentile']?.toFixed(0)}`} color={vol['RV_20d_Percentile'] > 80 ? '#ff4757' : vol['RV_20d_Percentile'] > 50 ? '#ffa502' : '#00c48c'} />
+          <StatCell label="RV 20d 百分位" value={`${vol['RV_20d_Percentile']?.toFixed(0)}`} color={vol['RV_20d_Percentile'] > 80 ? palette.up : vol['RV_20d_Percentile'] > 50 ? palette.warning : palette.down} />
           <StatCell label="Parkinson 20d" value={`${vol['Parkinson_20d(%)']?.toFixed(1)}`} unit="%" />
           <StatCell label="YangZhang 20d" value={`${vol['YangZhang_20d(%)']?.toFixed(1)}`} unit="%" />
           <StatCell label="ATR / 股價" value={`${vol['ATR佔股價(%)']?.toFixed(2)}`} unit="%" />
@@ -129,7 +129,7 @@ export function P12TsmcVolSignal() {
             </div>
             <div className="flex justify-between py-1.5 border-b border-border">
               <span className="text-text-muted">sigma 倍數</span>
-              <span className="font-mono" style={{ color: Number(amp['σ倍數']) > 1 ? '#ff4757' : '#00c48c' }}>
+              <span className="font-mono" style={{ color: Number(amp['σ倍數']) > 1 ? palette.up : palette.down }}>
                 {Number(amp['σ倍數']).toFixed(2)}
               </span>
             </div>
@@ -148,7 +148,7 @@ export function P12TsmcVolSignal() {
         <div className="bg-card border border-border rounded-xl p-4">
           <div className="text-sm font-semibold text-text-primary mb-3">Sell Call 策略</div>
           <div className="grid grid-cols-3 gap-2 mb-3">
-            <StatCell label="履約價" value={sc.SC履約價} color="#4f8ef7" />
+            <StatCell label="履約價" value={sc.SC履約價} color={palette.info} />
             <StatCell label="距離 Ticks" value={sc['SC距離(Ticks)']} />
             <StatCell label="距離" value={sc['SC距離(元)']} unit="元" />
           </div>
@@ -212,18 +212,18 @@ export function P12TsmcVolSignal() {
                         {s.方向}
                       </span>
                       {s.倉位 && (
-                        <span className="px-1.5 py-0.5 text-2xs rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                        <span className="px-1.5 py-0.5 text-2xs rounded bg-warning/10 text-warning border border-warning/20">
                           {s.倉位}
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-text-muted">{s.說明}</p>
                     {s.建議履約價 && <p className="text-xs text-text-primary">{s.建議履約價}</p>}
-                    {s.風控 && <p className="text-2xs text-yellow-400">{s.風控}</p>}
+                    {s.風控 && <p className="text-2xs text-warning">{s.風控}</p>}
                   </div>
                 ) : s.附加提示 ? (
                   <div className="space-y-1">
-                    <p className="text-xs font-medium text-yellow-400">{s.附加提示}</p>
+                    <p className="text-xs font-medium text-warning">{s.附加提示}</p>
                     <p className="text-xs text-text-muted">{s.意義}</p>
                   </div>
                 ) : null}
