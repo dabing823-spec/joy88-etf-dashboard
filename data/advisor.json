@@ -1,6 +1,69 @@
 {
   "advisories": [
     {
+      "date": "2026-03-27",
+      "generated_at": "2026-03-27T07:33:23.367307+08:00",
+      "market_phase": "盤前",
+      "overall_signal": "防守",
+      "data_completeness": 0.33,
+      "action_items": [
+        {
+          "priority": 1,
+          "action": "開盤後立即降低曝險40%，VIX突破25且單日漲幅8.33%觸發黃燈警訊",
+          "reasoning": "VIX 27.44已突破25關卡，符合風控框架的黃燈降槓條件",
+          "framework": "風控"
+        },
+        {
+          "priority": 2,
+          "action": "檢視AI相關持股（世芯-KY、台達電）設定5%停損單，經理人已開始減碼",
+          "reasoning": "00981A大幅減碼世芯-KY(-0.7%)等AI股，顯示法人開始獲利了結",
+          "framework": "三層次分析"
+        },
+        {
+          "priority": 3,
+          "action": "預留資金準備分批承接PCB族群（台光電、南電），等VIX回落確認再進場",
+          "reasoning": "法人轉向加碼防禦型電子零組件，但須等VIX降溫避免接刀",
+          "framework": "期望值"
+        }
+      ],
+      "market_summary": "美股VIX急升至27.44(+8.33%)觸發風控黃燈，油價大漲3.45%但黃金跌3.27%呈現風險情緒混亂。00981A經理人已提前布局，大幅減碼高價AI股轉向PCB等價值股，現金水位5.34%偏高顯示防禦心態。台股今日開盤預期偏弱，AI族群面臨獲利了結賣壓。",
+      "risk_assessment": "系統風險升高：VIX突破25且單日漲幅超過8%，依風控框架必須立即降低40%曝險。市場風險訊號矛盾：油價漲但黃金跌，DXY微漲但風險資產未明顯下跌，顯示市場方向不明。法人動向明確：00981A大幅調整持股結構，從成長股轉向價值股，暗示短期修正風險。建議：嚴格執行風控，等待VIX回落訊號再考慮加碼。關注台光電、奇鋐等法人加碼標的是否出現超跌機會。",
+      "telegram_short": "",
+      "data_sources": {
+        "dashboard": {
+          "date": "2026-03-26",
+          "fresh": false
+        },
+        "strategy": {
+          "date": "2026-03-26",
+          "fresh": false
+        },
+        "news_analysis": {
+          "date": "2026-03-26 23:33",
+          "fresh": true
+        },
+        "ai_research": {
+          "date": "2026-03-26 12:50",
+          "fresh": true
+        },
+        "tsmc_vol_signal": {
+          "date": null,
+          "fresh": false
+        },
+        "indices_history": {
+          "date": null,
+          "fresh": false
+        }
+      },
+      "data_gaps": [
+        "dashboard",
+        "strategy",
+        "tsmc_vol_signal",
+        "indices_history"
+      ],
+      "outcome": null
+    },
+    {
       "date": "2026-03-26",
       "generated_at": "2026-03-26T20:50:48.952316+08:00",
       "market_phase": "盤後",
