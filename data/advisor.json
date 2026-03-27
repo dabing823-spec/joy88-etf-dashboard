@@ -2,6 +2,69 @@
   "advisories": [
     {
       "date": "2026-03-27",
+      "generated_at": "2026-03-27T15:53:50.751860+08:00",
+      "market_phase": "盤前",
+      "overall_signal": "防守",
+      "data_completeness": 0.33,
+      "action_items": [
+        {
+          "priority": 1,
+          "action": "開盤立即執行黃燈降槓：主動降低 40% 風險曝險，優先減碼 AI 高價股",
+          "reasoning": "VIX 27.01 已超過 20.5 且單日漲幅 6.63%，觸發黃燈條件",
+          "framework": "風控"
+        },
+        {
+          "priority": 2,
+          "action": "設定世芯-KY、台達電等經理人減碼標的的停損單，價位設在昨收 -2%",
+          "reasoning": "00981A 大幅減碼世芯-KY 0.7%，顯示法人看空 AI 高價股獲利了結壓力",
+          "framework": "三層次分析"
+        },
+        {
+          "priority": 3,
+          "action": "準備低接台光電、奇鋐等 PCB 族群，但須等 VIX 回落確認再執行",
+          "reasoning": "00981A 加碼傳統電子零組件股，顯示資金轉向防禦性價值股",
+          "framework": "期望值"
+        }
+      ],
+      "market_summary": "美股 VIX 急升至 27.01（+6.63%）觸發黃燈警戒，油價大漲 4.78% 至 94.64，市場風險情緒明顯升溫。00981A 大幅調整持股，從高估值 AI 股轉向傳統電子零組件，顯示法人已進入防禦模式。現金水位 5.34% 偏高但合理，期貨保證金僅 0.51% 暗示避險需求增加。",
+      "risk_assessment": "VIX 黃燈觸發為首要風險，必須立即降槓 40%。油價急漲可能引發通膨擔憂，加上美元走強（DXY 99.88），新興市場資金外流壓力增大。00981A 的產業輪動顯示 AI 股短期見頂風險，世芯-KY 減碼 0.7% 為明確賣訊。雖然風險評分僅 3.8/10 偏低，但 VIX 加速度警訊不可忽視。建議嚴格執行風控規則，等待 VIX 回落至 20.5 以下再考慮加碼。",
+      "telegram_short": "",
+      "data_sources": {
+        "dashboard": {
+          "date": "2026-03-26",
+          "fresh": false
+        },
+        "strategy": {
+          "date": "2026-03-26",
+          "fresh": false
+        },
+        "news_analysis": {
+          "date": "2026-03-27 07:53",
+          "fresh": true
+        },
+        "ai_research": {
+          "date": "2026-03-26 12:50",
+          "fresh": true
+        },
+        "tsmc_vol_signal": {
+          "date": null,
+          "fresh": false
+        },
+        "indices_history": {
+          "date": null,
+          "fresh": false
+        }
+      },
+      "data_gaps": [
+        "dashboard",
+        "strategy",
+        "tsmc_vol_signal",
+        "indices_history"
+      ],
+      "outcome": null
+    },
+    {
+      "date": "2026-03-27",
       "generated_at": "2026-03-27T13:29:20.775533+08:00",
       "market_phase": "盤前",
       "overall_signal": "防守",
