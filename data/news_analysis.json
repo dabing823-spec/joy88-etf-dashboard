@@ -1,8 +1,120 @@
 {
   "version": 1,
-  "updated_at": "2026-03-27 05:29",
+  "updated_at": "2026-03-27 07:53",
   "notebook": "Claude API (Sonnet+Opus)",
   "news_analyses": [
+    {
+      "id": "20260327_001",
+      "date": "2026-03-27",
+      "headline": "Trump Extends Attack Pause in Iran",
+      "category": "地緣政治",
+      "category_color": "red",
+      "source": "Bloomberg",
+      "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPUXROWGlLcno3M0M2TzIySW1HTjd1ZWk5RXBsaVUzcEs2RE9tbzdEUFFmRHA3blRTcTNIaWtHU0lGeHdPRlNRXzhueU1GWGVoNHZCY1U1Zjladng0MkdMRk01SWRZMDJjcDZKZ1kwNFVqM3dfbVNiSkRoQUxjUzF4YTdnMmcwZkVIamZlWWdyQThxYVZxbWhINnhkbkRpVzliTUZqcnBMQk0xZ3It?oc=5",
+      "layer1": {
+        "event": "川普延長對伊朗軍事行動暫停期",
+        "data": "具體延長時間未披露，但顯示美國暫時避免軍事升級",
+        "market_reaction": "黃金上漲2.27%至4475美元，反映避險需求；美股普遍下跌",
+        "timeline": "即時生效，後續發展需觀察伊朗回應"
+      },
+      "layer2": {
+        "beneficiaries": [
+          "黃金",
+          "國防軍工股",
+          "能源股"
+        ],
+        "victims": [
+          "風險資產",
+          "成長股",
+          "半導體股"
+        ],
+        "pricing_status": "市場初步反應，但未完全price in長期地緣風險",
+        "real_motive": "可能為談判策略，保留軍事選項同時尋求外交解決",
+        "market_blind_spots": "市場可能低估中東局勢對全球供應鏈的潛在衝擊"
+      },
+      "layer3": {
+        "position_impact": "對現有多頭部位形成壓力，特別是半導體股",
+        "expected_value": "短期負面，但若局勢緩和可能帶來反彈機會",
+        "timing": "觀察未來1-2週伊朗反應",
+        "risk_assessment": "地緣風險升高，VIX已達27.6",
+        "action_plan": "維持現有部位不動，等待VIX降至25以下"
+      },
+      "generated_at": "2026-03-27 07:53"
+    },
+    {
+      "id": "20260327_002",
+      "date": "2026-03-27",
+      "headline": "TSMC prioritises AI, core clients; 3nm capacity remains constrained",
+      "category": "半導體",
+      "category_color": "cyan",
+      "source": "digitimes",
+      "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQbFd6bk9wMVJ3eVZmM3JUUjQ1eC1Rdkd3YVE3aUw5WVkxS25RbVBnWExVQmlyWW0wV0lhZUNzcGVCZFNETWZlOGRONkNKUWlMcm9LUkZWMHVaaXFJNFlCNzRvR3dXbFJzcF9NeFI1V09uQmlZYWN5R2tKSkdvSjBHdk9JX2JBZjFt?oc=5",
+      "layer1": {
+        "event": "台積電優先供應AI和核心客戶，3nm產能持續吃緊",
+        "data": "3nm產能供不應求，優先順序：AI晶片>手機處理器>其他",
+        "market_reaction": "TSM ADR大跌6.22%，反映市場對產能限制的擔憂",
+        "timeline": "2026年內3nm產能擴充有限"
+      },
+      "layer2": {
+        "beneficiaries": [
+          "AI晶片客戶(NVDA、AMD)",
+          "二線晶圓代工(力積電)"
+        ],
+        "victims": [
+          "非核心客戶",
+          "消費性電子晶片廠"
+        ],
+        "pricing_status": "市場過度反應產能限制，忽視定價權提升",
+        "real_motive": "台積電藉產能配置強化議價能力和獲利率",
+        "market_blind_spots": "產能限制反而支撐ASP上升，長期有利毛利率"
+      },
+      "layer3": {
+        "position_impact": "短期對台積電(2330)形成壓力，但基本面仍強",
+        "expected_value": "產能緊張支撐長期獲利，目標價上調機率高",
+        "timing": "Q2財報將反映ASP提升效益",
+        "risk_assessment": "下檔風險有限，產能為賣方市場",
+        "action_plan": "維持台積電核心多頭，可考慮加碼力積電"
+      },
+      "generated_at": "2026-03-27 07:53"
+    },
+    {
+      "id": "20260327_003",
+      "date": "2026-03-27",
+      "headline": "Fed's Cook Says Inflation Is More at Risk Than Jobs Due to War",
+      "category": "央行政策",
+      "category_color": "orange",
+      "source": "Bloomberg",
+      "link": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxPWElGS0R4R2M4dkNDeXozaEJoSy1mWGI4d3ZZT3Q1Z0EyUmpFTXNqeWQtd1ZmS1BKbk54cVE3Y09lazllVTduLWJoVXUySEZKZmxnYVN6SWl1VE9zVFF3bUZXMnN1UTA2WlZvUlBnSER0eV9lNll5Q1k0dVFldWpjWDFsZVlpTUNzS1JwREtHV3ctWXNXbUZ2cUVhRVNYd2dxMENjOWltb1h4ckJnSmFISmRicTJkNjAyREQwNFNiYUc4dkRvZ3hVdHhYUGZzVHFN?oc=5",
+      "layer1": {
+        "event": "Fed理事Cook表示戰爭對通脹風險大於就業風險",
+        "data": "10年期殖利率升至4.42%(+2.03%)，反映通脹預期上升",
+        "market_reaction": "美股全面下跌，成長股跌幅較大(Nasdaq -2.38%)",
+        "timeline": "影響3月FOMC會議決策"
+      },
+      "layer2": {
+        "beneficiaries": [
+          "金融股",
+          "價值股",
+          "實體資產"
+        ],
+        "victims": [
+          "成長股",
+          "高本益比股票",
+          "長債"
+        ],
+        "pricing_status": "市場開始price in降息延後可能性",
+        "real_motive": "Fed為未來政策轉向預作準備",
+        "market_blind_spots": "市場可能低估持續高利率對企業獲利的累積影響"
+      },
+      "layer3": {
+        "position_impact": "不利成長股和高估值股票，空單部位受益",
+        "expected_value": "短期壓力持續，但過度恐慌可能帶來反彈",
+        "timing": "關注3月FOMC會議前市場定價",
+        "risk_assessment": "系統性風險上升，VIX突破25",
+        "action_plan": "維持現有空單(宏碁、微星)，暫不加碼多頭"
+      },
+      "generated_at": "2026-03-27 07:53"
+    },
     {
       "id": "20260327_001",
       "date": "2026-03-27",
@@ -38,44 +150,6 @@
         "timing": "VIX紅燈維持防守，等待恐慌高點",
         "risk_assessment": "高風險，美元續強將壓抑外資買盤",
         "action_plan": "維持現有部位不動，密切關注台積電1000元支撐強度"
-      },
-      "generated_at": "2026-03-27 05:29"
-    },
-    {
-      "id": "20260327_002",
-      "date": "2026-03-27",
-      "headline": "Fed's Cook Says Inflation Is More at Risk Than Jobs Due to War",
-      "category": "央行政策",
-      "category_color": "orange",
-      "source": "Bloomberg.com",
-      "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxOMHE1M0dPSWtpekV0bUlZUmZBQ2FJSDVFMzBTVkE5Ul9pUGU5bXJscnotR1hySm5GdzNONUZxOFJjalRhaEZnMXNlSjl2d3ZSNk1SOU9SN2ZtN0FDVkpYQU9aYmRwQjNRRERWaTl5aDJ2RE5fN1VOTEFEQnZ5aGFLdDB2Z2VOdllwNGlsVHRqdEpQY2tRdDlpcWNqaUwzVGdHLWFzWTBVeFE5YVFNekI4NF90VQ?oc=5",
-      "layer1": {
-        "event": "Fed Cook表示戰爭使通膨風險高於就業風險",
-        "data": "10年期殖利率升至4.42% (+2.03%)",
-        "market_reaction": "債券拋售潮，黃金上漲至4439.2 (+1.46%)",
-        "timeline": "影響至少持續到Q2 FOMC會議"
-      },
-      "layer2": {
-        "beneficiaries": [
-          "能源股",
-          "原物料",
-          "金融股"
-        ],
-        "victims": [
-          "高本益比成長股",
-          "長期債券",
-          "房地產"
-        ],
-        "pricing_status": "市場正在重新評價通膨預期，但可能低估戰爭長期化影響",
-        "real_motive": "Fed為未來政策轉向預留空間，避免過早承諾降息",
-        "market_blind_spots": "忽略供應鏈已較2022年更具韌性，通膨衝擊可能有限"
-      },
-      "layer3": {
-        "position_impact": "利空科技股評價，台積電、群聯等成長股承壓",
-        "expected_value": "中性偏空，但防禦型的台達電相對抗跌",
-        "timing": "等待市場過度反應後的反彈機會",
-        "risk_assessment": "中高風險，須防範系統性去槓桿",
-        "action_plan": "維持空單(宏碁、微星)對沖，關注台達電相對強勢表現"
       },
       "generated_at": "2026-03-27 05:29"
     },
@@ -1049,117 +1123,41 @@
         "action_plan": "維持現有倉位不變，但準備在VIX回落時減持部分衛星部位"
       },
       "generated_at": "2026-03-23 08:01"
-    },
-    {
-      "id": "20260323_003",
-      "date": "2026-03-23",
-      "headline": "Mkt Expects 50% Odds of Fed Rate Hike Before Oct",
-      "category": "央行政策",
-      "category_color": "orange",
-      "source": "AASTOCKS.com",
-      "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTE1iN0tTVW5PczFQelo4Qk16U1dMdzRNYUNQNkR1VnJFVGR6dDNsQVh3NjhKZ080aHRyV1E0MG5lNThSZXNKTC14TVEwSjFzdGU3Si1RYW52OS1TSGxZbkJmMFNrTlV5elk5NmJVNldyb0g?oc=5",
-      "layer1": {
-        "event": "市場預期10月前Fed升息機率達50%",
-        "data": "期貨市場顯示升息預期大幅上升",
-        "market_reaction": "風險資產全面承壓，VIX跳升至30.77",
-        "timeline": "未來6個月為關鍵觀察期"
-      },
-      "layer2": {
-        "beneficiaries": [
-          "美元",
-          "短期債券",
-          "防禦型股票"
-        ],
-        "victims": [
-          "科技股",
-          "新興市場",
-          "高槓桿企業"
-        ],
-        "pricing_status": "市場開始price in更鷹派的貨幣政策",
-        "real_motive": "通膨再起迫使Fed重新考慮貨幣政策立場",
-        "market_blind_spots": "經濟可能因升息預期而自然降溫，減少實際升息必要性"
-      },
-      "layer3": {
-        "position_impact": "整體持倉面臨系統性風險，特別是成長股部位",
-        "expected_value": "短期明顯負面，需等待市場消化升息預期",
-        "timing": "密切關注未來2-3個月通膨和就業數據",
-        "risk_assessment": "極高風險，可能引發市場大幅修正",
-        "action_plan": "嚴守VIX紅燈規則，不增加任何部位，準備在適當時機減持"
-      },
-      "generated_at": "2026-03-23 08:01"
-    },
-    {
-      "id": "20260322_001",
-      "date": "2026-03-22",
-      "headline": "Gold Wavers After Worst Week in Four Decades as War Risks Mount",
-      "category": "地緣政治",
-      "category_color": "red",
-      "source": "Bloomberg.com",
-      "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPcUp5TXZVdWY5Z2ZIMFQ1RC1ZMDFNal9kcHlOMFJaQmh4cDFxZjFQT055cHZmQ0FJRXM5UmJuZkYtYXJ3QkZRdzRWbTZ3LVhXbmFwUGpkOVlybGxDRUJ0UW9rM0w4YVl1TjFoN1Jmd2ZGR0hBQmswa0dmdjYtQUNQR0JXNXZCMC1Qa1dBQ3gteWk0MFJOTHcxWGFLVVRzTFM1bkdMWGlOQUZNMXZCMDlSSVBscng?oc=5",
-      "layer1": {
-        "event": "黃金經歷40年來最糟單週表現，同時戰爭風險上升",
-        "data": "Gold: 4515.3 (-1.21%)，暗示過去一週跌幅可能超過10%",
-        "market_reaction": "黃金今日續跌1.21%，與戰爭風險上升的避險需求背離",
-        "timeline": "已發生一週的大跌，目前處於震盪整理"
-      },
-      "layer2": {
-        "beneficiaries": [
-          "美元資產持有者",
-          "風險性資產",
-          "科技股"
-        ],
-        "victims": [
-          "黃金多頭",
-          "避險基金",
-          "新興市場"
-        ],
-        "pricing_status": "市場可能過度反應黃金跌勢，忽略戰爭風險升溫",
-        "real_motive": "可能是流動性緊縮或保證金追繳導致的強制賣壓",
-        "market_blind_spots": "市場低估戰爭擴大的尾部風險，黃金可能出現V型反轉"
-      },
-      "layer3": {
-        "position_impact": "對台股科技股短期正面（資金回流風險資產），但需警戒突發避險",
-        "expected_value": "短期持續震盪，中期若戰爭升級可能反彈20%",
-        "timing": "觀察未來1-2週戰況發展",
-        "risk_assessment": "中高風險 - 黃金與戰爭風險背離屬異常現象",
-        "action_plan": "維持現有部位，但隨時準備在戰爭升級時減碼科技股"
-      },
-      "generated_at": "2026-03-22 22:31"
     }
   ],
   "macro_analysis": {
     "date": "2026-03-27",
-    "risk_context": "VIX 🔴 27.44 | VIX 27.4 > 25 且仍在上升",
+    "risk_context": "VIX 🔴 27.6 | VIX 27.6 > 25 且仍在上升",
     "layer1": {
-      "event": "Fed官員集體釋放鷹派訊號，地緣政治成為維持高利率的新理由",
-      "data": "VIX 27.44突破紅燈警戒，美股全面下跌，10年期殖利率升破4.4%",
-      "market_reaction": "風險資產全面拋售，防禦性資產如黃金、美元走強",
-      "timeline": "恐慌情緒短期內難以平息，預計持續1-2週"
+      "event": "美股大跌、VIX飆升、地緣風險升溫、Fed轉鷹",
+      "data": "費半指數跌4.79%、VIX升至27.6、10Y殖利率4.42%、黃金漲2.27%",
+      "market_reaction": "風險資產全面下跌，避險資產上漲，市場進入風險趨避模式",
+      "timeline": "短期壓力將持續至3月FOMC會議"
     },
     "layer2": {
       "beneficiaries": [
-        "現金部位",
-        "做空部位",
-        "防禦型價值股",
-        "原物料"
+        "黃金",
+        "美元",
+        "防禦型股票",
+        "空頭部位"
       ],
       "victims": [
-        "高成長科技股",
-        "高本益比股票",
+        "半導體",
+        "成長股",
         "新興市場",
-        "高槓桿標的"
+        "高槓桿企業"
       ],
-      "pricing_status": "市場正快速重新定價利率預期，但可能過度反應短期風險",
-      "real_motive": "Fed利用地緣風險合理化鷹派立場，實為防範金融穩定風險",
-      "market_blind_spots": "1.企業獲利仍具韌性 2.恐慌賣壓創造長期價值 3.台股相對美股便宜"
+      "pricing_status": "恐慌情緒主導，部分優質股票出現超跌",
+      "real_motive": "市場重新評估利率路徑和地緣風險",
+      "market_blind_spots": "忽視企業基本面韌性和AI長期趨勢不變"
     },
     "layer3": {
-      "position_impact": "核心持股承壓但基本面未變，空單提供部分避險，整體曝險度尚可",
-      "expected_value": "短期帳面虧損擴大，但長期價值浮現，特別是台積電跌破合理價",
-      "timing": "嚴守VIX紅燈不操作，記錄超跌標的，等待VIX回落至20以下",
-      "risk_assessment": "系統性風險升高，但恐慌也接近極值，反彈隨時可能出現",
-      "action_plan": "1.維持紀律不在紅燈加碼 2.持續追蹤台積電1000元支撐 3.準備VIX降至黃燈時的購買清單 4.關注記憶體族群超跌機會"
+      "position_impact": "多頭部位承壓，但核心持股基本面仍佳",
+      "expected_value": "短期下檔風險10-15%，中期反彈潛力20%+",
+      "timing": "等待VIX回落至25以下再行動",
+      "risk_assessment": "系統性風險升高，但非金融危機等級",
+      "action_plan": "嚴守VIX紅燈規則不操作，準備逢低佈局清單"
     },
-    "generated_at": "2026-03-27 05:29"
+    "generated_at": "2026-03-27 07:53"
   }
 }
