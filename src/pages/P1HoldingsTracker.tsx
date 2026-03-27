@@ -4,7 +4,7 @@ import { Chart } from 'react-chartjs-2'
 import { useData } from '../contexts/DataContext'
 import { KpiCard, KpiGrid, IntroBox, Badge, TableContainer, DataTable, HoldingsTimeline } from '../components/shared'
 import { chartColors, defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
-import { STOCK_COLORS } from '../lib/constants'
+import { STOCK_COLORS, palette } from '../lib/constants'
 import '../lib/chartDefaults'
 import type { CashSeriesItem, Holding } from '../types'
 
@@ -105,41 +105,41 @@ export function P1HoldingsTracker() {
         {
           label: '現金比例 (%)',
           data: sliced.map(d => d.cash_pct),
-          borderColor: '#4f8ef7', backgroundColor: 'rgba(79,142,247,0.06)',
+          borderColor: palette.info, backgroundColor: 'rgba(107,159,255,0.06)',
           borderWidth: 2.5, tension: 0.35, pointRadius: 0,
-          pointHoverRadius: 4, pointHoverBackgroundColor: '#4f8ef7',
+          pointHoverRadius: 4, pointHoverBackgroundColor: palette.info,
           fill: true, yAxisID: 'y',
           order: 2,
         },
         {
           label: '5MA',
           data: sliced.map(d => d.cash_5ma ?? null),
-          borderColor: 'rgba(255,165,2,0.6)', borderWidth: 1, borderDash: [4, 2],
+          borderColor: `${palette.warning}99`, borderWidth: 1, borderDash: [4, 2],
           tension: 0.35, pointRadius: 0, yAxisID: 'y',
           order: 3,
         },
         {
           label: '20MA',
           data: sliced.map(d => d.cash_20ma ?? null),
-          borderColor: 'rgba(168,85,247,0.6)', borderWidth: 1, borderDash: [6, 3],
+          borderColor: `${palette.accent}99`, borderWidth: 1, borderDash: [6, 3],
           tension: 0.35, pointRadius: 0, yAxisID: 'y',
           order: 4,
         },
         {
           label: '加權指數',
           data: sliced.map(d => d.taiex ?? null),
-          borderColor: '#00c48c', backgroundColor: 'rgba(0,196,140,0.04)',
+          borderColor: palette.down, backgroundColor: `${palette.down}0a`,
           borderWidth: 2, tension: 0.35, pointRadius: 0,
-          pointHoverRadius: 3, pointHoverBackgroundColor: '#00c48c',
+          pointHoverRadius: 3, pointHoverBackgroundColor: palette.down,
           fill: true, yAxisID: 'y1',
           order: 5,
         },
         {
           label: '櫃買指數',
           data: sliced.map(d => d.tpex ?? null),
-          borderColor: '#22d3ee', backgroundColor: 'rgba(34,211,238,0.04)',
+          borderColor: palette.accent, backgroundColor: `${palette.accent}0a`,
           borderWidth: 1.5, tension: 0.35, pointRadius: 0, borderDash: [8, 4],
-          pointHoverRadius: 3, pointHoverBackgroundColor: '#22d3ee',
+          pointHoverRadius: 3, pointHoverBackgroundColor: palette.accent,
           fill: true, yAxisID: 'y2',
           order: 6,
         },
@@ -147,8 +147,8 @@ export function P1HoldingsTracker() {
           type: 'bar' as const,
           label: '主動現金變化',
           data: slicedUnits.map(d => d.active_cash_delta ?? 0),
-          backgroundColor: slicedUnits.map(d => (d.active_cash_delta ?? 0) >= 0 ? 'rgba(255,165,2,0.25)' : 'rgba(79,142,247,0.25)'),
-          borderColor: slicedUnits.map(d => (d.active_cash_delta ?? 0) >= 0 ? 'rgba(255,165,2,0.6)' : 'rgba(79,142,247,0.6)'),
+          backgroundColor: slicedUnits.map(d => (d.active_cash_delta ?? 0) >= 0 ? `${palette.warning}40` : `${palette.info}40`),
+          borderColor: slicedUnits.map(d => (d.active_cash_delta ?? 0) >= 0 ? `${palette.warning}99` : `${palette.info}99`),
           borderWidth: 1,
           yAxisID: 'y',
           order: 9,
@@ -174,7 +174,7 @@ export function P1HoldingsTracker() {
       tooltip: {
         mode: 'index' as const, intersect: false,
         backgroundColor: 'rgba(15,17,28,0.95)',
-        borderColor: 'rgba(79,142,247,0.3)', borderWidth: 1,
+        borderColor: `${palette.info}4d`, borderWidth: 1,
         titleColor: '#e4e6eb', bodyColor: '#9ca0b4',
         padding: 10, cornerRadius: 8,
         titleFont: { size: 11 },
@@ -199,7 +199,7 @@ export function P1HoldingsTracker() {
         type: 'linear' as const, position: 'left' as const,
         ticks: { ...axisTick, callback: (v: number) => `${v}%` },
         grid: { ...axisGrid, drawOnChartArea: true },
-        title: { display: true, text: '現金 (%)', color: '#4f8ef7', font: { size: 11 } },
+        title: { display: true, text: '現金 (%)', color: palette.info, font: { size: 11 } },
       },
       y1: {
         type: 'linear' as const, position: 'right' as const,

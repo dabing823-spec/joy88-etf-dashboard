@@ -1,7 +1,7 @@
 type IntroVariant = 'default' | 'green' | 'red' | 'orange' | 'accent'
 
 const borderColors: Record<IntroVariant, string> = {
-  default: 'border-l-cyan',
+  default: 'border-l-accent',
   green: 'border-l-down',
   red: 'border-l-up',
   orange: 'border-l-warning',

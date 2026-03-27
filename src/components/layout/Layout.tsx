@@ -39,13 +39,13 @@ function SystemHealth({ items }: { items: StatusItem[] }) {
       {items.map(({ label, time }) => {
         if (!time) return (
           <span key={label} className="text-2xs font-mono text-text-muted">
-            {label}: <span className="text-red-400">N/A</span>
+            {label}: <span className="text-up">N/A</span>
           </span>
         )
         const { text, stale } = timeSince(time)
         return (
           <span key={label} className="text-2xs font-mono text-text-muted">
-            {label}: <span className={stale ? 'text-red-400' : 'text-green-400'}>{text}</span>
+            {label}: <span className={stale ? 'text-danger' : 'text-down'}>{text}</span>
           </span>
         )
       })}
@@ -79,7 +79,7 @@ export function Layout() {
                 </span>
               )}
               {updateStatus?.status === 'success' && (
-                <span className="text-2xs font-mono px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">
+                <span className="text-2xs font-mono px-1.5 py-0.5 rounded bg-down/10 text-down border border-down/20">
                   Pipeline OK {formatUpdateTime(updateStatus.pipeline_completed_at)}
                 </span>
               )}

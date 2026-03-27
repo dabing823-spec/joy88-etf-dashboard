@@ -15,7 +15,7 @@
   /* Text */
   --color-text-primary: #e8eaef;
   --color-text-muted: #7d829a;
-  --color-text-tertiary: #4a4f68;
+  --color-text-tertiary: #5a6078;
 
   /* Accent — amber */
   --color-accent: #e09f3e;
@@ -28,10 +28,10 @@
   --color-danger: #ef4444;
   --color-info: #6b9fff;
 
-  /* Legacy aliases (keep existing classes working) */
-  --color-yellow: #f59e0b;
-  --color-purple: #a855f7;
-  --color-cyan: #22d3ee;
+  /* Mapped to semantic tokens (no more legacy names in new code) */
+  --color-yellow: var(--color-warning);
+  --color-purple: var(--color-info);
+  --color-cyan: var(--color-accent);
 
   /* Font families */
   --font-display: 'Satoshi', system-ui, sans-serif;

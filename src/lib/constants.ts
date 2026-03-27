@@ -18,16 +18,17 @@ export const ETF_SHORT_NAMES: Record<string, string> = {
 
 // ── Shared color palette (hex values for Chart.js / inline styles) ──
 export const palette = {
-  red: '#ff4757',
-  orange: '#ffa502',
-  green: '#00c48c',
-  blue: '#4f8ef7',
-  purple: '#a855f7',
-  cyan: '#22d3ee',
+  red: '#e54545',
+  orange: '#f59e0b',
+  green: '#22c55e',
+  blue: '#6b9fff',
+  purple: '#6b9fff',    // 統一用 info 藍
+  cyan: '#e09f3e',      // 統一用 accent 琥珀
   accent: '#e09f3e',
   up: '#e54545',
   down: '#22c55e',
   warning: '#f59e0b',
+  info: '#6b9fff',
   textMuted: '#7d829a',
   text: '#e8eaef',
   grid: 'rgba(30, 34, 53, 0.5)',
