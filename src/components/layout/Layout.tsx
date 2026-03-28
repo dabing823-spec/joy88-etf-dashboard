@@ -35,7 +35,7 @@ interface StatusItem {
 
 function SystemHealth({ items }: { items: StatusItem[] }) {
   return (
-    <div className="max-w-[1400px] mx-auto px-4 py-1.5 flex flex-wrap gap-x-4 gap-y-1">
+    <div className="max-w-[1600px] mx-auto px-4 py-1.5 flex flex-wrap gap-x-4 gap-y-1">
       {items.map(({ label, time }) => {
         if (!time) return (
           <span key={label} className="text-2xs font-mono text-text-muted">
@@ -59,7 +59,7 @@ export function Layout() {
   return (
     <div className="min-h-screen bg-bg">
       <header className="sticky top-0 z-50 bg-bg/95 backdrop-blur-xl border-b border-border">
-        <div className="max-w-[1400px] mx-auto px-4">
+        <div className="max-w-[1600px] mx-auto px-4">
           <div className="flex items-center justify-between h-11">
             <div className="flex items-center gap-3">
               <img
@@ -120,7 +120,7 @@ export function Layout() {
         </div>
       </header>
 
-      <main className="max-w-[1400px] mx-auto px-4 py-3">
+      <main className="max-w-[1600px] mx-auto px-4 py-3">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-text-muted text-sm">Loading...</div>
@@ -141,7 +141,7 @@ export function Layout() {
           { label: 'News', time: newsAnalysis?.updated_at },
           { label: 'TSMC Vol', time: tsmcVolSignal?.更新時間?.replace(' ', 'T') },
         ]} />
-        <div className="max-w-[1400px] mx-auto px-4 pb-3 flex items-center justify-between">
+        <div className="max-w-[1600px] mx-auto px-4 pb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={`${BASE_URL}assets/logo-shanhai-joyle.png`} alt="" className="h-4 rounded opacity-60" />
             <span className="text-2xs text-text-muted">Shanhai Joyle Capital</span>
