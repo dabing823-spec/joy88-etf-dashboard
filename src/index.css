@@ -2,8 +2,8 @@
 
 @theme {
   /* Typography scale extras (DESIGN.md) */
-  --text-2xs: 10px;
-  --text-2xs--line-height: 14px;
+  --text-2xs: 12px;
+  --text-2xs--line-height: 16px;
 
   /* Base surfaces */
   --color-bg: #0b0d14;
@@ -37,6 +37,10 @@
   --font-display: 'Satoshi', system-ui, sans-serif;
   --font-body: 'Noto Sans TC', 'Satoshi', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', monospace;
+}
+
+html {
+  font-size: 18px;
 }
 
 body {
