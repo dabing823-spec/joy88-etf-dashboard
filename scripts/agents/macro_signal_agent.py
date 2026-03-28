@@ -236,23 +236,29 @@ def calc_risk_signals(history, validator_warnings=None):
         'theory': '美元急升對新興市場與資金流造成壓力',
     }, dxy_vals))
 
-    # 5. 公債殖利率
+    # 5. US 10Y 殖利率 (v2.0: 絕對值門檻 + 滯脹複合)
     us10y_vals = _get_closes('us10y')
     us10y_slope = _slope(us10y_vals, 20)
-    if us10y_slope > 0.05:
+    us10y_latest = _latest('us10y')
+    oil_latest_val = _latest('oil')
+    stagflation = (us10y_latest and oil_latest_val and us10y_latest > 4.7 and oil_latest_val > 95)
+    if us10y_slope > 0.05 or (us10y_latest and us10y_latest > 4.8) or stagflation:
         us10y_sig = 'red'
-    elif us10y_slope > 0.02:
+    elif us10y_slope > 0.02 or (us10y_latest and us10y_latest > 4.5):
         us10y_sig = 'yellow'
     else:
         us10y_sig = 'green'
+    us10y_desc = f'US10Y 速度 {us10y_slope:+.3f}/日'
+    if stagflation:
+        us10y_desc += f' | 滯脹複合：US10Y {us10y_latest:.2f}% + Oil ${oil_latest_val:.0f}'
     signals.append(_enrich({
-        'name': '公債殖利率', 'key': 'us10y', 'value': _latest('us10y'),
+        'name': 'US 10Y 殖利率', 'key': 'us10y', 'value': us10y_latest,
         'slope_20d': us10y_slope, 'signal': us10y_sig,
-        'desc': f'US10Y 速度 {us10y_slope:+.3f}/日',
-        'theory': '殖利率快速上升代表債券拋售、資金成本攀升',
+        'desc': us10y_desc,
+        'theory': '殖利率快速上升代表債券拋售、資金成本攀升。US10Y>4.7%+Oil>$95為滯脹複合條件',
     }, us10y_vals))
 
-    # 6. 恐懼貪婪
+    # 6. 恐懼貪婪 (v2.0: 絕對值 + 連續天數追蹤)
     fg_vals = _get_closes('fear_greed')
     fg_latest = _latest('fear_greed')
     fg_slope = _slope(fg_vals, 20)
@@ -260,17 +266,31 @@ def calc_risk_signals(history, validator_warnings=None):
         fg_sig = 'red' if fg_latest < 25 else 'yellow' if fg_latest < 40 else 'green'
     else:
         fg_sig = 'gray'
+    fg_streak = 0
+    for pt in reversed(history.get('fear_greed', [])):
+        if pt.get('close') is not None and pt['close'] < 25:
+            fg_streak += 1
+        else:
+            break
+    fg_streak_label = ''
+    if fg_streak >= 5:
+        fg_streak_label = f'底部鈍化信號（連續 {fg_streak} 天極度恐懼）'
+    elif fg_streak >= 3:
+        fg_streak_label = f'連續 {fg_streak} 天極度恐懼'
+    fg_desc = f'Fear & Greed: {fg_latest:.1f}' if fg_latest else '無資料'
+    if fg_streak_label:
+        fg_desc += f' | {fg_streak_label}'
     signals.append(_enrich({
         'name': '恐懼貪婪', 'key': 'fear_greed', 'value': fg_latest,
         'slope_20d': fg_slope, 'signal': fg_sig,
-        'desc': f'Fear & Greed: {fg_latest}' if fg_latest else '無資料',
-        'theory': '極端恐懼往往伴隨市場超賣，但也可能繼續下跌',
+        'desc': fg_desc,
+        'theory': '極端恐懼往往伴隨市場超賣。連續≥5天為底部鈍化信號（歷史上中期反彈前兆）',
     }, fg_vals))
 
-    # 7. 黃金避險
+    # 7. 黃金避險 (v2.0: 門檻 20/5)
     gold_vals = _get_closes('gold')
     gold_slope = _slope(gold_vals, 20)
-    if gold_slope > 15:
+    if gold_slope > 20:
         gold_sig = 'red'
     elif gold_slope > 5:
         gold_sig = 'yellow'
@@ -283,7 +303,7 @@ def calc_risk_signals(history, validator_warnings=None):
         'theory': '金價急漲代表避險資金湧入，風險偏好降低',
     }, gold_vals))
 
-    # 8. 油價壓力
+    # 8. 油價壓力 (v2.0: $95/$110 門檻警示)
     oil_vals = _get_closes('oil')
     oil_slope = _slope(oil_vals, 20)
     if oil_slope > 2:
@@ -292,11 +312,20 @@ def calc_risk_signals(history, validator_warnings=None):
         oil_sig = 'yellow'
     else:
         oil_sig = 'green'
+    oil_desc = f'Oil 速度 {oil_slope:+.2f}/日'
+    if oil_latest_val and oil_latest_val > 110:
+        oil_desc += ' | 滯脹全面啟動，減碼高本益比科技股'
+    elif oil_latest_val and oil_latest_val > 95:
+        oil_slope_5d = _slope(oil_vals[-5:], 5) if len(oil_vals) >= 5 else 0
+        if oil_slope_5d > 1.0:
+            oil_desc += ' | 滯脹壓力升溫，科技股做多信號降權'
+        else:
+            oil_desc += ' | 關注通膨預期變化'
     signals.append(_enrich({
-        'name': '油價壓力', 'key': 'oil', 'value': _latest('oil'),
+        'name': '油價壓力', 'key': 'oil', 'value': oil_latest_val,
         'slope_20d': oil_slope, 'signal': oil_sig,
-        'desc': f'Oil 速度 {oil_slope:+.2f}/日',
-        'theory': '油價急漲推升通膨預期與企業成本壓力',
+        'desc': oil_desc,
+        'theory': '油價急漲推升通膨預期與企業成本壓力。$95為警戒線，$110為滯脹全面啟動',
     }, oil_vals))
 
     # ── Threshold info for proximity display ──
@@ -307,7 +336,7 @@ def calc_risk_signals(history, validator_warnings=None):
         'dxy':        {'yellow': 0.1, 'red': 0.3, 'dir': 'up'},
         'us10y':      {'yellow': 0.02, 'red': 0.05, 'dir': 'up'},
         'fear_greed': {'yellow': 40, 'red': 25, 'dir': 'value_down'},
-        'gold':       {'yellow': 5, 'red': 15, 'dir': 'up'},
+        'gold':       {'yellow': 5, 'red': 20, 'dir': 'up'},
         'oil':        {'yellow': 0.5, 'red': 2, 'dir': 'up'},
     }
     for s in signals:
@@ -351,15 +380,28 @@ def calc_risk_signals(history, validator_warnings=None):
         # Apply direction-aware phase labels
         s['phase_label'] = _direction_aware_phase_label(s)
 
-    # Total score
+    # Total score (v2.0: 基礎分 + 絕對位階附加分)
     raw_score = sum(2 if s['signal'] == 'red' else 1 if s['signal'] == 'yellow' else 0 for s in signals)
-    score = round(raw_score / 16 * 10, 1)
+    base_score = round(raw_score / 16 * 10, 1)
+
+    vix_latest = _latest('vix')
+    abs_bonus = 0.0
+    if vix_latest and vix_latest > 32: abs_bonus += 1.0
+    elif vix_latest and vix_latest > 28: abs_bonus += 0.5
+    if fg_latest is not None and fg_latest < 20: abs_bonus += 0.5
+    if oil_latest_val and oil_latest_val > 110: abs_bonus += 1.0
+    elif oil_latest_val and oil_latest_val > 95: abs_bonus += 0.5
+    if us10y_latest and us10y_latest > 4.8: abs_bonus += 1.0
+    elif us10y_latest and us10y_latest > 4.5: abs_bonus += 0.5
+    if stagflation: abs_bonus += 1.0
+
+    score = min(10.0, round(base_score + abs_bonus, 1))
     level = 'high' if score >= 7 else 'medium' if score >= 4 else 'low'
 
     n_red = sum(1 for s in signals if s['signal'] == 'red')
     n_yellow = sum(1 for s in signals if s['signal'] == 'yellow')
     n_green = sum(1 for s in signals if s['signal'] == 'green')
-    log(f"  Score: {score}/10 ({level}) | Red:{n_red} Yellow:{n_yellow} Green:{n_green}")
+    log(f"  Score: {score}/10 (base {base_score} + bonus {abs_bonus}) ({level}) | Red:{n_red} Yellow:{n_yellow} Green:{n_green}")
 
     # Sparkline history
     spark_history = {}
@@ -399,8 +441,11 @@ def calc_risk_signals(history, validator_warnings=None):
         score_history.append({'date': dt, 'score': round(day_raw / 16 * 10, 1)})
 
     return {
-        'score': score, 'max_score': 10, 'level': level,
+        'score': score, 'score_base': base_score, 'score_abs_bonus': abs_bonus,
+        'max_score': 10, 'level': level,
         'n_red': n_red, 'n_yellow': n_yellow, 'n_green': n_green,
+        'fear_greed_streak': fg_streak,
+        'fear_greed_streak_label': fg_streak_label,
         'signals': signals,
         'history': spark_history,
         'score_history': score_history,
