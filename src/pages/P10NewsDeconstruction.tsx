@@ -107,7 +107,7 @@ export function P10NewsDeconstruction() {
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
         <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
           {articles.map((item, i) => (
-            <NewsCard key={item.id} item={item} isActive={i === activeIndex} onClick={() => setActiveIndex(i)} />
+            <NewsCard key={`${item.id}_${i}`} item={item} isActive={i === activeIndex} onClick={() => setActiveIndex(i)} />
           ))}
         </div>
 

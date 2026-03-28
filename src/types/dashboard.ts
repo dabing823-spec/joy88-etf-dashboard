@@ -1,3 +1,19 @@
+export interface CashModeSeriesItem {
+  date: string
+  cash_pct: number
+  stock_pct?: number
+  futures_pct?: number
+  n_holdings?: number
+  cash_5ma?: number | null
+  cash_20ma?: number | null
+  units?: number
+  units_change?: number
+  nav?: number
+  units_change_pct?: number
+  active_cash_delta?: number
+  aum?: number | null
+}
+
 export interface CashMode {
   mode: string
   mode_desc: string
@@ -8,7 +24,7 @@ export interface CashMode {
   has_futures: boolean
   futures_signal: string
   n_holdings: number
-  cash_series: number[]
+  cash_series: CashModeSeriesItem[]
   cash_percentile?: number
   percentile_label?: string
   flow_adjusted_mode?: string
@@ -42,10 +58,11 @@ export interface Holding {
 export interface ConvictionItem {
   code: string
   name: string
-  score: number
-  days_held: number
-  avg_weight: number
-  weight_trend: string
+  weight: number
+  start_weight?: number
+  weight_chg?: number
+  days: number
+  conviction: string
 }
 
 export interface ConsensusItem {
@@ -99,8 +116,8 @@ export interface CashSeriesItem {
 
 export interface StockSeriesItem {
   code: string
-  name: string
-  series: Array<{ date: string; weight: number }>
+  label: string
+  data: number[]
 }
 
 export interface UpdateStatus {
