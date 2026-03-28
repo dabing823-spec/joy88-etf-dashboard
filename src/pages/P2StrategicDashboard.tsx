@@ -495,7 +495,7 @@ export function P2StrategicDashboard() {
 
       {/* ── Gauges ── */}
       <div className="grid grid-cols-2 gap-3">
-        <GaugeCard title="🎯 持股集中度 Top 1" value={`${(dashboard?.conviction?.[0]?.avg_weight ?? 0).toFixed(1)}%`} mode={dashboard?.conviction?.[0]?.name || '-'} modeColor={palette.info} />
+        <GaugeCard title="🎯 持股集中度 Top 1" value={`${(dashboard?.conviction?.[0]?.weight ?? 0).toFixed(1)}%`} mode={dashboard?.conviction?.[0]?.name || '-'} modeColor={palette.info} />
         <GaugeCard title="持股數" value={`${cashMode?.n_holdings || 0}`} mode={cashMode?.mode_desc || '-'} modeColor={modeColor} />
       </div>
 

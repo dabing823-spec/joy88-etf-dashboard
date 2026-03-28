@@ -6,46 +6,11 @@ import { KpiCard, IntroBox, Badge, TableContainer, DataTable, HoldingsTimeline }
 import { defaultScaleOptions, defaultPluginOptions } from '../lib/chartDefaults'
 import { STOCK_COLORS, palette } from '../lib/constants'
 import '../lib/chartDefaults'
-import type { CashSeriesItem, Holding } from '../types'
+import type { CashSeriesItem, CashModeSeriesItem, Holding, ConvictionItem, StockSeriesItem, DailyChange } from '../types'
 
 type RangeType = 30 | 60 | 90 | 'all'
 
 const stripMd = (s: string) => s.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/__([^_]+)__/g, '$1').replace(/^#+\s*/gm, '').trim()
-
-interface CashModeSeriesItem {
-  date: string
-  cash_pct: number
-  units: number
-  units_change: number
-  nav: number
-  cash_5ma?: number | null
-  cash_20ma?: number | null
-  units_change_pct?: number
-  active_cash_delta?: number
-  aum?: number | null
-}
-
-interface StockSeriesRaw {
-  code: string
-  label: string
-  data: number[]
-}
-
-interface ConvictionRaw {
-  code: string
-  name: string
-  weight: number
-  days: number
-  conviction: string
-}
-
-interface DailyChangeRaw {
-  date: string
-  new?: Array<{ code: string; name: string; weight: number }>
-  added?: Array<{ code: string; name: string; weight: number; weight_chg: number }>
-  reduced?: Array<{ code: string; name: string; weight: number; weight_chg: number }>
-  exited?: Array<{ code: string; name: string }>
-}
 
 // Shared axis options
 const axisGrid = { color: 'rgba(42, 46, 61, 0.5)' }
@@ -60,13 +25,13 @@ export function P1HoldingsTracker() {
 
   const cashMode = dashboard?.cash_mode
   const cashSeries = dashboard?.cash_series || []
-  const cashModeSeries = ((cashMode as unknown as Record<string, unknown>)?.cash_series || []) as CashModeSeriesItem[]
+  const cashModeSeries: CashModeSeriesItem[] = cashMode?.cash_series || []
   const holdingsRaw = dashboard?.latest_holdings?.['00981A']
-  const holdings00981A = (Array.isArray(holdingsRaw) ? holdingsRaw : (holdingsRaw as Record<string, unknown>)?.stocks as Holding[] | undefined) || []
-  const conviction = (dashboard?.conviction || []) as unknown as ConvictionRaw[]
-  const stockSeries = (dashboard?.stock_series || []) as unknown as StockSeriesRaw[]
+  const holdings00981A: Holding[] = (Array.isArray(holdingsRaw) ? holdingsRaw : (holdingsRaw && 'stocks' in holdingsRaw ? holdingsRaw.stocks : undefined)) || []
+  const conviction: ConvictionItem[] = dashboard?.conviction || []
+  const stockSeries: StockSeriesItem[] = dashboard?.stock_series || []
   const dates = dashboard?.dates || []
-  const dailyChanges = (dashboard?.daily_changes?.['00981A'] || []) as unknown as DailyChangeRaw[]
+  const dailyChanges: DailyChange[] = dashboard?.daily_changes?.['00981A'] || []
   const aiData = aiResearch?.analyses?.['00981A']
 
   // KPIs
@@ -247,8 +212,8 @@ export function P1HoldingsTracker() {
   const convictionColumns = [
     { key: 'code', label: '代碼' },
     { key: 'name', label: '名稱' },
-    { key: 'days', label: '天數', align: 'right' as const, render: (c: ConvictionRaw) => c.days, sortValue: (c: ConvictionRaw) => c.days || 0 },
-    { key: 'conviction', label: '狀態', align: 'right' as const, render: (c: ConvictionRaw) => <span className="text-xs">{c.conviction}</span> },
+    { key: 'days', label: '天數', align: 'right' as const, render: (c: ConvictionItem) => c.days, sortValue: (c: ConvictionItem) => c.days || 0 },
+    { key: 'conviction', label: '狀態', align: 'right' as const, render: (c: ConvictionItem) => <span className="text-xs">{c.conviction}</span> },
   ]
 
   // ── Holdings columns ──
