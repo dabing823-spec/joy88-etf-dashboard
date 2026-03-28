@@ -62,10 +62,10 @@ export function AdvisorCard({ advisory, riskScore, isLoading }: Props) {
 
       {/* Signal bar */}
       <div className={`${signal.bg} py-3 px-4 sm:px-5 flex items-center justify-between`}>
-        <div className={`text-xl font-bold ${signal.text}`}>
+        <div className={`text-2xl font-bold ${signal.text}`}>
           {advisory.overall_signal}
         </div>
-        <div className="text-sm text-text-muted">
+        <div className="text-base text-text-muted">
           {formatTimestamp(advisory.generated_at, advisory.market_phase)}
         </div>
       </div>
@@ -74,13 +74,13 @@ export function AdvisorCard({ advisory, riskScore, isLoading }: Props) {
       <div className="p-4 sm:p-5 space-y-3">
         {/* Action items */}
         {advisory.action_items.length > 0 && (
-          <ol className="space-y-2">
+          <ol className="space-y-3">
             {advisory.action_items.slice(0, 3).map((item, i) => (
               <li key={i}>
-                <div className="text-sm font-medium text-text-primary">
+                <div className="text-base font-medium text-text-primary">
                   {'①②③'[i]} {item.action}
                 </div>
-                <div className="text-xs text-text-muted mt-0.5">
+                <div className="text-sm text-text-muted mt-0.5">
                   {item.framework} · {item.reasoning}
                 </div>
               </li>
@@ -91,10 +91,10 @@ export function AdvisorCard({ advisory, riskScore, isLoading }: Props) {
         {/* Market summary (collapsible) */}
         {advisory.market_summary && (
           <details className="group">
-            <summary className="text-sm font-medium text-text-primary cursor-pointer select-none hover:text-accent transition-colors">
+            <summary className="text-base font-medium text-text-primary cursor-pointer select-none hover:text-accent transition-colors">
               ▸ 市場總結
             </summary>
-            <div className="text-sm text-text-muted leading-relaxed mt-1.5 max-h-[200px] overflow-y-auto">
+            <div className="text-base text-text-muted leading-relaxed mt-1.5 max-h-[200px] overflow-y-auto">
               <p>{advisory.market_summary}</p>
               {advisory.risk_assessment && (
                 <p className="mt-2">{advisory.risk_assessment}</p>
@@ -104,13 +104,13 @@ export function AdvisorCard({ advisory, riskScore, isLoading }: Props) {
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-border/30 text-xs text-text-muted">
+        <div className="flex items-center justify-between pt-2 border-t border-border/30 text-sm text-text-muted">
           {/* Data completeness dots */}
           <div className="flex items-center gap-1.5" aria-label={`資料完整度 ${Object.values(advisory.data_sources).filter(s => s.fresh).length}/${Object.keys(advisory.data_sources).length}`}>
             {Object.entries(advisory.data_sources).map(([key, src]) => (
               <span
                 key={key}
-                className={`w-1.5 h-1.5 rounded-full ${src.fresh ? 'bg-down' : advisory.data_gaps.includes(key) ? 'bg-text-muted/30' : 'bg-warning'}`}
+                className={`w-2 h-2 rounded-full ${src.fresh ? 'bg-down' : advisory.data_gaps.includes(key) ? 'bg-text-muted/30' : 'bg-warning'}`}
                 title={`${SOURCE_NAMES[key] ?? key}: ${src.fresh ? '最新' : '過期'}`}
               />
             ))}
@@ -126,7 +126,7 @@ export function AdvisorCard({ advisory, riskScore, isLoading }: Props) {
 
         {/* Data gaps warning */}
         {advisory.data_gaps.length > 0 && (
-          <div className="text-xs text-warning">
+          <div className="text-sm text-warning">
             缺失: {advisory.data_gaps.map(k => SOURCE_NAMES[k] ?? k).join(', ')}
           </div>
         )}
