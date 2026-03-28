@@ -487,7 +487,7 @@ def step4_analyze_news(
     )
 
     resp = client.messages.create(
-        model="claude-opus-4-20250514",
+        model="claude-sonnet-4-20250514",
         max_tokens=4096,
         messages=[{"role": "user", "content": prompt}],
     )

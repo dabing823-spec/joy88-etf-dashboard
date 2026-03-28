@@ -297,7 +297,7 @@ def call_claude(system_prompt: str, user_prompt: str) -> str:
 
     client = anthropic.Anthropic()
     response = client.messages.create(
-        model="claude-opus-4-20250514",
+        model="claude-sonnet-4-20250514",
         max_tokens=2000,
         system=[
             {
