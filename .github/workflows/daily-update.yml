@@ -60,6 +60,7 @@ jobs:
           python strategy_engine.py
 
       - name: AI Holdings Analysis
+        continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
