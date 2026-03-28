@@ -16,7 +16,7 @@ interface IntroBoxProps {
 
 export function IntroBox({ variant = 'default', children, className = '' }: IntroBoxProps) {
   return (
-    <div className={`mb-4 px-4 py-3 bg-accent/5 rounded-lg border-l-[3px] ${borderColors[variant]} text-sm text-text-muted leading-relaxed ${className}`}>
+    <div className={`mb-4 px-5 py-4 bg-accent/5 rounded-lg border-l-[3px] ${borderColors[variant]} text-base text-text-muted leading-relaxed ${className}`}>
       {children}
     </div>
   )
