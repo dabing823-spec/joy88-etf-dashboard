@@ -109,6 +109,66 @@ def calc_risk_signals(history, validator_warnings=None):
         sig['reliable'] = sig['key'] not in unreliable
         return sig
 
+    # Direction-aware helpers for proximity & phase
+    SIGNAL_DIRECTIONS = {
+        'vix': 'up', 'spy_jpy': 'down', 'hyg_tlt': 'down',
+        'dxy': 'up', 'us10y': 'up', 'fear_greed': 'value_down',
+        'gold': 'up', 'oil': 'up',
+    }
+
+    def _slope_towards_danger(key, slope):
+        """Return True if slope is moving towards the danger direction."""
+        d = SIGNAL_DIRECTIONS.get(key, 'up')
+        if d == 'up':
+            return slope > 0
+        elif d == 'down':
+            return slope < 0
+        else:  # value_down
+            return True  # handled by value thresholds
+
+    def _direction_aware_phase_label(sig):
+        """Generate phase label with signal transition direction hint."""
+        phase = sig['phase']
+        signal = sig['signal']
+        key = sig['key']
+        moving_towards = _slope_towards_danger(key, sig['slope_20d'])
+
+        if phase == 'stable':
+            return '持平'
+        elif phase == 'accelerating':
+            if moving_towards:
+                if signal == 'green':
+                    return '加速惡化中（→黃）'
+                elif signal == 'yellow':
+                    return '加速惡化中（→紅）'
+                else:
+                    return '加速惡化中'
+            else:
+                # Accelerating away from danger = rapid improvement
+                if signal == 'red':
+                    return '加速好轉中（→黃）'
+                elif signal == 'yellow':
+                    return '加速好轉中（→綠）'
+                else:
+                    return '加速好轉中'
+        else:  # decelerating
+            if moving_towards:
+                # Decelerating towards danger = still worsening but slowing
+                if signal == 'green':
+                    return '趨緩惡化中（→黃）'
+                elif signal == 'yellow':
+                    return '趨緩惡化中（→紅）'
+                else:
+                    return '趨緩惡化中'
+            else:
+                # Decelerating away from danger = improving but slowing
+                if signal == 'red':
+                    return '趨緩好轉中（→黃）'
+                elif signal == 'yellow':
+                    return '趨緩好轉中（→綠）'
+                else:
+                    return '趨緩好轉中'
+
     # 1. VIX 趨勢
     vix_vals = _get_closes('vix')
     vix_slope = _slope(vix_vals, 20)
@@ -256,17 +316,40 @@ def calc_risk_signals(history, validator_warnings=None):
         s['threshold_red'] = th.get('red')
         s['threshold_dir'] = th.get('dir', 'up')
         slope = s['slope_20d']
+        direction = th.get('dir', 'up')
+
+        # Direction-aware proximity: only count proximity when slope is moving TOWARDS danger
         if s['signal'] == 'green' and th.get('yellow') is not None:
             denom = th['yellow']
-            s['proximity_pct'] = round(min(abs(slope / denom) * 100, 100), 1) if denom != 0 else 0
+            if direction == 'up' and slope <= 0:
+                s['proximity_pct'] = 0  # slope is negative, far from yellow (up-triggered)
+            elif direction == 'down' and slope >= 0:
+                s['proximity_pct'] = 0  # slope is positive, far from yellow (down-triggered)
+            elif direction == 'value_down':
+                # value-based: use value directly
+                val = s.get('value', 0) or 0
+                s['proximity_pct'] = round(min(max((denom - val) / (denom - th.get('red', 0)) * 100 if denom != th.get('red', 0) else 0, 0), 100), 1) if denom else 0
+            else:
+                s['proximity_pct'] = round(min(abs(slope / denom) * 100, 100), 1) if denom != 0 else 0
             s['proximity_label'] = f'距黃燈 {100 - s["proximity_pct"]:.0f}%'
         elif s['signal'] == 'yellow' and th.get('red') is not None:
             denom = th['red']
-            s['proximity_pct'] = round(min(abs(slope / denom) * 100, 100), 1) if denom != 0 else 0
+            if direction == 'up' and slope <= 0:
+                s['proximity_pct'] = 0
+            elif direction == 'down' and slope >= 0:
+                s['proximity_pct'] = 0
+            elif direction == 'value_down':
+                val = s.get('value', 0) or 0
+                s['proximity_pct'] = round(min(max((th.get('yellow', 0) - val) / (th.get('yellow', 0) - denom) * 100 if th.get('yellow', 0) != denom else 0, 0), 100), 1) if denom else 0
+            else:
+                s['proximity_pct'] = round(min(abs(slope / denom) * 100, 100), 1) if denom != 0 else 0
             s['proximity_label'] = f'距紅燈 {100 - s["proximity_pct"]:.0f}%'
         else:
             s['proximity_pct'] = 100
             s['proximity_label'] = '已觸發' if s['signal'] == 'red' else ''
+
+        # Apply direction-aware phase labels
+        s['phase_label'] = _direction_aware_phase_label(s)
 
     # Total score
     raw_score = sum(2 if s['signal'] == 'red' else 1 if s['signal'] == 'yellow' else 0 for s in signals)

@@ -36,8 +36,11 @@ export const palette = {
 
 export const RISK_LEVEL_COLORS: Record<string, string> = {
   green: palette.green,
+  low: palette.green,
   yellow: palette.orange,
+  medium: palette.orange,
   red: palette.red,
+  high: palette.red,
 }
 
 export const LEVEL_MAP: Record<string, { label: string; color: string }> = {

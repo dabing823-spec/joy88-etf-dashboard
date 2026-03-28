@@ -280,19 +280,39 @@ export function P1HoldingsTracker() {
     weight: number; weight_chg: number; hold_suggestion?: string; confidence?: string
   }>
 
-  // Group signals by date for the timeline
+  // Group signals by date for the timeline, merging daily_changes for dates missing from laomo_signals
   const holdingEvents = useMemo(() => {
-    if (!laomoSignals.length) return []
-    const byDate: Record<string, typeof laomoSignals> = {}
+    type SignalEntry = { date: string; code: string; name: string; type: string; weight: number; weight_chg: number; hold_suggestion?: string; confidence?: string }
+    const byDate: Record<string, SignalEntry[]> = {}
     laomoSignals.forEach(s => {
       if (!byDate[s.date]) byDate[s.date] = []
       byDate[s.date].push(s)
     })
+
+    // Fill in dates from daily_changes that are missing in laomo_signals
+    dailyChanges.forEach(dc => {
+      if (byDate[dc.date]) return // already covered by laomo_signals
+      const entries: SignalEntry[] = []
+      ;(dc.new || []).forEach((item) => {
+        entries.push({ date: dc.date, code: item.code, name: item.name, type: '新增', weight: item.weight, weight_chg: 0 })
+      })
+      ;(dc.added || []).forEach((item) => {
+        entries.push({ date: dc.date, code: item.code, name: item.name, type: '加碼', weight: item.weight, weight_chg: item.weight_chg })
+      })
+      ;(dc.reduced || []).forEach((item) => {
+        entries.push({ date: dc.date, code: item.code, name: item.name, type: '減碼', weight: item.weight, weight_chg: item.weight_chg })
+      })
+      ;(dc.exited || []).forEach((item) => {
+        entries.push({ date: dc.date, code: item.code, name: item.name, type: '退出', weight: 0, weight_chg: 0 })
+      })
+      if (entries.length > 0) byDate[dc.date] = entries
+    })
+
     return Object.entries(byDate)
       .sort(([a], [b]) => b.localeCompare(a))
       .slice(0, 15)
       .map(([date, signals]) => ({ date, signals }))
-  }, [laomoSignals])
+  }, [laomoSignals, dailyChanges])
 
   const formatUnits = (v: number) => {
     const abs = Math.abs(v)

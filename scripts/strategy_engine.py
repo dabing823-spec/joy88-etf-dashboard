@@ -1575,6 +1575,38 @@ def calc_risk_signals(history):
         data = history.get(key, [])
         return data[-1]['close'] if data else None
 
+    SIGNAL_DIRECTIONS = {
+        'vix': 'up', 'spy_jpy': 'down', 'hyg_tlt': 'down',
+        'dxy': 'up', 'us10y': 'up', 'fear_greed': 'value_down',
+        'gold': 'up', 'oil': 'up',
+    }
+
+    def _slope_towards_danger(key, slope):
+        d = SIGNAL_DIRECTIONS.get(key, 'up')
+        if d == 'up':
+            return slope > 0
+        elif d == 'down':
+            return slope < 0
+        return True
+
+    def _direction_aware_phase_label(sig):
+        phase = sig['phase']
+        signal = sig['signal']
+        key = sig['key']
+        moving_towards = _slope_towards_danger(key, sig['slope_20d'])
+        if phase == 'stable':
+            return '持平'
+        elif phase == 'accelerating':
+            if moving_towards:
+                return {'green': '加速惡化中（→黃）', 'yellow': '加速惡化中（→紅）'}.get(signal, '加速惡化中')
+            else:
+                return {'red': '加速好轉中（→黃）', 'yellow': '加速好轉中（→綠）'}.get(signal, '加速好轉中')
+        else:
+            if moving_towards:
+                return {'green': '趨緩惡化中（→黃）', 'yellow': '趨緩惡化中（→紅）'}.get(signal, '趨緩惡化中')
+            else:
+                return {'red': '趨緩好轉中（→黃）', 'yellow': '趨緩好轉中（→綠）'}.get(signal, '趨緩好轉中')
+
     def _enrich(sig, vals):
         """為每個訊號補上加速度與統計機率"""
         accel, phase = _acceleration(vals)
@@ -1582,7 +1614,7 @@ def calc_risk_signals(history):
         sig['phase'] = phase  # accelerating / decelerating / stable
         # 當前斜率在歷史上的極端程度（越低=越罕見=越需注意）
         sig['extremity_pct'] = _regime_probability(vals, sig['slope_20d'])
-        # 相位描述
+        # 相位描述 (will be overridden later with direction-aware label)
         phase_labels = {
             'accelerating': '加速惡化中',
             'decelerating': '趨緩/好轉中',
@@ -1743,24 +1775,33 @@ def calc_risk_signals(history):
         s['threshold_yellow'] = th.get('yellow')
         s['threshold_red'] = th.get('red')
         s['threshold_direction'] = th.get('direction', 'up')
-        # Proximity: how far slope is from next threshold (0-100%)
         slope = s['slope_20d']
+        direction = th.get('direction', 'up')
+
+        # Direction-aware proximity: only count when slope moves TOWARDS danger
         if s['signal'] == 'green' and th.get('yellow') is not None:
-            if th['direction'] == 'up':
-                s['proximity_pct'] = round(min(slope / th['yellow'] * 100, 100), 1) if th['yellow'] != 0 else 0
-            elif th['direction'] == 'down':
-                s['proximity_pct'] = round(min(slope / th['yellow'] * 100, 100), 1) if th['yellow'] != 0 else 0
+            if direction == 'up' and slope <= 0:
+                s['proximity_pct'] = 0
+            elif direction == 'down' and slope >= 0:
+                s['proximity_pct'] = 0
+            elif direction in ('up', 'down'):
+                s['proximity_pct'] = round(min(abs(slope / th['yellow']) * 100, 100), 1) if th['yellow'] != 0 else 0
             else:
                 s['proximity_pct'] = None
         elif s['signal'] == 'yellow' and th.get('red') is not None:
-            if th['direction'] == 'up':
-                s['proximity_pct'] = round(min(slope / th['red'] * 100, 100), 1) if th['red'] != 0 else 0
-            elif th['direction'] == 'down':
-                s['proximity_pct'] = round(min(slope / th['red'] * 100, 100), 1) if th['red'] != 0 else 0
+            if direction == 'up' and slope <= 0:
+                s['proximity_pct'] = 0
+            elif direction == 'down' and slope >= 0:
+                s['proximity_pct'] = 0
+            elif direction in ('up', 'down'):
+                s['proximity_pct'] = round(min(abs(slope / th['red']) * 100, 100), 1) if th['red'] != 0 else 0
             else:
                 s['proximity_pct'] = None
         else:
             s['proximity_pct'] = 100  # already at max level
+
+        # Apply direction-aware phase labels
+        s['phase_label'] = _direction_aware_phase_label(s)
 
     # Total score: red=2, yellow=1, max=16 -> scale to 0-10
     raw_score = sum(2 if s['signal'] == 'red' else 1 if s['signal'] == 'yellow' else 0 for s in signals)
