@@ -2,6 +2,69 @@
   "advisories": [
     {
       "date": "2026-03-28",
+      "generated_at": "2026-03-28T07:33:13.271796+08:00",
+      "market_phase": "盤前",
+      "overall_signal": "防守",
+      "data_completeness": 0.33,
+      "action_items": [
+        {
+          "priority": 1,
+          "action": "立即將所有部位降低至目標槓桿 0.6x，VIX 31.05 已觸發黃燈警戒",
+          "reasoning": "VIX 單日漲幅 13.16% 接近 15% 警戒線，且絕對值突破 30，必須主動降低 40% 曝險",
+          "framework": "風控"
+        },
+        {
+          "priority": 2,
+          "action": "檢視並調整所有部位停損點，特別是科技股相關持倉",
+          "reasoning": "00981A 大幅減碼台積電等科技龍頭，顯示法人對科技股短期看法轉趨謹慎",
+          "framework": "部位檢核"
+        },
+        {
+          "priority": 3,
+          "action": "暫停所有新建倉位計畫，等待 VIX 回落並確認趨勢",
+          "reasoning": "VIX 連續 5 日上升配合美股下跌，市場進入高風險期，應優先保護資本",
+          "framework": "決策鐵律"
+        }
+      ],
+      "market_summary": "市場風險急速升溫，VIX 跳升至 31.05（+13.16%），接近黃燈觸發條件。美元、黃金、原油同步上漲顯示避險情緒濃厚。00981A 減碼科技權值股轉向傳統產業，現金水位僅 2.88% 顯示經理人雖積極但已開始調整。台股今日預期震盪加劇，應以風控為最優先考量。",
+      "risk_assessment": "當前風險等級：高度警戒。VIX 單日漲幅 13.16% 逼近 15% 加速度警戒線，絕對值 31.05 遠超正常區間。美股 SPY 連續 5 日下跌，配合美元指數走強，顯示資金撤離風險資產。00981A 大幅減碼科技股可能預示短期調整壓力。期貨保證金僅 0.51% 暗示可能有避險操作。建議立即執行降槓動作，將總曝險降至 0.6x 以下，並設定所有部位硬停損。短期內不建議新增任何多頭部位，等待 VI",
+      "telegram_short": "",
+      "data_sources": {
+        "dashboard": {
+          "date": "2026-03-27",
+          "fresh": false
+        },
+        "strategy": {
+          "date": "2026-03-27",
+          "fresh": false
+        },
+        "news_analysis": {
+          "date": "2026-03-27 23:33",
+          "fresh": true
+        },
+        "ai_research": {
+          "date": "2026-03-27 10:33",
+          "fresh": true
+        },
+        "tsmc_vol_signal": {
+          "date": null,
+          "fresh": false
+        },
+        "indices_history": {
+          "date": null,
+          "fresh": false
+        }
+      },
+      "data_gaps": [
+        "dashboard",
+        "strategy",
+        "tsmc_vol_signal",
+        "indices_history"
+      ],
+      "outcome": null
+    },
+    {
+      "date": "2026-03-28",
       "generated_at": "2026-03-28T06:37:34.226389+08:00",
       "market_phase": "盤前",
       "overall_signal": "防守",
