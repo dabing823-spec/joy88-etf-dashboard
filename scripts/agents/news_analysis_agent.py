@@ -230,6 +230,16 @@ async def run(news_headlines: list[str] | None = None, dry_run: bool = False, fo
 
         # News analyses
         if news_headlines:
+            # Find max existing sequence for today to avoid ID collisions across runs
+            today_prefix = today.replace("-", "")
+            existing_seqs = [
+                int(item["id"].split("_")[1])
+                for item in existing.get("news_analyses", [])
+                if item.get("id", "").startswith(today_prefix + "_")
+                and "_" in item.get("id", "")
+            ]
+            next_seq = max(existing_seqs, default=0) + 1
+
             for headline in news_headlines:
                 log(f"分析新聞: {headline[:60]}...")
                 question = build_news_question(headline)
@@ -237,7 +247,8 @@ async def run(news_headlines: list[str] | None = None, dry_run: bool = False, fo
                 log(f"  收到回應（{len(raw)} 字）")
                 layers = parse_layer_response(raw)
                 category, cat_color = guess_category(headline)
-                news_id = today.replace("-", "") + f"_{len(existing['news_analyses']) + 1:03d}"
+                news_id = f"{today_prefix}_{next_seq:03d}"
+                next_seq += 1
                 entry = {
                     "id": news_id,
                     "date": today,

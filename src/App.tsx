@@ -15,7 +15,7 @@ function lazyRetry(load: () => Promise<{ [key: string]: any }>, name: string) {
           sessionStorage.setItem(key, '1')
           window.location.reload()
         }
-        return { default: () => null }
+        throw new Error(`Failed to load ${name}`)
       })
   )
 }
