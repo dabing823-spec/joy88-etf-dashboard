@@ -2,6 +2,69 @@
   "advisories": [
     {
       "date": "2026-03-28",
+      "generated_at": "2026-03-28T10:06:08.626442+08:00",
+      "market_phase": "盤前",
+      "overall_signal": "防守",
+      "data_completeness": 0.33,
+      "action_items": [
+        {
+          "priority": 1,
+          "action": "立即降低曝險40%，賣出所有衛星倉位並減碼1/3核心倉位",
+          "reasoning": "VIX 31.05(+13.16%)觸發黃燈條件，且5日持續上升趨勢",
+          "framework": "風控"
+        },
+        {
+          "priority": 2,
+          "action": "檢查所有部位設定移動停損在成本價+5%或當前價-3%取高者",
+          "reasoning": "VIX飆升環境下必須守住既有獲利，避免回吐",
+          "framework": "決策鐵律"
+        },
+        {
+          "priority": 3,
+          "action": "暫停00981A的加碼計畫，現金水位2.88%過低不利風控",
+          "reasoning": "經理人滿倉操作遇VIX飆升，散戶應反向保守",
+          "framework": "三層次分析"
+        }
+      ],
+      "market_summary": "美股隱含極高風險警訊：VIX飆升至31.05(+13.16%)創近期新高，油價大漲7.09%至101.18，黃金避險買盤湧入漲3.33%。DXY持續走強顯示資金回流美元避險。SPY連5日下跌、HYG走弱暗示風險資產遭拋售。台股今日開盤恐面臨賣壓，00981A經理人滿倉操作(現金僅2.88%)且減碼科",
+      "risk_assessment": "系統觸發多重風險警示：1)VIX黃燈立即生效，需降低40%曝險；2)油價破百+黃金大漲為典型風險規避訊號；3)00981A現金水位過低(2.88%)且期貨保證金僅0.51%，顯示經理人可能被迫在高點滿倉，後續調整空間有限；4)TSMC波動率高檔(RV20d=39.79%，90百分位)不利持股。綜合判斷市場進入高風險期，守住獲利優先於一切，寧可錯過反彈也要避免在高波動期承受不必要虧損。建議開盤後迅速",
+      "telegram_short": "",
+      "data_sources": {
+        "dashboard": {
+          "date": "2026-03-27",
+          "fresh": false
+        },
+        "strategy": {
+          "date": "2026-03-27",
+          "fresh": false
+        },
+        "news_analysis": {
+          "date": "2026-03-28 02:06",
+          "fresh": true
+        },
+        "ai_research": {
+          "date": "2026-03-27 10:33",
+          "fresh": true
+        },
+        "tsmc_vol_signal": {
+          "date": null,
+          "fresh": false
+        },
+        "indices_history": {
+          "date": null,
+          "fresh": false
+        }
+      },
+      "data_gaps": [
+        "dashboard",
+        "strategy",
+        "tsmc_vol_signal",
+        "indices_history"
+      ],
+      "outcome": null
+    },
+    {
+      "date": "2026-03-28",
       "generated_at": "2026-03-28T07:33:13.271796+08:00",
       "market_phase": "盤前",
       "overall_signal": "防守",
