@@ -35,147 +35,145 @@ interface HistoryPoint {
 }
 
 const SIGNAL_ORDER = ['red', 'yellow', 'green']
-const PHASE_COLORS: Record<string, string> = {
-  accelerating: palette.up,
-  decelerating: palette.info,
-  stable: palette.textMuted,
-}
-const PHASE_ICONS: Record<string, string> = {
-  accelerating: '▲',
-  decelerating: '▼',
-  stable: '●',
+
+/* ── Signal weight in composite (red=2, yellow=1, green=0) ── */
+const SIGNAL_WEIGHT: Record<string, number> = { red: 2, yellow: 1, green: 0 }
+
+/* ── Heat block sizes based on signal importance ── */
+const BLOCK_SIZES: Record<string, 'large' | 'medium' | 'small'> = {
+  vix: 'large',
+  spy_jpy: 'large',
+  fear_greed: 'medium',
+  oil: 'medium',
+  dxy: 'medium',
+  hyg_tlt: 'medium',
+  us10y: 'small',
+  gold: 'small',
 }
 
-/* ── Score Ring (SVG gauge) ─────────────────────────── */
-function ScoreRing({ score, maxScore, level }: { score: number; maxScore: number; level: string }) {
-  const pct = Math.min(score / maxScore, 1)
-  const r = 68
-  const circumference = 2 * Math.PI * r
-  const offset = circumference * (1 - pct)
-  const color = LEVEL_MAP[level]?.color || RISK_COLORS.green
-
+/* ── Composite Score Badge ─────────────────────────── */
+function ScoreBadge({ score, maxScore, level }: { score: number; maxScore: number; level: string }) {
+  const { label, color } = LEVEL_MAP[level] || LEVEL_MAP.green
   return (
-    <div className="relative w-44 h-44 shrink-0">
-      <svg width="176" height="176" viewBox="0 0 176 176">
-        {/* Track */}
-        <circle cx="88" cy="88" r={r} fill="none" stroke="var(--color-border)" strokeWidth="8" opacity={0.4} />
-        {/* Gradient tick marks */}
-        {Array.from({ length: 40 }).map((_, i) => {
-          const angle = (i / 40) * 360 - 90
-          const rad = (angle * Math.PI) / 180
-          const x1 = 88 + (r - 6) * Math.cos(rad)
-          const y1 = 88 + (r - 6) * Math.sin(rad)
-          const x2 = 88 + (r + 2) * Math.cos(rad)
-          const y2 = 88 + (r + 2) * Math.sin(rad)
-          const filled = i / 40 <= pct
-          return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={filled ? color : 'var(--color-border)'} strokeWidth={filled ? 2 : 1} opacity={filled ? 0.8 : 0.2} />
-        })}
-        {/* Progress arc */}
-        <circle
-          cx="88" cy="88" r={r} fill="none" stroke={color} strokeWidth="8"
-          strokeDasharray={circumference} strokeDashoffset={offset}
-          strokeLinecap="round" transform="rotate(-90 88 88)"
-          style={{ transition: 'stroke-dashoffset 1s ease, stroke 0.5s', filter: `drop-shadow(0 0 6px ${color}40)` }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-black tabular-nums" style={{ color }}>{score}</span>
-        <span className="text-xs text-text-muted font-medium">/ {maxScore}</span>
+    <div className="flex items-center gap-3 px-4 py-2 rounded-xl border" style={{ borderColor: `${color}40`, backgroundColor: `${color}08` }}>
+      <div className="text-3xl font-black tabular-nums" style={{ color }}>{score}</div>
+      <div>
+        <div className="text-xs text-text-muted">/{maxScore}</div>
+        <div className="text-xs font-semibold" style={{ color }}>{label.replace(/🔴|🟡|🟢/g, '').trim()}</div>
       </div>
     </div>
   )
 }
 
-/* ── Extremity Bar ──────────────────────────────────── */
-function ExtremityBar({ pct, color }: { pct: number; color: string }) {
-  return (
-    <div className="w-full h-1.5 bg-border/40 rounded-full overflow-hidden">
-      <div
-        className="h-full rounded-full transition-all duration-700"
-        style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: color, boxShadow: pct > 70 ? `0 0 6px ${color}60` : 'none' }}
-      />
-    </div>
-  )
-}
+/* ── 30-Day Score Timeline ─────────────────────────── */
+function ScoreTimeline({ history }: { history: Array<{ date: string; score: number }> }) {
+  if (history.length < 3) return null
 
-/* ── Sparkline (SVG) ────────────────────────────────── */
-function Sparkline({ data, color, height = 32 }: { data: number[]; color: string; height?: number }) {
-  if (data.length < 3) return null
-  const w = data.length * 4
-  const min = Math.min(...data)
-  const max = Math.max(...data)
-  const range = max - min || 1
-  const points = data.map((v, i) => `${i * 4},${height - 2 - ((v - min) / range) * (height - 4)}`).join(' ')
-  const fillPoints = `0,${height} ${points} ${(data.length - 1) * 4},${height}`
+  const max = Math.max(...history.map(h => h.score))
+  const peakIdx = history.findIndex(h => h.score === max)
 
-  return (
-    <svg viewBox={`0 0 ${w} ${height}`} className="w-full" style={{ height }} preserveAspectRatio="none">
-      <polygon points={fillPoints} fill={`${color}10`} />
-      <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" />
-      {/* Latest point dot */}
-      <circle cx={(data.length - 1) * 4} cy={height - 2 - ((data[data.length - 1] - min) / range) * (height - 4)} r="2.5" fill={color} />
-    </svg>
-  )
-}
-
-/* ── Signal Card ────────────────────────────────────── */
-const GLOW_CLASS: Record<string, string> = {
-  red: 'border-l-[3px] border-l-danger animate-[pulse-glow-danger_1.2s_ease-in-out_infinite]',
-  yellow: 'border-l-[3px] border-l-warning animate-[pulse-glow-warning_3s_ease-in-out_infinite]',
-  green: 'border-l-[3px] border-l-accent',
-}
-
-function SignalCard({ signal, history, onClick }: { signal: SignalItem; history?: HistoryPoint[]; onClick: () => void }) {
-  const color = RISK_COLORS[signal.signal] || RISK_COLORS.green
-  const sparkData = (history || []).slice(-30).map(h => h.close)
-  const glow = GLOW_CLASS[signal.signal] || GLOW_CLASS.green
-  const phaseColor = PHASE_COLORS[signal.phase] || '#9ca0b4'
-  const phaseIcon = PHASE_ICONS[signal.phase] || '●'
+  const chartData = {
+    labels: history.map(h => h.date.slice(5)),
+    datasets: [{
+      label: 'Composite Score',
+      data: history.map(h => h.score),
+      borderColor: palette.accent,
+      backgroundColor: `${palette.accent}15`,
+      borderWidth: 2.5,
+      tension: 0.35,
+      pointRadius: history.map((_, i) => i === history.length - 1 || i === peakIdx ? 4 : 0),
+      pointBackgroundColor: history.map((_, i) => i === peakIdx ? palette.up : palette.accent),
+      pointBorderColor: history.map((_, i) => i === peakIdx ? palette.up : palette.accent),
+      fill: true,
+    }],
+  }
 
   return (
-    <button onClick={onClick} className={`group w-full text-left bg-card border border-border rounded-xl p-4 hover:bg-card-hover hover:border-accent/30 transition-all duration-200 ${glow}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs font-semibold text-text-primary tracking-wide">{signal.name}</span>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color }}>{signal.signal}</span>
-          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}80` }} />
+    <div className="bg-card border border-border rounded-xl p-4">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">30-Day Composite Risk Score Timeline</h3>
+        <div className="flex items-center gap-3 text-2xs text-text-muted">
+          <span>Peak: <span className="text-up font-bold">{max.toFixed(1)}</span></span>
+          <span>Current: <span className="text-accent font-bold">{history[history.length - 1]?.score.toFixed(1)}</span></span>
         </div>
       </div>
-
-      {/* Value + Phase */}
-      <div className="flex items-baseline gap-2 mb-1">
-        <span className="text-2xl font-black tabular-nums" style={{ color }}>{signal.value?.toFixed(2) ?? '-'}</span>
-        <span className="text-[10px] font-semibold tabular-nums" style={{ color: phaseColor }}>
-          {phaseIcon} {signal.phase_label}
-        </span>
+      <div className="h-28">
+        <Line data={chartData} options={{
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            ...defaultPluginOptions,
+            tooltip: {
+              mode: 'index' as const, intersect: false,
+              backgroundColor: 'rgba(15,17,28,0.95)', borderColor: `${palette.accent}50`, borderWidth: 1,
+              titleColor: '#e4e6eb', bodyColor: '#9ca0b4', padding: 8, cornerRadius: 8,
+              bodyFont: { family: 'monospace', size: 11 },
+              callbacks: { label: (ctx: { parsed: { y: number | null } }) => ` Score: ${ctx.parsed.y?.toFixed(1) ?? '-'} / 10` },
+            },
+          },
+          scales: {
+            y: { ...defaultScaleOptions, min: 0, max: 10, ticks: { ...defaultScaleOptions.ticks, stepSize: 2 }, grid: { color: 'rgba(42,46,61,0.3)' } },
+            x: { ...defaultScaleOptions, ticks: { ...defaultScaleOptions.ticks, maxRotation: 0, autoSkipPadding: 30 }, grid: { display: false } },
+          },
+        }} />
       </div>
+    </div>
+  )
+}
 
-      {/* Slope + Accel */}
-      <div className="flex items-center gap-3 mb-2 text-[10px] tabular-nums text-text-muted">
-        <span>slope <span style={{ color }}>{signal.slope_20d >= 0 ? '+' : ''}{signal.slope_20d.toFixed(4)}</span></span>
-        <span>accel <span className={signal.accel > 0 ? 'text-up' : signal.accel < 0 ? 'text-down' : ''}>{signal.accel >= 0 ? '+' : ''}{signal.accel.toFixed(4)}</span></span>
-      </div>
+/* ── Heat Block (treemap cell) ─────────────────────── */
+function HeatBlock({ signal, size, onClick }: { signal: SignalItem; size: 'large' | 'medium' | 'small'; onClick: () => void }) {
+  const color = RISK_COLORS[signal.signal] || RISK_COLORS.green
+  const bgIntensity = signal.signal === 'red' ? '25' : signal.signal === 'yellow' ? '18' : '12'
+  const sizeClass = size === 'large' ? 'col-span-2 row-span-2' : size === 'medium' ? 'col-span-1 row-span-2' : 'col-span-1 row-span-1'
+  const weight = SIGNAL_WEIGHT[signal.signal] || 0
+  const glowClass = signal.signal === 'red'
+    ? 'animate-[pulse-glow-danger_1.2s_ease-in-out_infinite]'
+    : signal.signal === 'yellow'
+    ? 'animate-[pulse-glow-warning_3s_ease-in-out_infinite]'
+    : ''
 
-      {/* Sparkline */}
-      <Sparkline data={sparkData} color={color} height={36} />
+  return (
+    <button
+      onClick={onClick}
+      className={`relative text-left rounded-xl border transition-all hover:scale-[1.02] hover:z-10 overflow-hidden ${sizeClass} ${glowClass}`}
+      style={{
+        borderColor: `${color}40`,
+        backgroundColor: `${color}${bgIntensity}`,
+      }}
+    >
+      {/* Severity indicator bar */}
+      <div className="absolute top-0 left-0 right-0 h-0.5" style={{ backgroundColor: color, opacity: 0.8 }} />
 
-      {/* Proximity + Extremity */}
-      <div className="mt-2 space-y-1.5">
-        {signal.proximity_label && (
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] text-text-muted shrink-0 w-14">{signal.proximity_label}</span>
-            <div className="flex-1 h-1.5 bg-border/30 rounded-full overflow-hidden">
-              <div className="h-full rounded-full transition-all duration-700" style={{
-                width: `${signal.proximity_pct ?? 0}%`,
-                backgroundColor: (signal.proximity_pct ?? 0) > 80 ? palette.up : (signal.proximity_pct ?? 0) > 50 ? palette.warning : palette.down,
-              }} />
+      <div className={`p-3 h-full flex flex-col justify-between ${size === 'small' ? 'p-2.5' : 'p-4'}`}>
+        {/* Header */}
+        <div>
+          <div className="flex items-center justify-between mb-0.5">
+            <span className={`font-semibold text-text-primary ${size === 'large' ? 'text-sm' : 'text-xs'}`}>{signal.name}</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color }}>{signal.signal}</span>
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}` }} />
             </div>
           </div>
-        )}
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] text-text-muted shrink-0 w-14">極端 P{signal.extremity_pct?.toFixed(0)}</span>
-          <ExtremityBar pct={signal.extremity_pct} color={color} />
+          {size !== 'small' && <div className="text-[10px] text-text-muted truncate">{signal.desc}</div>}
+        </div>
+
+        {/* Value */}
+        <div>
+          <div className={`font-black tabular-nums ${size === 'large' ? 'text-3xl' : size === 'medium' ? 'text-2xl' : 'text-xl'}`} style={{ color }}>
+            {signal.value?.toFixed(2) ?? '-'}
+          </div>
+          <div className="flex items-center gap-2 text-[10px] text-text-muted tabular-nums mt-0.5">
+            {size !== 'small' && (
+              <>
+                <span>W: {weight}</span>
+                <span>P{signal.extremity_pct?.toFixed(0)}</span>
+                <span className={signal.slope_20d >= 0 ? 'text-up' : 'text-down'}>
+                  {signal.slope_20d >= 0 ? '▲' : '▼'} {Math.abs(signal.slope_20d).toFixed(4)}
+                </span>
+              </>
+            )}
+            {size === 'small' && <span>P{signal.extremity_pct?.toFixed(0)}</span>}
+          </div>
         </div>
       </div>
     </button>
@@ -185,7 +183,6 @@ function SignalCard({ signal, history, onClick }: { signal: SignalItem; history?
 /* ── Signal Detail Modal ────────────────────────────── */
 function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; history: HistoryPoint[]; onClose: () => void }) {
   const color = RISK_COLORS[signal.signal] || RISK_COLORS.green
-  const phaseColor = PHASE_COLORS[signal.phase] || '#9ca0b4'
 
   const chartData = history.length > 0 ? {
     labels: history.map(h => h.date.slice(5)),
@@ -198,7 +195,6 @@ function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; h
     }],
   } : null
 
-  // Compute 20d linear regression for trend line overlay
   const trendLine = useMemo(() => {
     if (history.length < 5) return null
     const last20 = history.slice(-20)
@@ -219,7 +215,7 @@ function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; h
     datasets: [
       ...chartData.datasets,
       {
-        label: '20d 趨勢線',
+        label: '20d Trend',
         data: history.map((_, i) => {
           if (i < trendLine.startIdx) return null
           const localIdx = i - trendLine.startIdx
@@ -234,7 +230,6 @@ function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; h
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="bg-card border border-border rounded-2xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto" style={{ borderColor: `${color}30` }}>
-        {/* Header with color accent */}
         <div className="p-6 pb-0">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -249,11 +244,11 @@ function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; h
         {/* KPI Strip */}
         <div className="px-6 grid grid-cols-2 sm:grid-cols-5 gap-2 mb-5">
           {[
-            { label: '當前值', value: signal.value?.toFixed(2) ?? '-', vColor: color },
-            { label: '20d 斜率', value: signal.slope_20d != null ? `${signal.slope_20d >= 0 ? '+' : ''}${signal.slope_20d.toFixed(4)}` : '-', vColor: color },
-            { label: '加速度', value: signal.accel != null ? `${signal.accel >= 0 ? '+' : ''}${signal.accel.toFixed(4)}` : '-', vColor: signal.accel > 0 ? palette.up : signal.accel < 0 ? palette.down : palette.textMuted },
-            { label: '極端度', value: signal.extremity_pct != null ? `P${signal.extremity_pct.toFixed(0)}` : '-', vColor: signal.extremity_pct > 70 ? palette.warning : palette.textMuted },
-            { label: '趨勢', value: signal.phase_label, vColor: phaseColor },
+            { label: 'Current', value: signal.value?.toFixed(2) ?? '-', vColor: color },
+            { label: '20d Slope', value: signal.slope_20d != null ? `${signal.slope_20d >= 0 ? '+' : ''}${signal.slope_20d.toFixed(4)}` : '-', vColor: color },
+            { label: 'Accel', value: signal.accel != null ? `${signal.accel >= 0 ? '+' : ''}${signal.accel.toFixed(4)}` : '-', vColor: signal.accel > 0 ? palette.up : signal.accel < 0 ? palette.down : palette.textMuted },
+            { label: 'Extremity', value: signal.extremity_pct != null ? `P${signal.extremity_pct.toFixed(0)}` : '-', vColor: signal.extremity_pct > 70 ? palette.warning : palette.textMuted },
+            { label: 'Phase', value: signal.phase_label, vColor: palette.textMuted },
           ].map(kpi => (
             <div key={kpi.label} className="bg-bg rounded-xl p-3">
               <div className="text-[10px] text-text-muted mb-1 uppercase tracking-wider">{kpi.label}</div>
@@ -269,7 +264,7 @@ function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; h
 
         {/* Chart */}
         {chartDataWithTrend && (
-          <div className="mx-6 mb-4">
+          <div className="mx-6 mb-6">
             <div className="h-64">
               <Line data={chartDataWithTrend} options={{
                 responsive: true, maintainAspectRatio: false,
@@ -290,29 +285,77 @@ function SignalDetailModal({ signal, history, onClose }: { signal: SignalItem; h
             </div>
           </div>
         )}
-
-        {/* Extremity bar (large) */}
-        <div className="mx-6 mb-6 p-4 bg-bg rounded-xl">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-text-muted">歷史斜率分布中的位置</span>
-            <span className="text-sm font-bold tabular-nums" style={{ color }}>{signal.extremity_pct?.toFixed(1)}%</span>
-          </div>
-          <div className="relative w-full h-3 bg-border/30 rounded-full overflow-hidden">
-            {/* Gradient background */}
-            <div className="absolute inset-0 rounded-full" style={{ background: `linear-gradient(to right, ${palette.down}30, ${palette.warning}30, ${palette.up}30)` }} />
-            {/* Marker */}
-            <div
-              className="absolute top-0 h-full w-1 rounded-full"
-              style={{ left: `${Math.min(signal.extremity_pct, 99)}%`, backgroundColor: color, boxShadow: `0 0 6px ${color}` }}
-            />
-          </div>
-          <div className="flex justify-between text-[9px] text-text-muted mt-1">
-            <span>正常</span>
-            <span>偏高</span>
-            <span>極端</span>
-          </div>
-        </div>
       </div>
+    </div>
+  )
+}
+
+/* ── Signal Contribution Sidebar ───────────────────── */
+function SignalContribution({ signals }: { signals: SignalItem[] }) {
+  const sorted = [...signals].sort((a, b) => {
+    const wa = SIGNAL_WEIGHT[a.signal] || 0
+    const wb = SIGNAL_WEIGHT[b.signal] || 0
+    return wb - wa || (b.extremity_pct ?? 0) - (a.extremity_pct ?? 0)
+  })
+  const maxWeight = 2
+
+  return (
+    <div className="bg-card border border-border rounded-xl p-4">
+      <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Signal Contribution</h3>
+      <div className="space-y-2">
+        {sorted.map(s => {
+          const color = RISK_COLORS[s.signal] || RISK_COLORS.green
+          const weight = SIGNAL_WEIGHT[s.signal] || 0
+          const barPct = (weight / maxWeight) * 100
+          return (
+            <div key={s.key} className="flex items-center gap-2">
+              <span className="w-20 text-xs text-text-muted truncate">{s.name.replace(/\s+/g, '').slice(0, 8)}</span>
+              <div className="flex-1 h-2 bg-border/30 rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all" style={{ width: `${Math.max(barPct, 5)}%`, backgroundColor: color }} />
+              </div>
+              <span className="text-xs font-bold tabular-nums w-8 text-right" style={{ color }}>{weight.toFixed(1)}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ── Risk Zone Indicator ───────────────────────────── */
+function RiskZone({ score, maxScore }: { score: number; maxScore: number }) {
+  const zones = [
+    { label: 'SAFE', max: 2, color: palette.down },
+    { label: 'LOW', max: 4, color: palette.info },
+    { label: 'MID', max: 6, color: palette.warning },
+    { label: 'HIGH', max: 8, color: palette.up },
+    { label: 'CRIT', max: 10, color: '#ff2222' },
+  ]
+  const pct = Math.min((score / maxScore) * 100, 100)
+
+  return (
+    <div className="bg-card border border-border rounded-xl p-4">
+      <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Risk Zone</h3>
+      <div className="flex gap-0.5 mb-2">
+        {zones.map(z => {
+          const isActive = score <= z.max && score > (z.max - 2)
+          return (
+            <div key={z.label} className="flex-1 text-center">
+              <div
+                className="h-3 rounded-sm transition-all"
+                style={{
+                  backgroundColor: isActive ? z.color : `${z.color}20`,
+                  boxShadow: isActive ? `0 0 8px ${z.color}60` : undefined,
+                }}
+              />
+              <div className="text-[8px] mt-1 font-bold tracking-wider" style={{ color: isActive ? z.color : palette.textMuted }}>
+                {z.label}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div className="text-xs text-text-muted text-center tabular-nums">Current: {score} / {maxScore}</div>
     </div>
   )
 }
@@ -325,14 +368,21 @@ export function P8RiskSignals() {
   const riskSignals = strategy?.risk_signals
   const signals = (riskSignals?.signals || []) as unknown as SignalItem[]
   const historyMap = riskSignals?.history || {}
+  const scoreHistory = riskSignals?.score_history || []
 
-  // Sort by severity: red → yellow → green, then by extremity desc
   const sortedSignals = useMemo(() =>
     [...signals].sort((a, b) => {
       const oi = SIGNAL_ORDER.indexOf(a.signal) - SIGNAL_ORDER.indexOf(b.signal)
       return oi !== 0 ? oi : (b.extremity_pct ?? 0) - (a.extremity_pct ?? 0)
     })
   , [signals])
+
+  // Map signals by key for the grid layout
+  const signalMap = useMemo(() => {
+    const m: Record<string, SignalItem> = {}
+    signals.forEach(s => { m[s.key] = s })
+    return m
+  }, [signals])
 
   if (!riskSignals) {
     return (
@@ -343,66 +393,90 @@ export function P8RiskSignals() {
     )
   }
 
-  const { label: levelLabel, color: levelColor } = LEVEL_MAP[riskSignals.level] || LEVEL_MAP.green
+  // Grid layout: large blocks for VIX + SPY/JPY, medium for others, small for US10Y + Gold
+  const gridSignals = [
+    { key: 'vix', size: 'large' as const },
+    { key: 'spy_jpy', size: 'large' as const },
+    { key: 'oil', size: 'medium' as const },
+    { key: 'fear_greed', size: 'medium' as const },
+    { key: 'dxy', size: 'medium' as const },
+    { key: 'hyg_tlt', size: 'medium' as const },
+    { key: 'us10y', size: 'small' as const },
+    { key: 'gold', size: 'small' as const },
+  ]
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold font-display text-text-primary">Macro Risk Dashboard</h1>
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold font-display text-text-primary">Macro Risk Dashboard</h1>
+        <ScoreBadge score={riskSignals.score} maxScore={riskSignals.max_score} level={riskSignals.level} />
+      </div>
 
       <IntroBox>
         8 個宏觀風險指標的 20 日趨勢斜率追蹤。核心：<strong>速度比位置重要</strong> — VIX 從 15 漲到 20 比維持在 25 更危險。
-        <strong> SPY/JPY</strong> 套利平倉是最強領先指標、<strong>HYG/TLT</strong> 反映流動性枯竭速度。
+        方塊大小 = 信號權重，顏色深淺 = 嚴重度。點擊任一方塊查看詳情。
       </IntroBox>
 
-      {/* ── Hero: Score + Signal Summary ── */}
-      <div className="bg-card border border-border rounded-2xl overflow-hidden">
-        <div className="flex flex-col sm:flex-row items-center gap-6 p-6">
-          <ScoreRing score={riskSignals.score} maxScore={riskSignals.max_score} level={riskSignals.level} />
-          <div className="flex-1 min-w-0">
-            <div className="text-2xl font-bold mb-2" style={{ color: levelColor }}>{levelLabel}</div>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {sortedSignals.map(s => {
-                const c = RISK_COLORS[s.signal] || RISK_COLORS.green
-                return (
-                  <button
-                    key={s.key}
-                    onClick={() => setSelectedSignal(s)}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all hover:scale-105"
-                    style={{ backgroundColor: `${c}15`, color: c, border: `1px solid ${c}30` }}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: c }} />
-                    {s.name}
-                  </button>
-                )
-              })}
-            </div>
-            <div className="flex items-center gap-4 text-xs text-text-muted">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-danger" /> {riskSignals.n_red} Red</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-warning" /> {riskSignals.n_yellow} Yellow</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: palette.down }} /> {riskSignals.n_green} Green</span>
-              {riskSignals.updated_at && <span className="ml-auto opacity-60">{riskSignals.updated_at}</span>}
+      {/* ── 30-Day Score Timeline ── */}
+      <ScoreTimeline history={scoreHistory} />
+
+      {/* ── Heat Matrix + Sidebar ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-3">
+        {/* Heat Matrix Grid */}
+        <div className="grid grid-cols-4 grid-rows-4 gap-2 auto-rows-fr" style={{ minHeight: '420px' }}>
+          {gridSignals.map(({ key, size }) => {
+            const signal = signalMap[key]
+            if (!signal) return null
+            return (
+              <HeatBlock
+                key={key}
+                signal={signal}
+                size={size}
+                onClick={() => setSelectedSignal(signal)}
+              />
+            )
+          })}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-3">
+          {/* Score Stats */}
+          <div className="bg-card border border-border rounded-xl p-4">
+            <div className="grid grid-cols-1 gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-text-muted">Current Score</span>
+                <span className="text-sm font-bold text-accent tabular-nums">{riskSignals.score}</span>
+              </div>
+              {scoreHistory.length > 0 && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-text-muted">30D High</span>
+                    <span className="text-sm font-bold text-up tabular-nums">{Math.max(...scoreHistory.map(h => h.score)).toFixed(1)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-text-muted">30D Low</span>
+                    <span className="text-sm font-bold text-down tabular-nums">{Math.min(...scoreHistory.map(h => h.score)).toFixed(1)}</span>
+                  </div>
+                </>
+              )}
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-text-muted">Alerts</span>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-danger" />{riskSignals.n_red}</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-warning" />{riskSignals.n_yellow}</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: palette.down }} />{riskSignals.n_green}</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Mini severity bar at bottom of hero */}
-        <div className="flex h-1">
-          {sortedSignals.map(s => (
-            <div key={s.key} className="flex-1" style={{ backgroundColor: RISK_COLORS[s.signal] || RISK_COLORS.green, opacity: 0.7 }} />
-          ))}
-        </div>
-      </div>
+          {/* Signal Contribution */}
+          <SignalContribution signals={sortedSignals} />
 
-      {/* ── Signal Cards Grid ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {sortedSignals.map(signal => (
-          <SignalCard
-            key={signal.key}
-            signal={signal}
-            history={historyMap[signal.key]}
-            onClick={() => setSelectedSignal(signal)}
-          />
-        ))}
+          {/* Risk Zone */}
+          <RiskZone score={riskSignals.score} maxScore={riskSignals.max_score} />
+        </div>
       </div>
 
       {/* ── Signal Detail Modal ── */}
@@ -442,6 +516,11 @@ export function P8RiskSignals() {
           </div>
         </div>
       </details>
+
+      {/* ── Footer ── */}
+      {riskSignals.updated_at && (
+        <div className="text-xs text-text-muted text-right">Pipeline OK {riskSignals.updated_at}</div>
+      )}
     </div>
   )
 }

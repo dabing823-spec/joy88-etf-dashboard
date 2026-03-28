@@ -128,6 +128,7 @@ export interface RiskSignals {
   n_green: number
   signals: RiskSignal[]
   history: Record<string, Array<{ date: string; close: number }>>
+  score_history?: Array<{ date: string; score: number }>
   updated_at: string
 }
 
