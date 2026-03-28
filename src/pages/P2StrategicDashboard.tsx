@@ -104,10 +104,10 @@ function MacroCell({ emoji, label, value, chgPct, hint }: { emoji: string; label
     <div className="p-4 border-r border-border/30 last:border-r-0">
       <div className="flex items-center gap-1.5 mb-1">
         <span className="text-xl">{emoji}</span>
-        <span className="text-sm text-text-muted uppercase tracking-wider">{label}</span>
+        <span className="text-base text-text-muted uppercase tracking-wider">{label}</span>
       </div>
       <div className="flex items-baseline gap-2">
-        <span className="text-2xl font-bold text-text-primary tabular-nums">{value?.toFixed(2) ?? '-'}</span>
+        <span className="text-3xl font-bold text-text-primary tabular-nums">{value?.toFixed(2) ?? '-'}</span>
         <Chg val={chgPct} suffix="%" />
       </div>
       <div className="text-xs text-text-muted mt-1 opacity-50">{hint}</div>
@@ -312,38 +312,38 @@ export function P2StrategicDashboard() {
           {/* Risk Score */}
           {riskSignals && (
             <Link to="/risk" className="p-4 border-b lg:border-b-0 lg:border-r border-border hover:bg-card-hover transition-colors flex flex-col items-center justify-center min-w-[140px]">
-              <div className="text-sm text-text-muted uppercase tracking-wider mb-1">Risk Score</div>
-              <div className="text-4xl font-black tabular-nums" style={{ color: (LEVEL_MAP[riskSignals.level] || LEVEL_MAP.green).color }}>
+              <div className="text-base text-text-muted uppercase tracking-wider mb-1">Risk Score</div>
+              <div className="text-5xl font-black tabular-nums" style={{ color: (LEVEL_MAP[riskSignals.level] || LEVEL_MAP.green).color }}>
                 {riskSignals.score}
               </div>
-              <div className="text-sm" style={{ color: (LEVEL_MAP[riskSignals.level] || LEVEL_MAP.green).color }}>
+              <div className="text-base" style={{ color: (LEVEL_MAP[riskSignals.level] || LEVEL_MAP.green).color }}>
                 /{riskSignals.max_score} {(LEVEL_MAP[riskSignals.level] || LEVEL_MAP.green).label.replace(/🔴|🟡|🟢/g, '').trim()}
               </div>
               <div className="flex items-center gap-2 mt-2">
-                <span className="flex items-center gap-1 text-sm"><span className="w-3 h-3 rounded-full bg-danger" />{riskSignals.n_red}</span>
-                <span className="flex items-center gap-1 text-sm"><span className="w-3 h-3 rounded-full bg-warning" />{riskSignals.n_yellow}</span>
-                <span className="flex items-center gap-1 text-sm"><span className="w-3 h-3 rounded-full" style={{ backgroundColor: palette.down }} />{riskSignals.n_green}</span>
+                <span className="flex items-center gap-1 text-base"><span className="w-3 h-3 rounded-full bg-danger" />{riskSignals.n_red}</span>
+                <span className="flex items-center gap-1 text-base"><span className="w-3 h-3 rounded-full bg-warning" />{riskSignals.n_yellow}</span>
+                <span className="flex items-center gap-1 text-base"><span className="w-3 h-3 rounded-full" style={{ backgroundColor: palette.down }} />{riskSignals.n_green}</span>
               </div>
             </Link>
           )}
 
           {/* KPI Strip */}
-          <div className="grid grid-cols-2 lg:grid-cols-1 gap-0 min-w-[180px]">
+          <div className="grid grid-cols-2 lg:grid-cols-1 gap-0 min-w-[190px]">
             <div className="p-4 border-b border-r lg:border-r-0 border-border">
-              <div className="text-sm text-text-muted uppercase tracking-wider mb-0.5">Mode</div>
-              <div className="text-2xl font-bold" style={{ color: modeColor }}>{cashMode?.mode?.replace(/🔵|🟢|🟡|🔴/g, '').trim() || '-'}</div>
+              <div className="text-base text-text-muted uppercase tracking-wider mb-0.5">Mode</div>
+              <div className="text-3xl font-bold" style={{ color: modeColor }}>{cashMode?.mode?.replace(/🔵|🟢|🟡|🔴/g, '').trim() || '-'}</div>
             </div>
             <div className="p-4 border-b border-border">
-              <div className="text-sm text-text-muted uppercase tracking-wider mb-0.5">Cash</div>
-              <div className={`text-2xl font-bold ${cashPctile >= 70 ? 'text-up' : cashPctile <= 30 ? 'text-down' : 'text-text-primary'}`}>{cashNow.toFixed(1)}%</div>
+              <div className="text-base text-text-muted uppercase tracking-wider mb-0.5">Cash</div>
+              <div className={`text-3xl font-bold ${cashPctile >= 70 ? 'text-up' : cashPctile <= 30 ? 'text-down' : 'text-text-primary'}`}>{cashNow.toFixed(1)}%</div>
             </div>
             <div className="p-4 border-r lg:border-r-0 border-border">
-              <div className="text-sm text-text-muted uppercase tracking-wider mb-0.5">Today</div>
-              <div className="text-2xl font-bold text-accent">{totalSignals}</div>
+              <div className="text-base text-text-muted uppercase tracking-wider mb-0.5">Today</div>
+              <div className="text-3xl font-bold text-accent">{totalSignals}</div>
             </div>
             <div className="p-4">
-              <div className="text-sm text-text-muted uppercase tracking-wider mb-0.5">Holdings</div>
-              <div className="text-2xl font-bold text-text-primary">{cashMode?.n_holdings || 0}</div>
+              <div className="text-base text-text-muted uppercase tracking-wider mb-0.5">Holdings</div>
+              <div className="text-3xl font-bold text-text-primary">{cashMode?.n_holdings || 0}</div>
             </div>
           </div>
         </div>
@@ -354,7 +354,7 @@ export function P2StrategicDashboard() {
           ══════════════════════════════════════════════════ */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="px-4 py-2 border-b border-border flex items-center justify-between">
-          <h2 className="text-base font-semibold text-text-muted uppercase tracking-wider">Market Intel</h2>
+          <h2 className="text-lg font-semibold text-text-muted uppercase tracking-wider">Market Intel</h2>
           <span className="text-xs text-text-muted tracking-wider">TAIEX · TPEX · VIX · F&G · DXY · OIL · GOLD · YIELD</span>
         </div>
         {/* Row 1: Major indices */}
@@ -400,19 +400,19 @@ export function P2StrategicDashboard() {
                   <div key={c.hk} className="p-4 border-r border-border last:border-r-0 hover:bg-card-hover transition-all">
                     <div className="flex items-center justify-between gap-1">
                       <div className="min-w-0">
-                        <div className="text-sm text-text-muted uppercase tracking-wider">{c.label}</div>
-                        <div className={`text-2xl font-bold tabular-nums leading-tight ${c.valColor}`}>
+                        <div className="text-base text-text-muted uppercase tracking-wider">{c.label}</div>
+                        <div className={`text-3xl font-bold tabular-nums leading-tight ${c.valColor}`}>
                           {c.val != null ? Number(c.val).toLocaleString('en-US', { maximumFractionDigits: c.digits }) : '-'}
                         </div>
-                        {c.chgPct != null && <div className="text-base tabular-nums"><Chg val={c.chgPct} suffix={suffix} /></div>}
+                        {c.chgPct != null && <div className="text-lg tabular-nums"><Chg val={c.chgPct} suffix={suffix} /></div>}
                       </div>
                       {useSparkline
-                        ? <MiniSparkline data={sparklineData} color={sparklineColor} width={80} height={36} />
-                        : <MiniKline data={kData} width={80} height={36} />
+                        ? <MiniSparkline data={sparklineData} color={sparklineColor} width={88} height={40} />
+                        : <MiniKline data={kData} width={88} height={40} />
                       }
                     </div>
                     {c.tag && c.tagColor && (
-                      <div className="mt-1.5 px-2 py-0.5 rounded text-sm font-semibold inline-block" style={{ backgroundColor: `${c.tagColor}15`, color: c.tagColor }}>
+                      <div className="mt-1.5 px-2 py-0.5 rounded text-base font-semibold inline-block" style={{ backgroundColor: `${c.tagColor}15`, color: c.tagColor }}>
                         {c.tag}
                       </div>
                     )}
@@ -440,7 +440,7 @@ export function P2StrategicDashboard() {
         {/* Action List */}
         <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ borderColor: totalSignals > 0 ? 'rgba(255,71,87,0.2)' : undefined }}>
           <div className="px-4 py-2.5 border-b border-border flex items-center gap-2">
-            <h2 className="text-base font-semibold uppercase tracking-wider text-text-muted">今日跟單行動清單</h2>
+            <h2 className="text-lg font-semibold uppercase tracking-wider text-text-muted">今日跟單行動清單</h2>
             {totalSignals > 0 && <span className="text-xs px-1.5 py-0.5 rounded bg-up/15 text-up font-bold">{totalSignals} signals</span>}
           </div>
           <div className="p-3">
@@ -451,7 +451,7 @@ export function P2StrategicDashboard() {
                 {(todayChanges?.new || []).map((s, i) => {
                   const sig = holdMap[s.code]
                   return (
-                    <div key={`n${i}`} className="flex items-center gap-2 py-1.5 border-b border-border/30 last:border-b-0 text-sm">
+                    <div key={`n${i}`} className="flex items-center gap-2 py-2 border-b border-border/30 last:border-b-0 text-base">
                       <Badge variant="red">新增</Badge>
                       <span className="text-accent font-mono">{s.code}</span>
                       <span className="font-medium">{s.name}</span>
@@ -464,7 +464,7 @@ export function P2StrategicDashboard() {
                 {(todayChanges?.added || []).map((s, i) => {
                   const sig = holdMap[s.code]
                   return (
-                    <div key={`a${i}`} className="flex items-center gap-2 py-1.5 border-b border-border/30 last:border-b-0 text-sm">
+                    <div key={`a${i}`} className="flex items-center gap-2 py-2 border-b border-border/30 last:border-b-0 text-base">
                       <Badge variant="blue">加碼</Badge>
                       <span className="text-accent font-mono">{s.code}</span>
                       <span className="font-medium">{s.name}</span>
@@ -475,7 +475,7 @@ export function P2StrategicDashboard() {
                   )
                 })}
                 {(todayChanges?.reduced || []).map((s, i) => (
-                  <div key={`r${i}`} className="flex items-center gap-2 py-1.5 border-b border-border/30 last:border-b-0 text-sm">
+                  <div key={`r${i}`} className="flex items-center gap-2 py-2 border-b border-border/30 last:border-b-0 text-base">
                     <Badge variant="orange">減碼</Badge>
                     <span className="text-accent font-mono">{s.code}</span>
                     <span className="font-medium">{s.name}</span>
@@ -483,7 +483,7 @@ export function P2StrategicDashboard() {
                   </div>
                 ))}
                 {(todayChanges?.exited || []).map((s, i) => (
-                  <div key={`x${i}`} className="flex items-center gap-2 py-1.5 border-b border-border/30 last:border-b-0 text-sm">
+                  <div key={`x${i}`} className="flex items-center gap-2 py-2 border-b border-border/30 last:border-b-0 text-base">
                     <Badge variant="green">退出</Badge>
                     <span className="text-accent font-mono">{s.code}</span>
                     <span className="font-medium">{s.name}</span>
@@ -510,12 +510,12 @@ export function P2StrategicDashboard() {
         const color = colorMap[s.code] || '#9ca0b4'
         return (
           <div className="bg-card border rounded-xl p-4 flex items-start gap-4" style={{ borderColor: `${color}30` }}>
-            <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold" style={{ backgroundColor: `${color}18`, color }}>
+            <div className="flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center text-base font-bold" style={{ backgroundColor: `${color}18`, color }}>
               {s.code}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm" style={{ color }}>{s.label}</span>
+                <span className="font-semibold text-base" style={{ color }}>{s.label}</span>
                 <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: `${color}15`, color }}>{s.action}</span>
               </div>
               <div className="text-xs text-text-muted mt-1 leading-relaxed">{s.reason}</div>
