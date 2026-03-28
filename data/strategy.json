@@ -3416,7 +3416,7 @@
     "updated_at": "2026-03-28T08:37:46Z"
   },
   "risk_signals": {
-    "score": 4.4,
+    "score": 5.9,
     "max_score": 10,
     "level": "medium",
     "n_red": 3,
@@ -3506,7 +3506,7 @@
         "slope_20d": 0.0195,
         "signal": "green",
         "desc": "US10Y 速度 +0.019/日",
-        "theory": "殖利率快速上升代表債券拋售、資金成本攀升",
+        "theory": "殖利率快速上升代表債券拋售、資金成本攀升。US10Y>4.7%+Oil>$95為滯脹複合條件",
         "accel": -0.001,
         "phase": "stable",
         "phase_label": "持平",
@@ -3524,8 +3524,8 @@
         "value": 10.2,
         "slope_20d": 0.0,
         "signal": "red",
-        "desc": "Fear & Greed: 10.2",
-        "theory": "極端恐懼往往伴隨市場超賣，但也可能繼續下跌",
+        "desc": "Fear & Greed: 10.2 | 底部鈍化信號（連續 15 天極度恐懼）",
+        "theory": "極端恐懼往往伴隨市場超賣。連續≥5天為底部鈍化信號（歷史上中期反彈前兆）",
         "accel": 0.0,
         "phase": "stable",
         "phase_label": "持平",
@@ -3562,8 +3562,8 @@
         "value": 99.64,
         "slope_20d": 1.0471,
         "signal": "yellow",
-        "desc": "Oil 速度 +1.05/日",
-        "theory": "油價急漲推升通膨預期與企業成本壓力",
+        "desc": "Oil 速度 +1.05/日 | 關注通膨預期變化",
+        "theory": "油價急漲推升通膨預期與企業成本壓力。$95為警戒線，$110為滯脹全面啟動",
         "accel": -2.8974,
         "phase": "accelerating",
         "phase_label": "加速惡化中（→紅）",
@@ -4796,7 +4796,11 @@
         "score": 3.8
       }
     ],
-    "updated_at": "2026-03-28 06:03:14"
+    "updated_at": "2026-03-28 06:03:14",
+    "score_base": 4.4,
+    "score_abs_bonus": 1.5,
+    "fear_greed_streak": 15,
+    "fear_greed_streak_label": "底部鈍化信號（連續 15 天極度恐懼）"
   },
   "strategy_0050": {
     "potential_in": [],
