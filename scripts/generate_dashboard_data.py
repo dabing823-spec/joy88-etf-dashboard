@@ -1,0 +1,1055 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Wolf Pack Dashboard v5 — Data Generator
+在 Mac Mini 上執行，讀取 ETF 歷史數據，產出前端需要的 JSON 檔案。
+
+用法:
+  python3 generate_dashboard_data.py
+
+輸出:
+  ../data/dashboard.json  (主要儀表板數據)
+  ../data/etf_pages.json  (各 ETF 個別頁面數據)
+"""
+
+import sys, json, os, glob, platform
+from pathlib import Path
+from datetime import datetime
+import pandas as pd
+import numpy as np
+
+# ═══════════════════════════════════════
+# 路徑設定（自動偵測 Mac / Windows / GitHub Actions）
+# ═══════════════════════════════════════
+if os.environ.get("GITHUB_ACTIONS") == "true":
+    _workspace = Path(os.environ.get("GITHUB_WORKSPACE", "."))
+    BASE = _workspace / "history" / "ETF"
+elif platform.system() == "Windows":
+    _gdrive = Path("G:/其他電腦/我的 Mac/FinanceData/history/ETF")
+    BASE = _gdrive if _gdrive.exists() else Path(os.path.expanduser("~/FinanceData/history/ETF"))
+else:
+    BASE = Path(os.path.expanduser("~/FinanceData/history/ETF"))
+SCRIPT_DIR = Path(__file__).parent
+OUTPUT_DIR = SCRIPT_DIR.parent / "data"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+def fetch_market_indices(start_year=2025, start_month=10):
+    """自動抓取加權指數 (TAIEX) 和櫃買指數 (TPEX) 歷史資料"""
+    import requests, re
+
+    taiex = {}
+    tpex = {}
+    now = datetime.now()
+
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'}
+
+    # 遍歷每個月
+    y, m = start_year, start_month
+    while True:
+        if y > now.year or (y == now.year and m > now.month):
+            break
+
+        # ── TAIEX (TWSE) ──
+        try:
+            url = f'https://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date={y}{m:02d}01'
+            r = requests.get(url, headers=headers, timeout=10)
+            data = r.json()
+            if data.get('stat') == 'OK' and data.get('data'):
+                for row in data['data']:
+                    # row[0] = '115/03/13', row[4] = '33,400.32'
+                    parts = row[0].split('/')
+                    if len(parts) == 3:
+                        dt = f"{int(parts[0]) + 1911}-{parts[1]}-{parts[2]}"
+                        val = row[4].replace(',', '')
+                        try:
+                            taiex[dt] = float(val)
+                        except ValueError:
+                            pass
+        except Exception as e:
+            print(f"  ⚠️ TAIEX {y}/{m:02d} 抓取失敗: {e}")
+
+        # ── TPEX (櫃買) ──
+        try:
+            roc_y = y - 1911
+            url = f'https://www.tpex.org.tw/web/stock/aftertrading/daily_trading_index/st41_result.php?l=zh-tw&d={roc_y}/{m:02d}&o=json'
+            r = requests.get(url, headers=headers, timeout=10)
+            data = r.json()
+            tables = data.get('tables', [])
+            if tables:
+                rows = tables[0].get('data', [])
+                for row in rows:
+                    # row[0] = '115/03/13', row[4] = 312.9 (櫃買指數)
+                    parts = row[0].split('/')
+                    if len(parts) == 3:
+                        dt = f"{int(parts[0]) + 1911}-{parts[1]}-{parts[2]}"
+                        val = row[4]
+                        try:
+                            tpex[dt] = float(str(val).replace(',', ''))
+                        except ValueError:
+                            pass
+        except Exception as e:
+            print(f"  ⚠️ TPEX {y}/{m:02d} 抓取失敗: {e}")
+
+        # Next month
+        m += 1
+        if m > 12:
+            m = 1
+            y += 1
+
+    # ── Fallback 1: indices_history.json (populated by macro_data_agent) ──
+    indices_hist_path = Path(__file__).resolve().parent.parent / "data" / "indices_history.json"
+    if indices_hist_path.exists():
+        try:
+            import json as _json
+            with open(indices_hist_path, 'r', encoding='utf-8') as f:
+                ih = _json.load(f)
+            for label, key, target in [("TAIEX", "taiex", taiex), ("TPEX", "tpex", tpex)]:
+                filled = 0
+                for rec in ih.get(key, []):
+                    dt = rec.get('date')
+                    if dt and dt not in target and rec.get('close') is not None:
+                        target[dt] = round(rec['close'], 2)
+                        filled += 1
+                if filled:
+                    print(f"  📦 indices_history.json 補充 {label}: +{filled} 天")
+        except Exception as e:
+            print(f"  ⚠️ indices_history.json 讀取失敗: {e}")
+
+    # ── Fallback 2: Yahoo Finance (for GitHub Actions / overseas IP) ──
+    if len(taiex) == 0 or len(tpex) == 0:
+        print("  ⚠️ TWSE/TPEX 資料不足，嘗試 Yahoo Finance fallback...")
+        import urllib.request, ssl
+        import json as _json
+        ctx = ssl.create_default_context()
+        yh_headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+        symbols = []
+        if len(taiex) == 0:
+            symbols.append(("^TWII", "TAIEX", taiex))
+        if len(tpex) == 0:
+            symbols.append(("^TWO", "TPEX", tpex))
+        for symbol, label, target in symbols:
+            try:
+                url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=6mo&interval=1d"
+                req = urllib.request.Request(url, headers=yh_headers)
+                with urllib.request.urlopen(req, timeout=15, context=ctx) as resp:
+                    ydata = _json.loads(resp.read().decode())
+                result = ydata["chart"]["result"][0]
+                timestamps = result.get("timestamp", [])
+                closes = result["indicators"]["quote"][0]["close"]
+                for ts, c in zip(timestamps, closes):
+                    if c is None:
+                        continue
+                    from datetime import timezone
+                    dt = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
+                    target.setdefault(dt, round(c, 2))
+                print(f"  ✅ Yahoo {label}: {len(timestamps)} 天")
+            except Exception as e:
+                print(f"  ❌ Yahoo {label} fallback 失敗: {e}")
+
+    print(f"  📈 TAIEX: {len(taiex)} 天, TPEX: {len(tpex)} 天")
+    return taiex, tpex
+
+
+# 抓取市場指數（快取到變數）
+TAIEX = {}
+TPEX = {}
+
+
+def clean(obj):
+    """清理 numpy/pandas 型別，確保 JSON 可序列化"""
+    if isinstance(obj, dict):
+        return {str(k): clean(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [clean(v) for v in obj]
+    elif isinstance(obj, (np.integer,)):
+        return int(obj)
+    elif isinstance(obj, (np.floating, float)):
+        if obj != obj:  # NaN
+            return None
+        return round(float(obj), 4)
+    elif isinstance(obj, (np.bool_,)):
+        return bool(obj)
+    elif hasattr(obj, 'item'):
+        return obj.item()
+    elif hasattr(obj, 'isoformat'):
+        return str(obj)
+    return obj
+
+
+# ═══════════════════════════════════════
+# 數據載入函數
+# ═══════════════════════════════════════
+
+def _parse_981a_xlsx(fp, date_str):
+    """解析 00981A 的 xlsx 檔案
+    結構：
+      Row 1:  資料日期
+      Row 8:  項目 / 金額 / 權重 (期貨、股票)
+      Row 12: 項目 / 金額 / 權重 (現金、保證金等)
+      Row 20: 股票代號 / 股票名稱 / 股數 / 持股權重
+      Row 21+: 持股資料
+    """
+    import openpyxl
+    wb = openpyxl.load_workbook(fp, data_only=True)
+    ws = wb.active
+    all_rows = list(ws.iter_rows(values_only=True))
+    wb.close()
+
+    def parse_pct(val):
+        if val is None:
+            return 0.0
+        s = str(val).replace('%', '').replace(',', '').strip()
+        try:
+            return float(s)
+        except ValueError:
+            return 0.0
+
+    # Parse cash, futures, units outstanding, NAV from rows with known labels
+    cash_pct = 0
+    futures_pct = 0
+    units_outstanding = 0
+    nav = 0
+    for r in all_rows:
+        if not r or not r[0]:
+            continue
+        label = str(r[0]).strip()
+        if label == '現金' and len(r) >= 3:
+            cash_pct = parse_pct(r[2])
+        elif label == '期貨保證金' and len(r) >= 3:
+            futures_pct = parse_pct(r[2])
+        elif '期貨' in label and '名目' in label and len(r) >= 3:
+            futures_pct = max(futures_pct, parse_pct(r[2]))
+        elif '流通在外' in label and len(r) >= 2:
+            try:
+                units_outstanding = int(str(r[1]).replace(',', '').replace(' ', ''))
+            except (ValueError, TypeError):
+                pass
+        elif '每單位淨值' in label and len(r) >= 2:
+            try:
+                nav = float(str(r[1]).replace('NTD', '').replace(',', '').strip())
+            except (ValueError, TypeError):
+                pass
+
+    # Find stock data start (after row with "股票代號")
+    stock_start = None
+    for i, r in enumerate(all_rows):
+        if r and r[0] and str(r[0]).strip() == '股票代號':
+            stock_start = i + 1
+            break
+
+    holdings = []
+    if stock_start:
+        for r in all_rows[stock_start:]:
+            if not r or not r[0]:
+                continue
+            code = str(r[0]).strip()
+            if not code or code == 'None':
+                continue
+            name = str(r[1]).strip() if len(r) > 1 and r[1] else ''
+            # Weight is in column 4 (index 3) = '持股權重'
+            weight = parse_pct(r[3]) if len(r) > 3 else 0
+            shares = 0
+            if len(r) > 2 and r[2]:
+                try:
+                    shares = int(str(r[2]).replace(',', '').replace(' ', ''))
+                except (ValueError, TypeError):
+                    pass
+            if weight > 0:
+                holdings.append({
+                    'code': code,
+                    'name': name,
+                    'weight': round(weight, 2),
+                    'shares': shares,
+                })
+
+    return {
+        'holdings': holdings,
+        'cash_pct': round(cash_pct, 2),
+        'futures_pct': round(futures_pct, 2),
+        'units_outstanding': units_outstanding,
+        'nav': round(nav, 2),
+        'meta': {}
+    }
+
+
+def load_981a_data():
+    """載入 00981A 所有日期的持股資料"""
+    xlsx_dir = BASE / "00981A" / "daily_xlsx"
+    records = {}
+
+    # Old format: ETF_Investment_Portfolio_YYYYMMDD.xlsx
+    for fp in sorted(glob.glob(str(xlsx_dir / "ETF_Investment_Portfolio_*.xlsx"))):
+        fname = os.path.basename(fp)
+        date_str = fname.replace("ETF_Investment_Portfolio_", "").replace(".xlsx", "")
+        try:
+            dt = datetime.strptime(date_str, "%Y%m%d").strftime("%Y-%m-%d")
+        except:
+            continue
+        try:
+            records[dt] = _parse_981a_xlsx(fp, dt)
+        except Exception as e:
+            print(f"  ⚠️ Skip {fname}: {e}")
+
+    # New format: 00981A_YYYY-MM-DD.xlsx
+    for fp in sorted(glob.glob(str(xlsx_dir / "00981A_*.xlsx"))):
+        fname = os.path.basename(fp)
+        date_str = fname.replace("00981A_", "").replace(".xlsx", "")
+        try:
+            datetime.strptime(date_str, "%Y-%m-%d")  # Validate format
+            dt = date_str
+        except:
+            continue
+        try:
+            records[dt] = _parse_981a_xlsx(fp, dt)
+        except Exception as e:
+            print(f"  ⚠️ Skip {fname}: {e}")
+
+    return records
+
+
+def _parse_other_etf_xlsx(fp, etf_id):
+    """解析 00980A/00982A/00991A/00993A 的 xlsx
+    各檔格式略有不同，統一處理。
+    """
+    import openpyxl
+
+    # 00991A 有時下載到的是 HTML（系統公告），跳過
+    with open(fp, 'rb') as f:
+        if f.read(4) != b'PK\x03\x04':
+            return None
+
+    wb = openpyxl.load_workbook(fp, data_only=True)
+
+    def parse_pct(val):
+        if val is None:
+            return 0.0
+        s = str(val).replace('%', '').replace(',', '').strip()
+        try:
+            return float(s)
+        except ValueError:
+            return 0.0
+
+    holdings = []
+    cash_pct = 0
+
+    # 00982A: 持股在 '股票' sheet
+    if '股票' in wb.sheetnames:
+        ws = wb['股票']
+        for row in range(2, ws.max_row + 1):
+            code = ws.cell(row=row, column=1).value
+            name = ws.cell(row=row, column=2).value
+            weight = ws.cell(row=row, column=3).value
+            if code and name and weight:
+                w = parse_pct(weight)
+                if w > 0:
+                    holdings.append({'code': str(code).strip(), 'name': str(name).strip(), 'weight': round(w, 2)})
+        # Cash from '其他資產' sheet
+        if '其他資產' in wb.sheetnames and '投資組合' in wb.sheetnames:
+            ws2 = wb['其他資產']
+            nav_str = wb['投資組合'].cell(row=1, column=2).value or '0'
+            nav = float(str(nav_str).replace('TWD', '').replace(',', '').replace('$', '').strip() or 0)
+            for row in range(1, ws2.max_row + 1):
+                label = str(ws2.cell(row=row, column=1).value or '').strip()
+                if label == '現金':
+                    cash_val = str(ws2.cell(row=row, column=2).value or '0')
+                    cash_val = float(cash_val.replace('TWD', '').replace(',', '').replace('$', '').strip() or 0)
+                    if nav > 0:
+                        cash_pct = round(cash_val / nav * 100, 2)
+    else:
+        # 00980A / 00993A: 單 sheet，找 '股票代號' 行
+        ws = wb.active
+        all_rows = list(ws.iter_rows(values_only=True))
+
+        stock_start = None
+        weight_col = None  # 權重所在的 column index
+
+        for i, r in enumerate(all_rows):
+            if r and r[0] and str(r[0]).strip() == '股票代號':
+                stock_start = i + 1
+                # 找 '權重' 在第幾欄
+                for j, cell in enumerate(r):
+                    if cell and '權重' in str(cell):
+                        weight_col = j
+                        break
+                break
+
+        if stock_start and weight_col is not None:
+            for r in all_rows[stock_start:]:
+                if not r or not r[0]:
+                    continue
+                code = str(r[0]).strip()
+                if not code or code == 'None':
+                    continue
+                name = str(r[1]).strip() if len(r) > 1 and r[1] else ''
+                w = parse_pct(r[weight_col]) if len(r) > weight_col else 0
+                if w > 0:
+                    holdings.append({'code': code, 'name': name, 'weight': round(w, 2)})
+
+        # Parse cash from meta rows
+        for r in all_rows:
+            if r and r[0] and str(r[0]).strip() == '現金' and len(r) >= 2:
+                # Try to calculate cash % from NAV
+                # For simplicity, estimate from stock weight sum
+                break
+
+    wb.close()
+
+    if not holdings:
+        return None
+
+    stock_wt = sum(h['weight'] for h in holdings)
+    if cash_pct == 0:
+        cash_pct = round(max(0, 100 - stock_wt), 2)
+
+    return {
+        'holdings': sorted(holdings, key=lambda h: h['weight'], reverse=True),
+        'cash_pct': cash_pct,
+        'futures_pct': 0
+    }
+
+
+def load_other_etf(etf_id):
+    """載入其他 ETF：優先用 daily_xlsx，再補 Master.csv 的舊資料"""
+    records = {}
+
+    # 1. 從 daily_xlsx 讀取（最新資料）
+    xlsx_dir = BASE / etf_id / "daily_xlsx"
+    if xlsx_dir.exists():
+        for fp in sorted(xlsx_dir.glob(f"{etf_id}_*.xlsx")):
+            date_str = fp.stem.split("_")[-1]
+            if len(date_str) != 10:
+                continue
+            try:
+                result = _parse_other_etf_xlsx(fp, etf_id)
+                if result:
+                    records[date_str] = result
+            except Exception as e:
+                print(f"  ⚠️ Skip {fp.name}: {e}")
+
+    # 2. 從 Master.csv 補充更早的資料
+    csv_path = BASE / etf_id / f"{etf_id}_Master.csv"
+    if csv_path.exists():
+        try:
+            df = pd.read_csv(csv_path, encoding='utf-8-sig')
+            col_map = {}
+            for c in df.columns:
+                cl = c.strip()
+                if '代號' in cl: col_map[c] = 'code'
+                elif '名稱' in cl: col_map[c] = 'name'
+                elif '權重' in cl: col_map[c] = 'weight'
+                elif '日期' in cl: col_map[c] = 'date'
+            df = df.rename(columns=col_map)
+            if 'date' in df.columns and 'weight' in df.columns:
+                df['weight'] = pd.to_numeric(df['weight'], errors='coerce').fillna(0)
+                for dt, group in df.groupby('date'):
+                    dt_str = str(dt)
+                    if dt_str in records:
+                        continue  # xlsx 優先
+                    holdings = []
+                    for _, row in group.iterrows():
+                        code = str(row.get('code', '')).strip()
+                        name = str(row.get('name', '')).strip()
+                        weight = float(row.get('weight', 0))
+                        if code and name and weight > 0:
+                            holdings.append({'code': code, 'name': name, 'weight': round(weight, 2)})
+
+                    if holdings:
+                        stock_wt = sum(h['weight'] for h in holdings)
+                        cash_est = round(max(0, 100 - stock_wt), 2)
+                        records[dt_str] = {
+                            'holdings': sorted(holdings, key=lambda h: h['weight'], reverse=True),
+                            'cash_pct': cash_est,
+                            'futures_pct': 0
+                        }
+        except Exception as e:
+            print(f"  ⚠️ Master.csv 讀取失敗: {e}")
+
+    return records
+
+
+# ═══════════════════════════════════════
+# Signal Engine (精簡版)
+# ═══════════════════════════════════════
+
+def calc_cash_mode(records_981a, dates):
+    """計算 00981A 攻防模式"""
+    if not dates:
+        return {}
+
+    latest = dates[-1]
+    rec = records_981a[latest]
+    cash_now = rec.get('cash_pct') or 0
+    futures_pct = rec.get('futures_pct') or 0
+    n_holdings = len(rec.get('holdings', []))
+
+    # Calculate 5MA and 20MA
+    cash_vals = [records_981a[d].get('cash_pct', 0) or 0 for d in dates]
+    cash_5ma = round(np.mean(cash_vals[-5:]), 2) if len(cash_vals) >= 5 else None
+    cash_20ma = round(np.mean(cash_vals[-20:]), 2) if len(cash_vals) >= 20 else None
+
+    # Percentile-based mode (replaces fixed thresholds)
+    cash_arr = np.array(cash_vals)
+    cash_percentile = round(float(np.sum(cash_arr <= cash_now) / len(cash_arr) * 100), 1)
+
+    if cash_percentile >= 90:
+        mode = "🔴 極端高現金"
+        mode_desc = f"現金 P{cash_percentile:.0f}，歷史極高水位"
+    elif cash_percentile >= 70:
+        mode = "🟡 偏高"
+        mode_desc = f"現金 P{cash_percentile:.0f}，高於歷史常態"
+    elif cash_percentile >= 30:
+        mode = "🟢 正常"
+        mode_desc = f"現金 P{cash_percentile:.0f}，歷史正常區間"
+    elif cash_percentile >= 10:
+        mode = "🔵 偏低"
+        mode_desc = f"現金 P{cash_percentile:.0f}，低於歷史常態"
+    else:
+        mode = "🔵 極端低現金"
+        mode_desc = f"現金 P{cash_percentile:.0f}，歷史極低水位"
+
+    percentile_label = (
+        "極端高" if cash_percentile >= 90 else
+        "偏高" if cash_percentile >= 70 else
+        "正常" if cash_percentile >= 30 else
+        "偏低" if cash_percentile >= 10 else "極端低"
+    )
+
+    # Trend
+    if len(cash_vals) >= 2:
+        if cash_vals[-1] > cash_vals[-2] + 0.5:
+            trend = "⬆️ 減倉中（現金增加）"
+        elif cash_vals[-1] < cash_vals[-2] - 0.5:
+            trend = "⬇️ 加倉中（現金減少）"
+        else:
+            trend = "➡️ 持平"
+    else:
+        trend = "—"
+
+    # Build cash series (with units outstanding for subscription/redemption tracking)
+    cash_series = []
+    for i, dt in enumerate(dates):
+        r = records_981a[dt]
+        cp = r.get('cash_pct', 0) or 0
+        fp = r.get('futures_pct', 0) or 0
+        sp = sum(h['weight'] for h in r.get('holdings', []))
+        nh = len(r.get('holdings', []))
+        units = r.get('units_outstanding', 0) or 0
+        nav = r.get('nav', 0) or 0
+
+        # Units change vs previous day + active/passive cash separation
+        if i > 0:
+            prev_units = records_981a[dates[i-1]].get('units_outstanding', 0) or 0
+            units_change = units - prev_units
+            prev_cash_pct = records_981a[dates[i-1]].get('cash_pct', 0) or 0
+            if prev_units > 0:
+                units_change_pct = round((units - prev_units) / prev_units * 100, 4)
+                cash_change = cp - prev_cash_pct
+                active_cash_delta = round(cash_change - units_change_pct, 4)
+            else:
+                units_change_pct = 0
+                active_cash_delta = 0
+        else:
+            units_change = 0
+            units_change_pct = 0
+            active_cash_delta = 0
+
+        aum = round(units * nav) if units and nav else None
+
+        c5 = round(np.mean([records_981a[dates[j]].get('cash_pct', 0) or 0 for j in range(max(0, i-4), i+1)]), 2) if i >= 4 else None
+        c20 = round(np.mean([records_981a[dates[j]].get('cash_pct', 0) or 0 for j in range(max(0, i-19), i+1)]), 2) if i >= 19 else None
+
+        cash_series.append({
+            'date': dt, 'cash_pct': round(cp, 2), 'stock_pct': round(sp, 2),
+            'futures_pct': round(fp, 2), 'n_holdings': nh,
+            'cash_5ma': c5, 'cash_20ma': c20,
+            'units': units, 'units_change': units_change, 'nav': nav,
+            'units_change_pct': units_change_pct, 'active_cash_delta': active_cash_delta,
+            'aum': aum,
+        })
+
+    has_futures = futures_pct > 0
+    futures_signal = f"⚠️ 期貨保證金 {futures_pct}%，經理人可能進行避險或方向性操作" if has_futures else ""
+
+    # Flow-adjusted mode (active vs passive cash)
+    recent_active = [item['active_cash_delta'] for item in cash_series[-5:]]
+    avg_active_delta = round(float(np.mean(recent_active)), 4) if recent_active else 0
+    if avg_active_delta > 0.3:
+        flow_adjusted_mode = "主動減倉"
+    elif avg_active_delta < -0.3:
+        flow_adjusted_mode = "主動加倉"
+    else:
+        flow_adjusted_mode = "中性（變化來自申贖）"
+
+    # Fund health indicators
+    aum_now = cash_series[-1].get('aum') or 0
+    aum_20d_ago = cash_series[-20].get('aum') or 0 if len(cash_series) >= 20 else 0
+    aum_growth_20d = round((aum_now - aum_20d_ago) / aum_20d_ago * 100, 2) if aum_20d_ago > 0 else None
+
+    # Inflow/outflow streak
+    flow_streak = 0
+    if len(cash_series) >= 2:
+        direction = 1 if cash_series[-1].get('units_change', 0) >= 0 else -1
+        for item in reversed(cash_series):
+            uc = item.get('units_change', 0)
+            if (uc >= 0 and direction == 1) or (uc < 0 and direction == -1):
+                flow_streak += 1
+            else:
+                break
+        flow_streak = flow_streak * direction
+
+    # Large flow detection (>2 std dev)
+    uc_vals = [item.get('units_change', 0) for item in cash_series]
+    large_flow = False
+    large_flow_label = ""
+    if len(uc_vals) >= 10:
+        uc_std = float(np.std(uc_vals))
+        uc_mean = float(np.mean(uc_vals))
+        latest_uc = uc_vals[-1]
+        if uc_std > 0 and abs(latest_uc - uc_mean) > 2 * uc_std:
+            large_flow = True
+            large_flow_label = f"異常大量{'申購' if latest_uc > 0 else '贖回'}"
+
+    # ── SOP Scenario Matrix ──
+    # Cash level: high (P70+), normal (P30-70), low (<P30)
+    # Flow: active_buy (avg < -0.3), neutral, active_sell (avg > 0.3)
+    # Holdings trend: recent 10d change
+    h_recent = [item['n_holdings'] for item in cash_series[-10:]] if len(cash_series) >= 10 else []
+    holdings_rising = (h_recent[-1] - h_recent[0] >= 2) if len(h_recent) >= 2 else False
+    holdings_falling = (h_recent[0] - h_recent[-1] >= 2) if len(h_recent) >= 2 else False
+
+    cash_level = 'high' if cash_percentile >= 70 else 'low' if cash_percentile < 30 else 'normal'
+    flow_dir = 'buy' if avg_active_delta < -0.3 else 'sell' if avg_active_delta > 0.3 else 'neutral'
+
+    SOP_MAP = {
+        ('high', 'buy'):     ('A', '假防守',   '現金偏高但經理人主動加倉，高現金來自申購湧入', '跟進做多'),
+        ('high', 'neutral'): ('B', '被動升高', '現金因申贖被動升高，經理人尚未行動',         '觀望 1-2 天'),
+        ('high', 'sell'):    ('C', '真防守',   '經理人主動提高現金，明確防守訊號',           '跟著減倉'),
+        ('normal', 'buy'):   ('D', '積極部署', '現金正常且持續買入，健康做多',               '正常跟單'),
+        ('normal', 'neutral'):('E', '正常',    '無明顯方向訊號',                            '維持原倉'),
+        ('normal', 'sell'):  ('F', '開始收手', '現金尚可但經理人開始減倉',                   '暫停新倉，提高警覺'),
+        ('low', 'buy'):      ('G', '全力進攻', '幾乎滿倉仍在加碼，最強做多訊號',           '跟單，但注意無子彈'),
+        ('low', 'neutral'):  ('H', '被動降低', '現金因申贖被動降低',                        '觀望'),
+        ('low', 'sell'):     ('I', '矛盾訊號', '低現金卻在賣股，可能換股操作',             '不動，先觀察'),
+    }
+    scenario_key = (cash_level, flow_dir)
+    code, label, reason, action = SOP_MAP.get(scenario_key, ('?', '未知', '', '觀望'))
+
+    # Append extra context
+    if code == 'A' and holdings_rising:
+        reason += '，且持股數增加中 — 信心更高'
+    elif code == 'C' and holdings_falling:
+        reason += '，且持股數減少中 — 確認出清'
+    elif code == 'G':
+        action += f'（現金僅 {cash_now:.1f}%）'
+
+    scenario = {
+        'code': code, 'label': label, 'reason': reason, 'action': action,
+    }
+
+    return {
+        'mode': mode, 'mode_desc': mode_desc, 'trend': trend,
+        'cash_now': round(cash_now, 2), 'cash_5ma': cash_5ma, 'cash_20ma': cash_20ma,
+        'has_futures': has_futures, 'futures_signal': futures_signal,
+        'n_holdings': n_holdings, 'cash_series': cash_series,
+        'cash_percentile': cash_percentile, 'percentile_label': percentile_label,
+        'flow_adjusted_mode': flow_adjusted_mode, 'avg_active_delta': avg_active_delta,
+        'scenario': scenario,
+        'fund_health': {
+            'aum': aum_now, 'aum_growth_20d': aum_growth_20d,
+            'flow_streak': flow_streak,
+            'large_flow': large_flow, 'large_flow_label': large_flow_label,
+        },
+    }
+
+
+def calc_consensus(all_data, all_dates):
+    """計算多 ETF 共識標的"""
+    # Find the latest date for each ETF
+    stock_map = {}
+    for etf_id, records in all_data.items():
+        etf_dates = sorted(records.keys())
+        if not etf_dates:
+            continue
+        latest = etf_dates[-1]
+        prev = etf_dates[-2] if len(etf_dates) >= 2 else None
+
+        for h in records[latest].get('holdings', []):
+            code = h['code']
+            if code not in stock_map:
+                stock_map[code] = {'name': h['name'], 'etf_weights': {}, 'changes': {}}
+            stock_map[code]['etf_weights'][etf_id] = h['weight']
+
+            # Calculate change
+            if prev:
+                prev_holdings = {hh['code']: hh['weight'] for hh in records[prev].get('holdings', [])}
+                chg = h['weight'] - prev_holdings.get(code, 0)
+                stock_map[code]['changes'][etf_id] = round(chg, 2)
+
+    consensus = []
+    for code, info in stock_map.items():
+        n_etfs = len(info['etf_weights'])
+        if n_etfs < 2:
+            continue
+        avg_weight = round(sum(info['etf_weights'].values()) / n_etfs, 2)
+        total_weight = round(sum(info['etf_weights'].values()), 2)
+        net_change = round(sum(info['changes'].values()), 2)
+        n_adding = sum(1 for c in info['changes'].values() if c > 0.05)
+        n_reducing = sum(1 for c in info['changes'].values() if c < -0.05)
+
+        consensus.append({
+            'code': code, 'name': info['name'], 'n_etfs': n_etfs,
+            'etf_weights': info['etf_weights'], 'avg_weight': avg_weight,
+            'total_weight': total_weight, 'net_change': net_change,
+            'n_adding': n_adding, 'n_reducing': n_reducing,
+            'etf_list': list(info['etf_weights'].keys())
+        })
+
+    consensus.sort(key=lambda c: c['total_weight'], reverse=True)
+    return consensus[:20]
+
+
+def calc_conviction(records_981a, dates, lookback=20):
+    """計算信心度排行"""
+    if len(dates) < 2:
+        return []
+
+    latest = dates[-1]
+    start_idx = max(0, len(dates) - lookback)
+    start_dt = dates[start_idx]
+
+    current = {h['code']: h for h in records_981a[latest].get('holdings', [])}
+    start_holdings = {h['code']: h for h in records_981a[start_dt].get('holdings', [])}
+
+    result = []
+    for code, h in current.items():
+        start_w = start_holdings.get(code, {}).get('weight', 0)
+        chg = round(h['weight'] - start_w, 2)
+
+        if chg > 1:
+            conv = "⭐⭐⭐ 高信心加碼"
+        elif chg > 0.3:
+            conv = "⭐⭐ 穩定加碼"
+        elif chg > 0:
+            conv = "⭐ 微幅增持"
+        elif chg < -1:
+            conv = "📉 大幅減碼"
+        elif chg < -0.3:
+            conv = "⬇️ 減碼中"
+        else:
+            conv = "➡️ 持平"
+
+        result.append({
+            'code': code, 'name': h['name'], 'weight': round(h['weight'], 2),
+            'start_weight': round(start_w, 2), 'weight_chg': chg,
+            'days': lookback, 'conviction': conv
+        })
+
+    result.sort(key=lambda r: abs(r['weight_chg']), reverse=True)
+    return result[:20]
+
+
+def calc_laomo_signals(records_981a, dates):
+    """計算老墨跟單信號"""
+    signals = []
+    for i in range(1, len(dates)):
+        dt = dates[i]
+        prev_dt = dates[i-1]
+        curr = {h['code']: h for h in records_981a[dt].get('holdings', [])}
+        prev = {h['code']: h for h in records_981a[prev_dt].get('holdings', [])}
+
+        for code, h in curr.items():
+            if code not in prev:
+                # New stock
+                signals.append({
+                    'date': dt, 'code': code, 'name': h['name'],
+                    'type': '新增', 'weight': round(h['weight'], 2), 'weight_chg': round(h['weight'], 2),
+                    'hold_suggestion': '觀察10日行情',
+                    'confidence': '⭐⭐' if h['weight'] > 1 else '⭐'
+                })
+            else:
+                chg = h['weight'] - prev[code]['weight']
+                if chg > 0.3:
+                    if chg > 1:
+                        conf = '⭐⭐⭐'
+                        hold = '持有60日，歷史勝率高'
+                    elif chg > 0.5:
+                        conf = '⭐⭐'
+                        hold = '持有60日'
+                    else:
+                        conf = '⭐'
+                        hold = '觀察20日'
+
+                    signals.append({
+                        'date': dt, 'code': code, 'name': h['name'],
+                        'type': '加碼', 'weight': round(h['weight'], 2), 'weight_chg': round(chg, 2),
+                        'hold_suggestion': hold, 'confidence': conf
+                    })
+
+    return signals
+
+
+# ═══════════════════════════════════════
+# 主生成函數
+# ═══════════════════════════════════════
+
+def generate():
+    print(f"🐺 Wolf Pack Dashboard v5 — Data Generator")
+    print(f"   Base: {BASE}")
+    print(f"   Output: {OUTPUT_DIR}")
+    print()
+
+    # Load all ETF data
+    print("📂 Loading 00981A xlsx...")
+    records_981a = load_981a_data()
+    dates_981a = sorted(records_981a.keys())
+    print(f"   → {len(dates_981a)} dates: {dates_981a[0]} ~ {dates_981a[-1]}")
+
+    all_data = {'00981A': records_981a}
+
+    for etf_id in ['00980A', '00982A', '00991A', '00993A']:
+        print(f"📂 Loading {etf_id} (xlsx + csv)...")
+        records = load_other_etf(etf_id)
+        if records:
+            all_data[etf_id] = records
+            etf_dates = sorted(records.keys())
+            print(f"   → {len(etf_dates)} dates: {etf_dates[0]} ~ {etf_dates[-1]}")
+        else:
+            print(f"   → No data found")
+
+    # Fetch market indices
+    global TAIEX, TPEX
+    print("\n📈 Fetching market indices (TAIEX + TPEX)...")
+    TAIEX, TPEX = fetch_market_indices(2025, 10)
+
+    # ═══════════════════════════════════════
+    # Generate dashboard.json
+    # ═══════════════════════════════════════
+    print("\n⚙️ Generating dashboard.json...")
+
+    v5 = {}
+    v5['report_date'] = dates_981a[-1]
+    v5['dates'] = dates_981a
+
+    # Cash mode
+    v5['cash_mode'] = calc_cash_mode(records_981a, dates_981a)
+
+    # Cash series
+    cs = []
+    for i, dt in enumerate(dates_981a):
+        rec = records_981a[dt]
+        cash_pct = rec.get('cash_pct') or 0
+        stock_pct = sum(h['weight'] for h in rec.get('holdings', []))
+        n_holdings = len(rec.get('holdings', []))
+
+        if i >= 4:
+            vals = [cs[j]['cash_pct'] for j in range(i-4, i)] + [cash_pct]
+            c5 = round(sum(vals)/5, 2)
+        else:
+            c5 = None
+        if i >= 19:
+            vals = [cs[j]['cash_pct'] for j in range(i-19, i)] + [cash_pct]
+            c20 = round(sum(vals)/20, 2)
+        else:
+            c20 = None
+
+        cs.append({'date': dt, 'cash_pct': round(cash_pct, 2), 'cash_5ma': c5, 'cash_20ma': c20,
+                    'stock_pct': round(stock_pct, 2), 'n_holdings': n_holdings,
+                    'taiex': TAIEX.get(dt), 'tpex': TPEX.get(dt)})
+    v5['cash_series'] = cs
+
+    # Latest holdings
+    latest_holdings = {}
+    for etf_id, records in all_data.items():
+        etf_dates = sorted(records.keys())
+        if not etf_dates:
+            continue
+        last_dt = etf_dates[-1]
+        rec = records[last_dt]
+        holdings = sorted(rec.get('holdings', []), key=lambda h: h['weight'], reverse=True)
+        latest_holdings[etf_id] = {
+            'date': last_dt, 'cash_pct': round(rec.get('cash_pct', 0) or 0, 2),
+            'n_stocks': len(holdings),
+            'stocks': [{'code': h['code'], 'name': h['name'], 'weight': round(h['weight'], 2)} for h in holdings]
+        }
+    v5['latest_holdings'] = latest_holdings
+
+    # Weight history (top 15, 30 days)
+    recent = dates_981a[-30:] if len(dates_981a) >= 30 else dates_981a
+    top15 = latest_holdings.get('00981A', {}).get('stocks', [])[:15]
+    wh = {}
+    for s in top15:
+        code = s['code']
+        hist = []
+        for dt in recent:
+            w = 0
+            for h in records_981a.get(dt, {}).get('holdings', []):
+                if h['code'] == code:
+                    w = round(h['weight'], 2)
+                    break
+            hist.append({'date': dt, 'weight': w})
+        wh[code] = hist
+    v5['weight_history'] = wh
+
+    # Conviction, Consensus
+    v5['conviction'] = calc_conviction(records_981a, dates_981a)
+    v5['consensus'] = calc_consensus(all_data, dates_981a)
+
+    # Daily changes (last 10) — with shares change & estimated amount
+    # Get NAV for amount estimation: shares_chg * weight% * NAV * total_units / shares
+    changes_list = []
+    for i in range(max(0, len(dates_981a)-10), len(dates_981a)):
+        dt = dates_981a[i]
+        rec = records_981a[dt]
+        curr_holdings = rec.get('holdings', [])
+        curr_map = {h['code']: h for h in curr_holdings}
+        nav = rec.get('nav', 0) or 0
+        total_units = rec.get('units_outstanding', 0) or 0
+        # Total fund value in NTD
+        fund_value = nav * total_units if nav and total_units else 0
+
+        day = {'date': dt, 'new': [], 'added': [], 'reduced': [], 'exited': [],
+               'cash_pct': cs[i]['cash_pct'], 'nav': nav, 'fund_value': round(fund_value)}
+
+        if i > 0:
+            prev_map = {h['code']: h for h in records_981a[dates_981a[i-1]].get('holdings', [])}
+            for code, h in curr_map.items():
+                shares_now = h.get('shares', 0)
+                if code not in prev_map:
+                    # New position — estimate amount from weight * fund_value
+                    est_amt = round(h['weight'] / 100 * fund_value) if fund_value else 0
+                    day['new'].append({
+                        'code': code, 'name': h['name'],
+                        'weight': round(h['weight'], 2),
+                        'shares': shares_now,
+                        'est_amount': est_amt,
+                    })
+                else:
+                    prev_h = prev_map[code]
+                    chg = h['weight'] - prev_h['weight']
+                    shares_prev = prev_h.get('shares', 0)
+                    shares_chg = shares_now - shares_prev
+                    # Estimate amount of the change: weight_chg% * fund_value
+                    est_amt = round(abs(chg) / 100 * fund_value) if fund_value else 0
+                    if chg > 0.1:
+                        day['added'].append({
+                            'code': code, 'name': h['name'],
+                            'weight': round(h['weight'], 2),
+                            'weight_chg': round(chg, 2),
+                            'shares_chg': shares_chg,
+                            'est_amount': est_amt,
+                        })
+                    elif chg < -0.1:
+                        day['reduced'].append({
+                            'code': code, 'name': h['name'],
+                            'weight': round(h['weight'], 2),
+                            'weight_chg': round(chg, 2),
+                            'shares_chg': shares_chg,
+                            'est_amount': est_amt,
+                        })
+            for code, h in prev_map.items():
+                if code not in curr_map:
+                    shares_prev = h.get('shares', 0)
+                    est_amt = round(h['weight'] / 100 * fund_value) if fund_value else 0
+                    day['exited'].append({
+                        'code': code, 'name': h['name'],
+                        'weight': round(h.get('weight', 0), 2),
+                        'shares': shares_prev,
+                        'est_amount': est_amt,
+                    })
+        changes_list.append(day)
+    v5['daily_changes'] = {'00981A': changes_list}
+
+    # Laomo signals
+    v5['laomo_signals'] = calc_laomo_signals(records_981a, dates_981a)
+
+    # Top 20 stocks
+    v5['top20_stocks'] = latest_holdings.get('00981A', {}).get('stocks', [])[:20]
+
+    # Stock series (top 20)
+    stock_series = []
+    for s in v5['top20_stocks']:
+        code = s['code']
+        weights = []
+        for dt in dates_981a:
+            w = 0
+            for h in records_981a.get(dt, {}).get('holdings', []):
+                if h['code'] == code:
+                    w = round(h['weight'], 2)
+                    break
+            weights.append(w)
+        stock_series.append({'code': code, 'label': f"{s['name']}({code})", 'data': weights})
+    v5['stock_series'] = stock_series
+
+    # Big add counts
+    big_add = [0]
+    for i in range(1, len(dates_981a)):
+        curr = {h['code']: h['weight'] for h in records_981a[dates_981a[i]].get('holdings', [])}
+        prev = {h['code']: h['weight'] for h in records_981a[dates_981a[i-1]].get('holdings', [])}
+        count = sum(1 for c in curr if c in prev and curr[c] - prev[c] > 0.5)
+        big_add.append(count)
+    v5['big_add_counts'] = big_add
+
+    # ═══════════════════════════════════════
+    # Generate etf_pages.json
+    # ═══════════════════════════════════════
+    print("⚙️ Generating etf_pages.json...")
+
+    etf_pages = {}
+    for etf_id, records in all_data.items():
+        etf_dates = sorted(records.keys())
+        date_records = []
+        cash_series_etf = []
+
+        prev_units_etf = 0
+        for dt in etf_dates:
+            rec = records[dt]
+            holdings = sorted(rec.get('holdings', []), key=lambda h: h['weight'], reverse=True)
+            stock_wt = sum(h['weight'] for h in holdings)
+            cash_pct = rec.get('cash_pct') or round(max(0, 100 - stock_wt), 2)
+            taiex = TAIEX.get(dt)
+            units = rec.get('units_outstanding', 0) or 0
+            nav_val = rec.get('nav', 0) or 0
+            units_chg = units - prev_units_etf if prev_units_etf > 0 else 0
+            aum_val = round(units * nav_val) if units and nav_val else None
+            prev_units_etf = units
+
+            date_records.append({
+                'date': dt,
+                'holdings': [{'code': h['code'], 'name': h['name'], 'weight': round(h['weight'], 2)} for h in holdings],
+                'cash_pct': round(cash_pct, 2),
+                'n_stocks': len(holdings),
+                'stock_weight': round(stock_wt, 2),
+                'taiex': taiex
+            })
+            cash_series_etf.append({
+                'date': dt, 'cash_pct': round(cash_pct, 2), 'taiex': taiex, 'tpex': TPEX.get(dt),
+                'units': units, 'units_change': units_chg, 'nav': nav_val, 'aum': aum_val,
+            })
+
+        etf_pages[etf_id] = {
+            'dates': etf_dates, 'n_dates': len(etf_dates),
+            'date_records': date_records, 'cash_series': cash_series_etf
+        }
+
+    # ═══════════════════════════════════════
+    # Save
+    # ═══════════════════════════════════════
+    v5 = clean(v5)
+    etf_pages = clean(etf_pages)
+
+    with open(OUTPUT_DIR / 'dashboard.json', 'w', encoding='utf-8') as f:
+        json.dump(v5, f, ensure_ascii=False)
+
+    with open(OUTPUT_DIR / 'etf_pages.json', 'w', encoding='utf-8') as f:
+        json.dump(etf_pages, f, ensure_ascii=False)
+
+    sz1 = (OUTPUT_DIR / 'dashboard.json').stat().st_size
+    sz2 = (OUTPUT_DIR / 'etf_pages.json').stat().st_size
+    print(f"\n✅ dashboard.json: {sz1:,} bytes ({sz1/1024:.0f} KB)")
+    print(f"✅ etf_pages.json: {sz2:,} bytes ({sz2/1024:.0f} KB)")
+    print(f"📅 Report date: {v5['report_date']}")
+    print(f"🐺 Done!")
+
+
+if __name__ == '__main__':
+    generate()

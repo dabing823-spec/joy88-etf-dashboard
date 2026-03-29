@@ -1,7 +1,7 @@
 name: Deploy Frontend
 
 on:
-  # Trigger on push to main (pipeline pushes data via PAT, which triggers this)
+  # Trigger on direct push (won't fire from GITHUB_TOKEN pushes)
   push:
     branches: [main]
     paths:
@@ -10,6 +10,11 @@ on:
       - 'index.html'
       - 'package.json'
       - 'vite.config.ts'
+  # Trigger after data-producing workflows complete (bypasses GITHUB_TOKEN limitation)
+  workflow_run:
+    workflows: ["Daily ETF Update", "Morning Brief", "Macro Monitor"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -19,6 +24,8 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # Skip deploy if triggered by a failed upstream workflow
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout
